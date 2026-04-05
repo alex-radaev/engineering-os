@@ -29,6 +29,7 @@ If you are picking this repo up in a later session, read these first:
 - [project-status.md](/Users/aradaev/Documents/Playground/docs/project-status.md)
 - [reference-repo-plan.md](/Users/aradaev/Documents/Playground/docs/reference-repo-plan.md)
 - [memory-and-communication.md](/Users/aradaev/Documents/Playground/docs/memory-and-communication.md)
+- [memory-system.md](/Users/aradaev/Documents/Playground/docs/memory-system.md)
 - [how-it-feels.md](/Users/aradaev/Documents/Playground/docs/how-it-feels.md)
 - [v1-spec.md](/Users/aradaev/Documents/Playground/docs/v1-spec.md)
 - [release-versioning.md](/Users/aradaev/Documents/Playground/docs/release-versioning.md)
@@ -135,5 +136,6 @@ Suggested shared-repo `.gitignore` block:
 - Live Claude Code validation has now succeeded for install, audit, bootstrap, hooks, a feature flow, and a bug-fix flow.
 - The product direction is a small workflow surface with richer internal machinery underneath, not a growing list of user commands.
 - The next step toward a real `wow` is better context recovery, so the workflows now start from a repo wake-up brief built from durable state and artifacts.
+- Memory is now being treated as its own product track: bounded startup memory first, with meaning-based retrieval, reinforcement, and decay as a later direction.
 - CI now exists for tests plus plugin-version consistency.
 - Plugin versioning is currently manual-on-change with CI enforcing consistency across the release files.

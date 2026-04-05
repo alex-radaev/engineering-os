@@ -11,6 +11,10 @@ const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "engineering-os", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "engineering-os", "sprint.json"];
 
+const RECENT_EVENTS_LIMIT = 3;
+const RECENT_HISTORY_LIMIT = 3;
+const JSONL_TAIL_BYTES = 64 * 1024;
+
 async function pathExists(targetPath) {
   try {
     await fs.access(targetPath);
@@ -20,16 +24,38 @@ async function pathExists(targetPath) {
   }
 }
 
-async function readJsonl(filePath) {
+async function readRecentJsonl(filePath, count, maxBytes = JSONL_TAIL_BYTES) {
   if (!(await pathExists(filePath))) {
     return [];
   }
-  const raw = await fs.readFile(filePath, "utf8");
-  return raw
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+
+  const handle = await fs.open(filePath, "r");
+  try {
+    const stat = await handle.stat();
+    if (stat.size === 0) {
+      return [];
+    }
+
+    const start = Math.max(0, stat.size - maxBytes);
+    const length = stat.size - start;
+    const buffer = Buffer.alloc(length);
+    await handle.read(buffer, 0, length, start);
+
+    let raw = buffer.toString("utf8");
+    if (start > 0) {
+      const firstNewline = raw.indexOf("\n");
+      raw = firstNewline === -1 ? "" : raw.slice(firstNewline + 1);
+    }
+
+    return raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(-count)
+      .map((line) => JSON.parse(line));
+  } finally {
+    await handle.close();
+  }
 }
 
 async function readJson(filePath) {
@@ -37,6 +63,23 @@ async function readJson(filePath) {
     return null;
   }
   return JSON.parse(await fs.readFile(filePath, "utf8"));
+}
+
+async function countFiles(dirPath) {
+  if (!(await pathExists(dirPath))) {
+    return 0;
+  }
+
+  const entries = await fs.readdir(dirPath);
+  let count = 0;
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry);
+    const stat = await fs.stat(fullPath);
+    if (stat.isFile()) {
+      count += 1;
+    }
+  }
+  return count;
 }
 
 async function listFilesNewestFirst(dirPath) {
@@ -73,25 +116,120 @@ async function latestArtifactByPrefix(repoPath, subdir, prefix) {
   };
 }
 
-function tail(items, count = 5) {
-  return items.slice(Math.max(0, items.length - count));
+function newestOf(...artifacts) {
+  return (
+    artifacts
+      .filter(Boolean)
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0] || null
+  );
+}
+
+function summarizeLatestArtifact(artifact) {
+  if (!artifact) {
+    return null;
+  }
+
+  return {
+    title: artifact.title,
+    updatedAt: artifact.updatedAt,
+    path: artifact.path
+  };
+}
+
+async function countArchive(repoPath) {
+  const [runs, handoffs, reviews] = await Promise.all([
+    countFiles(path.join(repoPath, ...RUNS_DIR)),
+    countFiles(path.join(repoPath, ...HANDOFFS_DIR)),
+    countFiles(path.join(repoPath, ...REVIEWS_DIR))
+  ]);
+
+  return { runs, handoffs, reviews };
+}
+
+function buildMemoryBuckets({
+  claims,
+  openApprovals,
+  sprint,
+  latestRunBrief,
+  latestFinalSynthesis,
+  latestHandoff,
+  latestReview,
+  recentEvents,
+  recentClaimHistory,
+  archiveCounts
+}) {
+  return {
+    policy: "bounded-v1",
+    hot: {
+      claims,
+      openApprovals,
+      sprint,
+      latestArtifacts: {
+        runBrief: latestRunBrief,
+        finalSynthesis: latestFinalSynthesis,
+        handoff: latestHandoff
+      }
+    },
+    warm: {
+      review: latestReview,
+      recentEvents,
+      recentClaimHistory
+    },
+    cold: {
+      archiveCounts,
+      omittedByDefault: [
+        "older_artifacts",
+        "resolved_approvals",
+        "full_event_log",
+        "full_history_log"
+      ]
+    }
+  };
 }
 
 export async function buildWakeUpBrief(repoPath) {
-  const openApprovals = await listApprovals(repoPath, { status: "open" });
-  const claims = await listClaims(repoPath);
-  const sprint = await readJson(path.join(repoPath, ...SPRINT_PATH));
-  const recentEvents = tail(await readJsonl(path.join(repoPath, ...EVENTS_PATH)), 5).map((event) => ({
+  const [openApprovals, claims, sprint, latestRunBrief, latestFinalSynthesis, latestHandoff, latestReview] =
+    await Promise.all([
+      listApprovals(repoPath, { status: "open" }),
+      listClaims(repoPath),
+      readJson(path.join(repoPath, ...SPRINT_PATH)),
+      latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
+      latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
+      latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
+      latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result")
+    ]);
+
+  const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
+    readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
+    readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
+    countArchive(repoPath)
+  ]);
+
+  const recentEvents = recentEventsRaw.map((event) => ({
     timestamp: event.timestamp,
     event: event.event,
     payloadPath: event.payloadPath || ""
   }));
-  const recentClaimHistory = tail(await readJsonl(path.join(repoPath, ...HISTORY_PATH)), 5);
 
-  const latestRunBrief = await latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief");
-  const latestFinalSynthesis = await latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis");
-  const latestHandoff = await latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff");
-  const latestReview = await latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result");
+  const latestArtifacts = {
+    runBrief: latestRunBrief,
+    finalSynthesis: latestFinalSynthesis,
+    handoff: latestHandoff,
+    review: latestReview
+  };
+
+  const memory = buildMemoryBuckets({
+    claims,
+    openApprovals,
+    sprint,
+    latestRunBrief,
+    latestFinalSynthesis,
+    latestHandoff,
+    latestReview,
+    recentEvents,
+    recentClaimHistory,
+    archiveCounts
+  });
 
   return {
     repoPath,
@@ -101,22 +239,19 @@ export async function buildWakeUpBrief(repoPath) {
     openApprovals,
     recentClaimHistory,
     recentEvents,
-    latestArtifacts: {
-      runBrief: latestRunBrief,
-      finalSynthesis: latestFinalSynthesis,
-      handoff: latestHandoff,
-      review: latestReview
-    },
+    latestArtifacts,
+    memory,
     summary: {
+      memoryPolicy: memory.policy,
       activeClaims: claims.length,
       openApprovals: openApprovals.length,
-      hasRecentRunMemory: Boolean(latestRunBrief || latestFinalSynthesis || latestHandoff || latestReview),
-      latestArtifactTitle:
-        latestFinalSynthesis?.title ||
-        latestRunBrief?.title ||
-        latestHandoff?.title ||
-        latestReview?.title ||
-        null
+      hasRecentRunMemory: Boolean(
+        latestRunBrief || latestFinalSynthesis || latestHandoff || latestReview
+      ),
+      latestArtifact: summarizeLatestArtifact(
+        newestOf(latestFinalSynthesis, latestRunBrief, latestHandoff, latestReview)
+      ),
+      archiveCounts
     }
   };
 }

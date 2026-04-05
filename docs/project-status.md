@@ -6,6 +6,7 @@ For full continuity after compaction, read this alongside:
 
 - `docs/reference-repo-plan.md`
 - `docs/memory-and-communication.md`
+- `docs/memory-system.md`
 - `docs/how-it-feels.md`
 - `docs/v1-spec.md`
 - `docs/release-versioning.md`
@@ -174,6 +175,7 @@ Observed lessons:
 - the normal user journey should stay centered on a few workflow commands, with the rest treated as internal or advanced tools
 - manual versioning plus CI consistency checks is sufficient for now; auto-bump-on-merge is not yet necessary
 - artifact CLI ergonomics matter in practice; common aliases like `--verdict` and working subcommand help reduce workflow friction
+- memory should become a standalone feature track, but v1 must stay bounded: stable repo memory plus current live state plus the latest useful artifacts, not the full archive
 
 ## Where We Are Now
 
@@ -194,6 +196,7 @@ What is working today:
 - artifact writers in the installer and CLI
 - workflow prompts now explicitly instruct the lead to use artifact writers for substantial runs
 - workflow prompts now start from a repo wake-up brief built from durable state
+- wake-up now follows an explicit bounded-v1 memory shape with hot, warm, and cold buckets
 - CI for tests and version consistency
 
 What is not yet proven:
@@ -241,6 +244,15 @@ Add the next layer on top of claims:
 
 - clearer run board or sprint state
 - lightweight task status tracking
+
+### Next Memory Feature
+
+Treat memory as its own small product area:
+
+- keep startup memory bounded through wake-up summaries
+- define hot, warm, and cold memory behavior
+- improve artifact structure so later retrieval can become meaning-based
+- explore reinforcement and decay only after bounded v1 memory feels solid
 
 ### Next Observability Feature
 

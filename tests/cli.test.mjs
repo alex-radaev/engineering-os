@@ -260,10 +260,21 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   ]);
   const wakeUpResult = JSON.parse(wakeUpOutput.stdout);
 
+  assert.equal(wakeUpResult.summary.memoryPolicy, "bounded-v1");
   assert.equal(wakeUpResult.summary.activeClaims, 1);
   assert.equal(wakeUpResult.summary.openApprovals, 1);
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.equal(wakeUpResult.memory.hot.claims.length, 1);
+  assert.equal(wakeUpResult.memory.hot.openApprovals.length, 1);
+  assert.ok(wakeUpResult.memory.cold.archiveCounts.runs >= 1);
+  assert.deepEqual(wakeUpResult.memory.cold.omittedByDefault, [
+    "older_artifacts",
+    "resolved_approvals",
+    "full_event_log",
+    "full_history_log"
+  ]);
 });
 
 test("CLI subcommand help works without error", async () => {
