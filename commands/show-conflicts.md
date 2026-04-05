@@ -1,0 +1,19 @@
+---
+description: Check whether specific files are already claimed and would conflict with new work.
+argument-hint: [path] [more paths]
+---
+
+# Show Engineering OS Conflicts
+
+Use this before assigning new work to confirm whether target files are already claimed.
+
+Workflow:
+
+1. Run:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" show-conflicts --repo "$PWD" $ARGUMENTS`
+2. Treat results in three buckets:
+   - `owned`: already claimed by the current session, safe to keep editing
+   - `conflicts`: claimed by someone else, needs reassignment or release
+   - `available`: currently unclaimed, safe to assign
+3. If no paths are provided, summarize the current repo-wide claim picture.
+4. Summarize whether the work is clear to proceed or needs reassignment.

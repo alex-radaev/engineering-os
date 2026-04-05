@@ -1,0 +1,20 @@
+{
+  "name": "engineering-os-dev",
+  "metadata": {
+    "description": "Development marketplace for the Engineering OS Claude Code plugin"
+  },
+  "owner": {
+    "name": "Aradaev"
+  },
+  "plugins": [
+    {
+      "name": "engineering-os",
+      "description": "Structured multi-agent workflow plugin for Claude Code with explicit ownership and observability",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Aradaev"
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { execFile as execFileCallback } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFile = promisify(execFileCallback);
+const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), "engineering-os-e2e-"));
+const repoPath = path.join(rootPath, "sample-repo");
+const cliPath = path.resolve("scripts/engineering-os.mjs");
+
+async function main() {
+  console.log(`Creating sample repo at ${repoPath}`);
+
+  const initResult = await execFile("node", [cliPath, "init", "--repo", repoPath], {
+    cwd: path.resolve(".")
+  });
+  console.log(initResult.stdout.trim());
+
+  const claudePath = path.join(repoPath, "CLAUDE.md");
+  const settingsPath = path.join(repoPath, ".claude", "settings.json");
+  const claudeMd = await fs.readFile(claudePath, "utf8");
+  const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+
+  console.log("\nSmoke check:");
+  console.log(`- CLAUDE.md exists: ${claudeMd.length > 0}`);
+  console.log(`- Harness import present: ${claudeMd.includes("engineering-os:start")}`);
+  console.log(`- Hook events configured: ${Object.keys(settings.hooks).join(", ")}`);
+  console.log(`- Repo path: ${repoPath}`);
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
