@@ -3,8 +3,7 @@ import path from "node:path";
 
 const CLAUDE_IMPORT_BLOCK = [
   "<!-- engineering-os:start -->",
-  "@.claude/engineering-os/constitution.md",
-  "@.claude/engineering-os/workflow.md",
+  "<!-- Constitution and workflow are loaded globally via ~/.claude/CLAUDE.md -->",
   "<!-- engineering-os:end -->"
 ].join("\n");
 
@@ -293,14 +292,6 @@ async function updateSettings(repoPath, writes) {
 async function writeHarnessFiles(repoPath, writes) {
   const files = [
     [
-      path.join(repoPath, ".claude", "engineering-os", "constitution.md"),
-      `${CONSTITUTION_TEMPLATE}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "engineering-os", "workflow.md"),
-      `${WORKFLOW_TEMPLATE}\n`
-    ],
-    [
       path.join(repoPath, ".claude", "artifacts", "engineering-os", "README.md"),
       `${ARTIFACT_README_TEMPLATE}\n`
     ],
@@ -361,7 +352,7 @@ export async function auditRepo(repoPath) {
     hasClaudeMd: await pathExists(path.join(repoPath, "CLAUDE.md")),
     hasDotClaude: await pathExists(path.join(repoPath, ".claude")),
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
-    hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "engineering-os", "constitution.md")),
+    hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "engineering-os")),
     hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"))
   };
 }
@@ -382,6 +373,35 @@ export async function bootstrapRepo(repoPath) {
     writes,
     audit: await auditRepo(repoPath)
   };
+}
+
+const GLOBAL_IMPORT_LINES = [
+  "@~/.claude/engineering-os/constitution.md",
+  "@~/.claude/engineering-os/workflow.md"
+];
+
+export async function installGlobal() {
+  const homeDir = process.env.HOME || process.env.USERPROFILE;
+  const globalDir = path.join(homeDir, ".claude", "engineering-os");
+  const globalClaudeMd = path.join(homeDir, ".claude", "CLAUDE.md");
+  const writes = [];
+
+  await writeFileIfChanged(path.join(globalDir, "constitution.md"), `${CONSTITUTION_TEMPLATE}\n`);
+  writes.push("~/.claude/engineering-os/constitution.md");
+
+  await writeFileIfChanged(path.join(globalDir, "workflow.md"), `${WORKFLOW_TEMPLATE}\n`);
+  writes.push("~/.claude/engineering-os/workflow.md");
+
+  const existing = await fs.readFile(globalClaudeMd, "utf8").catch(() => "");
+  const missingLines = GLOBAL_IMPORT_LINES.filter((line) => !existing.includes(line));
+  if (missingLines.length > 0) {
+    const prefix = missingLines.join("\n");
+    const next = existing ? `${prefix}\n\n${existing}` : `${prefix}\n`;
+    await fs.writeFile(globalClaudeMd, next);
+    writes.push("~/.claude/CLAUDE.md");
+  }
+
+  return { mode: "install-global", writes };
 }
 
 export async function initRepo(repoPath, options = {}) {

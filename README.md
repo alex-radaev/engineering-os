@@ -41,6 +41,34 @@ git clone https://github.com/alex-radaev/engineering-os.git
 
 Then add it as a local marketplace in `~/.claude/plugins/known_marketplaces.json`.
 
+### Global setup
+
+After installing the plugin, run the global setup to install the constitution and workflow:
+
+```bash
+node "<plugin-path>/scripts/engineering-os.mjs" install-global
+```
+
+This writes `constitution.md` and `workflow.md` to `~/.claude/engineering-os/` and adds `@` references to your global `~/.claude/CLAUDE.md`. The constitution and workflow are loaded in every session, across all repos.
+
+### How configuration layers work
+
+| Layer | Location | Scope | Who edits |
+|-------|----------|-------|-----------|
+| Constitution + workflow | `~/.claude/engineering-os/` | All repos | Plugin (via `install-global`) |
+| Global user rules | `~/.claude/CLAUDE.md` | All repos | User |
+| Repo rules | `CLAUDE.md` | This repo | Team |
+
+**Repo CLAUDE.md overrides constitution defaults.** The constitution provides baseline team rules (ownership, review gates, handoffs). Teams customize per-repo via CLAUDE.md without touching the constitution.
+
+### Per-repo bootstrap
+
+To enable artifacts, state tracking, and hooks in a specific repo:
+
+```bash
+node "<plugin-path>/scripts/engineering-os.mjs" bootstrap --repo .
+```
+
 ## Customizing agents
 
 Agents support two-tier custom instructions, same model as Claude Code settings:

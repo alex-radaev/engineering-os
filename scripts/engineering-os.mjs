@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import { writeArtifact } from "./lib/artifacts.mjs";
-import { auditRepo, bootstrapRepo, initRepo } from "./lib/installer.mjs";
+import { auditRepo, bootstrapRepo, initRepo, installGlobal } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
 import { buildWakeUpBrief } from "./lib/wakeup.mjs";
@@ -217,6 +217,7 @@ function parseArgs(argv) {
 
 function usage(target = null) {
   const subcommands = {
+    "install-global": "  node scripts/engineering-os.mjs install-global",
     audit: "  node scripts/engineering-os.mjs audit --repo <path>",
     bootstrap: "  node scripts/engineering-os.mjs bootstrap --repo <path>",
     init: "  node scripts/engineering-os.mjs init --repo <path> [--allow-existing]",
@@ -261,7 +262,9 @@ async function main() {
   }
 
   let result;
-  if (command === "audit") {
+  if (command === "install-global") {
+    result = await installGlobal();
+  } else if (command === "audit") {
     result = await auditRepo(repoPath);
   } else if (command === "bootstrap") {
     result = await bootstrapRepo(repoPath);
