@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { auditRepo, bootstrapRepo, initRepo } from "../scripts/lib/installer.mjs";
+import { auditRepo, bootstrapRepo, initRepo, installGlobal } from "../scripts/lib/installer.mjs";
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -68,4 +68,42 @@ test("init rejects a non-empty existing directory without opt-in", async () => {
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n");
 
   await assert.rejects(() => initRepo(repoPath), /already exists and is not empty/);
+});
+
+test("installGlobal writes one managed global memory copy and is idempotent", async () => {
+  const originalHome = process.env.HOME;
+  const homePath = await makeTempDir("engineering-os-global-home-");
+  process.env.HOME = homePath;
+
+  try {
+    const first = await installGlobal();
+    assert.equal(first.mode, "install-global");
+    assert.deepEqual(first.writes, [
+      "~/.claude/engineering-os/constitution.md",
+      "~/.claude/engineering-os/workflow.md",
+      "~/.claude/engineering-os/metadata.json",
+      "~/.claude/CLAUDE.md"
+    ]);
+    assert.equal(first.global.hasGlobalMemory, true);
+    assert.equal(first.global.globalMemoryStale, false);
+
+    const claudeMd = await fs.readFile(path.join(homePath, ".claude", "CLAUDE.md"), "utf8");
+    assert.match(claudeMd, /@~\/\.claude\/engineering-os\/constitution\.md/);
+    assert.match(claudeMd, /@~\/\.claude\/engineering-os\/workflow\.md/);
+
+    const metadata = JSON.parse(
+      await fs.readFile(path.join(homePath, ".claude", "engineering-os", "metadata.json"), "utf8")
+    );
+    assert.equal(metadata.managedBy, "engineering-os");
+
+    const second = await installGlobal();
+    assert.deepEqual(second.writes, []);
+    assert.equal(second.global.hasGlobalMemory, true);
+  } finally {
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
+  }
 });

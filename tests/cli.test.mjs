@@ -4,10 +4,12 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 const execFile = promisify(execFileCallback);
-const cliPath = "/Users/aradaev/Documents/Playground/scripts/engineering-os.mjs";
+const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const cliPath = path.join(repoRoot, "scripts", "engineering-os.mjs");
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -286,4 +288,28 @@ test("CLI subcommand help works without error", async () => {
 
   assert.match(helpOutput.stdout, /write-review-result/);
   assert.match(helpOutput.stdout, /--verdict/);
+});
+
+test("CLI install-global writes managed global memory into HOME", async () => {
+  const homePath = await makeTempDir("engineering-os-cli-global-home-");
+  const installOutput = await execFile("node", [cliPath, "install-global"], {
+    env: { ...process.env, HOME: homePath }
+  });
+  const result = JSON.parse(installOutput.stdout);
+
+  assert.equal(result.mode, "install-global");
+  assert.equal(result.global.hasGlobalMemory, true);
+  assert.equal(result.global.globalMemoryStale, false);
+  assert.deepEqual(result.writes, [
+    "~/.claude/engineering-os/constitution.md",
+    "~/.claude/engineering-os/workflow.md",
+    "~/.claude/engineering-os/metadata.json",
+    "~/.claude/CLAUDE.md"
+  ]);
+
+  const repeatOutput = await execFile("node", [cliPath, "install-global"], {
+    env: { ...process.env, HOME: homePath }
+  });
+  const repeatResult = JSON.parse(repeatOutput.stdout);
+  assert.deepEqual(repeatResult.writes, []);
 });
