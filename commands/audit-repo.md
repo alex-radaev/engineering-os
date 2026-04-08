@@ -14,7 +14,9 @@ Workflow:
    - `CLAUDE.md`
    - `.claude/`
    - `.claude/settings.json`
-   - `.claude/engineering-os/constitution.md`
+   - `.claude/artifacts/engineering-os/`
+   - `.claude/state/engineering-os/`
+   - global Engineering OS memory in `~/.claude/engineering-os/`
 3. If the harness is incomplete, recommend either:
    - `/bootstrap-repo` for adoption into this repo
    - `/init-repo` for a fresh repo instead

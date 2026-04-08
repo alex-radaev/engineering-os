@@ -22,6 +22,7 @@ Primary user-facing commands:
 - `/engineering-os:parallel-review` — coordinate clean parallel ownership
 - `/engineering-os:bootstrap-repo` — prepare an existing repo for the workflow
 - `/engineering-os:init-repo` — initialize a new repo with the harness
+- `/engineering-os:install-global` — install or update the one global Engineering OS memory copy
 
 Supporting commands: `claim-files`, `release-files`, `show-claims`, `show-conflicts`, `request-approval`, `show-approvals`, `resolve-approval`, `audit-repo`, `wake-up-brief`.
 
@@ -43,19 +44,35 @@ Then add it as a local marketplace in `~/.claude/plugins/known_marketplaces.json
 
 ### Global setup
 
-After installing the plugin, run the global setup to install the constitution and workflow:
+Engineering OS keeps one managed global memory copy for framework-level rules:
 
-```bash
-node "<plugin-path>/scripts/engineering-os.mjs" install-global
+- `~/.claude/engineering-os/constitution.md`
+- `~/.claude/engineering-os/workflow.md`
+- `~/.claude/engineering-os/metadata.json`
+
+Project repos should not each get their own copied constitution and workflow. They should keep only repo-specific rules plus repo-local state, artifacts, and hooks.
+
+After installing or updating the plugin, run:
+
+```text
+/engineering-os:install-global
 ```
 
-This writes `constitution.md` and `workflow.md` to `~/.claude/engineering-os/` and adds `@` references to your global `~/.claude/CLAUDE.md`. The constitution and workflow are loaded in every session, across all repos.
+This writes or updates the managed global copy and adds `@` references to your global `~/.claude/CLAUDE.md`.
+
+Why this exists:
+
+- Claude memory can import stable files from `~/.claude/`
+- plugin install does not automatically rewrite global `CLAUDE.md`
+- one managed global copy avoids stale per-repo framework copies
+
+If a plugin update changes constitution or workflow behavior, rerun `/engineering-os:install-global` once.
 
 ### How configuration layers work
 
 | Layer | Location | Scope | Who edits |
 |-------|----------|-------|-----------|
-| Constitution + workflow | `~/.claude/engineering-os/` | All repos | Plugin (via `install-global`) |
+| Constitution + workflow | `~/.claude/engineering-os/` | All repos | Plugin-managed global copy |
 | Global user rules | `~/.claude/CLAUDE.md` | All repos | User |
 | Repo rules | `CLAUDE.md` | This repo | Team |
 

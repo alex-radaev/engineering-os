@@ -1,9 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+const GLOBAL_MEMORY_VERSION = "1.0";
+const GLOBAL_METADATA_TEMPLATE = {
+  managedBy: "engineering-os",
+  version: GLOBAL_MEMORY_VERSION,
+  files: ["constitution.md", "workflow.md"]
+};
+
 const CLAUDE_IMPORT_BLOCK = [
   "<!-- engineering-os:start -->",
-  "<!-- Constitution and workflow are loaded globally via ~/.claude/CLAUDE.md -->",
+  "<!-- Engineering OS global memory lives in ~/.claude/engineering-os/. Run /engineering-os:install-global after plugin updates that change framework memory. -->",
   "<!-- engineering-os:end -->"
 ].join("\n");
 
@@ -346,6 +353,7 @@ async function writeHarnessFiles(repoPath, writes) {
 }
 
 export async function auditRepo(repoPath) {
+  const global = await inspectGlobalInstall();
   return {
     repoPath,
     exists: await pathExists(repoPath),
@@ -353,7 +361,8 @@ export async function auditRepo(repoPath) {
     hasDotClaude: await pathExists(path.join(repoPath, ".claude")),
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
     hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "engineering-os")),
-    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"))
+    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json")),
+    global
   };
 }
 
@@ -380,28 +389,79 @@ const GLOBAL_IMPORT_LINES = [
   "@~/.claude/engineering-os/workflow.md"
 ];
 
+function globalPaths(homeDir) {
+  const globalDir = path.join(homeDir, ".claude", "engineering-os");
+  return {
+    globalDir,
+    constitution: path.join(globalDir, "constitution.md"),
+    workflow: path.join(globalDir, "workflow.md"),
+    metadata: path.join(globalDir, "metadata.json"),
+    claudeMd: path.join(homeDir, ".claude", "CLAUDE.md")
+  };
+}
+
+async function inspectGlobalInstall() {
+  const homeDir = process.env.HOME || process.env.USERPROFILE;
+  const paths = globalPaths(homeDir);
+  const metadata = await fs.readFile(paths.metadata, "utf8")
+    .then((raw) => JSON.parse(raw))
+    .catch(() => null);
+  const hasImports = await fs.readFile(paths.claudeMd, "utf8")
+    .then((raw) => GLOBAL_IMPORT_LINES.every((line) => raw.includes(line)))
+    .catch(() => false);
+
+  const hasConstitution = await pathExists(paths.constitution);
+  const hasWorkflow = await pathExists(paths.workflow);
+  const hasGlobalMemory = hasConstitution && hasWorkflow && hasImports;
+
+  return {
+    hasGlobalMemory,
+    globalMemoryVersion: metadata?.version || null,
+    expectedGlobalMemoryVersion: GLOBAL_MEMORY_VERSION,
+    globalMemoryStale: hasGlobalMemory && metadata?.version !== GLOBAL_MEMORY_VERSION,
+    hasGlobalImports: hasImports,
+    globalMemoryPath: path.join(homeDir, ".claude", "engineering-os")
+  };
+}
+
 export async function installGlobal() {
   const homeDir = process.env.HOME || process.env.USERPROFILE;
-  const globalDir = path.join(homeDir, ".claude", "engineering-os");
-  const globalClaudeMd = path.join(homeDir, ".claude", "CLAUDE.md");
+  const paths = globalPaths(homeDir);
   const writes = [];
 
-  await writeFileIfChanged(path.join(globalDir, "constitution.md"), `${CONSTITUTION_TEMPLATE}\n`);
-  writes.push("~/.claude/engineering-os/constitution.md");
+  const constitutionChanged = await writeFileIfChanged(paths.constitution, `${CONSTITUTION_TEMPLATE}\n`);
+  if (constitutionChanged) {
+    writes.push("~/.claude/engineering-os/constitution.md");
+  }
 
-  await writeFileIfChanged(path.join(globalDir, "workflow.md"), `${WORKFLOW_TEMPLATE}\n`);
-  writes.push("~/.claude/engineering-os/workflow.md");
+  const workflowChanged = await writeFileIfChanged(paths.workflow, `${WORKFLOW_TEMPLATE}\n`);
+  if (workflowChanged) {
+    writes.push("~/.claude/engineering-os/workflow.md");
+  }
 
-  const existing = await fs.readFile(globalClaudeMd, "utf8").catch(() => "");
+  const metadataChanged = await writeFileIfChanged(
+    paths.metadata,
+    `${JSON.stringify(GLOBAL_METADATA_TEMPLATE, null, 2)}\n`
+  );
+  if (metadataChanged) {
+    writes.push("~/.claude/engineering-os/metadata.json");
+  }
+
+  const existing = await fs.readFile(paths.claudeMd, "utf8").catch(() => "");
   const missingLines = GLOBAL_IMPORT_LINES.filter((line) => !existing.includes(line));
   if (missingLines.length > 0) {
     const prefix = missingLines.join("\n");
     const next = existing ? `${prefix}\n\n${existing}` : `${prefix}\n`;
-    await fs.writeFile(globalClaudeMd, next);
+    await ensureDir(path.dirname(paths.claudeMd));
+    await fs.writeFile(paths.claudeMd, next);
     writes.push("~/.claude/CLAUDE.md");
   }
 
-  return { mode: "install-global", writes };
+  return {
+    mode: "install-global",
+    writes,
+    global: await inspectGlobalInstall()
+  };
 }
 
 export async function initRepo(repoPath, options = {}) {

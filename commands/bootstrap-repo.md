@@ -11,6 +11,7 @@ Goals:
 - inspect existing Claude Code files before writing anything
 - preserve repo-owned instructions and conventions
 - create only the smallest framework-specific additions
+- keep framework constitution and workflow in the one global managed copy
 - make the result easy to inspect and easy to remove
 
 Workflow:
@@ -26,7 +27,8 @@ Workflow:
    - `.claude/hooks/`
    - `.claude/settings.json`
 6. Keep framework-owned instructions isolated from repo-owned instructions.
-7. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
+7. If the installer reports missing or stale global memory, recommend `/engineering-os:install-global`.
+8. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
 
 Deliverable:
 
