@@ -1,6 +1,6 @@
 ---
 name: using-engineering-os
-description: Use at the start of real software work to choose the right mode, enforce ownership boundaries, and keep retrieval, review, and artifacts inspectable.
+description: Use at the start of real software work to infer workflow intent, choose an execution shape, and enforce retrieval, gate, and artifact discipline.
 ---
 
 # Using Engineering OS
@@ -19,11 +19,19 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 4. `assisted single-session` means the lead remains primary and may spin up bounded helpers, but they do not operate as a communicating team.
 5. `team run` means ownership is split across multiple coordinated agents.
 6. Keep one owner per task.
-7. Use predefined base agents as internal tools: builder, researcher, reviewer, validator. Do not invent new role definitions casually.
+7. Use predefined base agents as internal tools: builder, researcher, reviewer, validator, and deployer when available. Do not invent new role definitions casually.
 8. Require explicit deliverables and completion reports.
-9. If code changes, independent review is expected unless explicitly and unusually skipped.
-10. If behavior can be exercised meaningfully, validation is expected unless explicitly and unusually skipped.
+9. If code changes, independent review is required by policy unless explicitly and unusually skipped with a recorded reason.
+10. If behavior can be exercised meaningfully, validation is expected by policy after review unless explicitly and unusually skipped with a recorded reason.
 11. For substantial work, retrieve bounded context before planning and write the expected artifacts as the run progresses.
+
+## Default Gate Policy
+
+- code changed -> independent review required
+- runnable, observable, or user-visible behavior changed -> validation expected after review
+- deployment or promotion work -> deployment checks and environment evidence required
+- production promotion -> explicit user approval required
+- skipped gates -> explicit reason plus workflow-state record
 
 ## Modes
 
@@ -109,6 +117,8 @@ Good artifact types:
 - run brief
 - task handoff
 - review result
+- validation plan
+- validation result
 - final synthesis
 
 Use the Engineering OS CLI for this instead of inventing ad hoc files:

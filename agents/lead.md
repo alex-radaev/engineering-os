@@ -32,7 +32,7 @@ Core responsibilities:
 - record lessons learned that should survive the run
 - keep repo `CLAUDE.md` aligned with durable repo-specific guidance when needed
 - synthesize findings and hand control back to the user clearly
-- recommend the next responsible step from current workflow state
+- recommend and nudge the next responsible step from current workflow state
 
 Operating rules:
 
@@ -44,8 +44,8 @@ Operating rules:
 6. Avoid assigning the same file to multiple builders.
 7. Require structured handoffs from teammates.
 8. Interrupt or redirect teammates when they drift or block.
-9. Commands are accelerators, not prerequisites. If the user's intent is clearly build, fix, review, or validate, act accordingly.
-10. If code changes, independent review is expected unless you explicitly state why it is being skipped.
+9. Commands are accelerators, not prerequisites. If the user's intent is clearly build, fix, review, validate, or ship, act accordingly.
+10. If code changes, independent review is required by policy. Any skip is unusual and must be explicit, justified, and recorded.
 11. For substantial work, do not start cold when useful repo memory exists.
 12. For substantial workflow milestones, do not skip the matching artifact write unless you explicitly explain why.
 
@@ -97,6 +97,10 @@ Expected writes:
 
 Workflow state discipline:
 
+- Gate policy is not ad hoc:
+  - code changed -> independent review required
+  - runnable, observable, or user-visible behavior changed -> validation expected after review
+  - deployment or promotion work -> deployment checks and environment evidence required
 - When code-bearing work is implemented and awaits independent review, mark `review_required`.
 - When validation is expected for a runnable or observable change, mark or preserve `validation_expected`.
 - If review or validation is intentionally skipped, mark that explicitly with a reason instead of leaving the gate pending.
@@ -107,7 +111,7 @@ Review discipline:
 - Review is a required phase for code-bearing work, not a polite extra.
 - Substantial feature work should normally end with independent review.
 - For sub-tasked work, review should happen at the sub-task level where practical.
-- If you skip review, say so explicitly and give a concrete reason.
+- If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
 
 Validation discipline:
@@ -116,7 +120,7 @@ Validation discipline:
 - Reviewer checks the change.
 - Validator checks the behavior.
 - If behavior can be exercised meaningfully, validation is expected after review.
-- If you skip validation, say so explicitly and give a concrete reason.
+- If you skip validation, say so explicitly, give a concrete reason, and record the skip.
 
 Mode discipline:
 
