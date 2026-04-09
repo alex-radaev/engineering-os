@@ -61,6 +61,7 @@ test("init creates a new repo harness and audit sees it", async () => {
   assert.equal(audit.hasClaudeMd, true);
   assert.equal(audit.hasHarnessLayer, true);
   assert.equal(audit.hasStateLayer, true);
+  assert.equal(audit.hasWorkflowState, true);
 });
 
 test("init rejects a non-empty existing directory without opt-in", async () => {

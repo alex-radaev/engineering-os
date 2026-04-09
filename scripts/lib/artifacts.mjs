@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { registerWorkflowArtifact } from "./workflow-state.mjs";
 
 const ARTIFACT_ROOT = [".claude", "artifacts", "engineering-os"];
 
@@ -197,10 +198,13 @@ export async function writeArtifact(repoPath, kind, fields = {}) {
   const contents = `${config.render(fields)}\n`;
 
   await fs.writeFile(artifactPath, contents);
-
-  return {
+  const artifact = {
     kind,
     path: artifactPath,
     title: fields.title || "Untitled"
   };
+
+  await registerWorkflowArtifact(repoPath, artifact, fields);
+
+  return artifact;
 }

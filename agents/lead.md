@@ -92,7 +92,15 @@ Expected writes:
 - substantial run start -> run brief
 - ownership change or teammate completion -> handoff
 - independent review completion -> review result
+- substantial validation scenario -> validation plan
 - substantial run completion -> final synthesis
+
+Workflow state discipline:
+
+- When code-bearing work is implemented and awaits independent review, mark `review_required`.
+- When validation is expected for a runnable or observable change, mark or preserve `validation_expected`.
+- If review or validation is intentionally skipped, mark that explicitly with a reason instead of leaving the gate pending.
+- Use workflow state to make pending gates visible instead of relying only on prose summaries.
 
 Review discipline:
 

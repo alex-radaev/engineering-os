@@ -129,6 +129,21 @@ Default behavior:
 
 Treat these writes as expected workflow steps, not optional note-taking.
 
+When code-bearing work completes before review, record that gate in workflow state:
+
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_required`
+
+When behavior should be validated after review, record that gate in workflow state:
+
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_expected`
+
+If review or validation is intentionally skipped, mark that explicitly with a note:
+
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_skipped --note "<reason>"`
+
+Use workflow state to keep pending gates visible during the run and at wake-up.
+
 ## Red Flags
 
 Stop and re-scope if:

@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
+import { loadWorkflowState, summarizeWorkflowState } from "./workflow-state.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "engineering-os", "handoffs"];
@@ -150,6 +151,7 @@ function buildMemoryBuckets({
   claims,
   openApprovals,
   sprint,
+  workflow,
   latestRunBrief,
   latestFinalSynthesis,
   latestHandoff,
@@ -164,6 +166,7 @@ function buildMemoryBuckets({
       claims,
       openApprovals,
       sprint,
+      workflow,
       latestArtifacts: {
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
@@ -188,11 +191,12 @@ function buildMemoryBuckets({
 }
 
 export async function buildWakeUpBrief(repoPath) {
-  const [openApprovals, claims, sprint, latestRunBrief, latestFinalSynthesis, latestHandoff, latestReview] =
+  const [openApprovals, claims, sprint, workflowState, latestRunBrief, latestFinalSynthesis, latestHandoff, latestReview] =
     await Promise.all([
       listApprovals(repoPath, { status: "open" }),
       listClaims(repoPath),
       readJson(path.join(repoPath, ...SPRINT_PATH)),
+      loadWorkflowState(repoPath),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
       latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
@@ -218,10 +222,13 @@ export async function buildWakeUpBrief(repoPath) {
     review: latestReview
   };
 
+  const workflow = summarizeWorkflowState(workflowState);
+
   const memory = buildMemoryBuckets({
     claims,
     openApprovals,
     sprint,
+    workflow,
     latestRunBrief,
     latestFinalSynthesis,
     latestHandoff,
@@ -237,14 +244,18 @@ export async function buildWakeUpBrief(repoPath) {
     sprint,
     claims,
     openApprovals,
+    workflow,
     recentClaimHistory,
     recentEvents,
     latestArtifacts,
+    workflowState,
     memory,
     summary: {
       memoryPolicy: memory.policy,
       activeClaims: claims.length,
       openApprovals: openApprovals.length,
+      hasActiveWorkflow: workflow.hasActiveRun,
+      pendingWorkflowBadges: workflow.pendingBadges,
       hasRecentRunMemory: Boolean(
         latestRunBrief || latestFinalSynthesis || latestHandoff || latestReview
       ),

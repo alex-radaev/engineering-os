@@ -94,6 +94,7 @@ This directory stores lightweight repo-local coordination state.
 - \`claims.json\` tracks current file ownership claims
 - \`history.jsonl\` stores append-only claim and release events
 - \`approvals.jsonl\` stores approval requests and resolutions
+- \`workflow-state.json\` stores the current run and gate badge state
 - \`sprint.json\` is an optional sprint or focus configuration
 `;
 
@@ -320,6 +321,15 @@ async function writeHarnessFiles(repoPath, writes) {
       ""
     ],
     [
+      path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json"),
+      `${JSON.stringify({
+        version: "1.0",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        currentRun: null,
+        recentRuns: []
+      }, null, 2)}\n`
+    ],
+    [
       path.join(repoPath, ".claude", "state", "engineering-os", "sprint.json"),
       `${JSON.stringify(SPRINT_TEMPLATE, null, 2)}\n`
     ],
@@ -363,6 +373,7 @@ export async function auditRepo(repoPath) {
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
     hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "engineering-os")),
     hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json")),
+    hasWorkflowState: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json")),
     global
   };
 }
