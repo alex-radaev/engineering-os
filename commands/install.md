@@ -2,7 +2,7 @@
 description: Preferred short entry point for installing or updating the managed global framework memory.
 ---
 
-# Install Global Engineering OS Memory
+# Install Global Crew Memory
 
 This is the preferred short entry point for global setup.
 

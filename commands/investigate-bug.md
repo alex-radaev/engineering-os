@@ -1,10 +1,10 @@
 ---
-description: Compatibility alias for /engineering-os:fix. Prefer the short command for bug work.
+description: Compatibility alias for /crew:fix. Prefer the short command for bug work.
 ---
 
 # Investigate Bug Compatibility Alias
 
-Prefer `/engineering-os:fix` for new usage.
+Prefer `/crew:fix` for new usage.
 
 Act as the lead for a debugging run with strong observability and bounded parallelism.
 

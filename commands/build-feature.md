@@ -1,10 +1,10 @@
 ---
-description: Compatibility alias for /engineering-os:build. Prefer the short command for feature work.
+description: Compatibility alias for /crew:build. Prefer the short command for feature work.
 ---
 
 # Build Feature Compatibility Alias
 
-Prefer `/engineering-os:build` for new usage.
+Prefer `/crew:build` for new usage.
 
 Act as the lead for a bounded feature delivery run.
 

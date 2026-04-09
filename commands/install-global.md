@@ -1,12 +1,12 @@
 ---
-description: Compatibility alias for /engineering-os:install. Prefer the short command for global setup.
+description: Compatibility alias for /crew:install. Prefer the short command for global setup.
 ---
 
 # Install Global Compatibility Alias
 
-Prefer `/engineering-os:install` for new usage.
+Prefer `/crew:install` for new usage.
 
-Install or update the managed global Engineering OS memory files.
+Install or update the managed global Crew memory files.
 
 Use this after installing or updating the plugin when framework memory changes.
 

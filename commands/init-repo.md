@@ -1,10 +1,10 @@
 ---
-description: Compatibility alias for /engineering-os:init. Prefer the short command for new repos.
+description: Compatibility alias for /crew:init. Prefer the short command for new repos.
 ---
 
 # Init Repo Compatibility Alias
 
-Prefer `/engineering-os:init` for new usage.
+Prefer `/crew:init` for new usage.
 
 Use this workflow when the user wants a fresh repository that starts with the harness already installed.
 
@@ -24,11 +24,11 @@ Workflow:
 4. Create `CLAUDE.md` with repo-owned rules and framework imports.
 5. Add initial `.claude/` files that make the harness usable immediately.
 6. Set up artifact directories for observability.
-7. If global Engineering OS memory is missing or stale, recommend `/engineering-os:install`.
+7. If global Crew memory is missing or stale, recommend `/crew:install`.
 8. Summarize what was created and how the user should start working.
 
 Deliverable:
 
-- a ready-to-use repo with the Engineering OS harness
+- a ready-to-use repo with the Crew harness
 - file references for the initial harness files
 - next-step guidance for starting the first task

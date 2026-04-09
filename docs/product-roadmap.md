@@ -325,7 +325,7 @@ Keep the managed global memory direction:
 - one global framework memory copy in `~/.claude/engineering-os/`
 - no per-repo constitution/workflow copies
 - repo `CLAUDE.md` stays repo-specific
-- rerun `/engineering-os:install-global` after plugin updates that change framework memory
+- rerun `/crew:install` after plugin updates that change framework memory
 
 Later improvement:
 

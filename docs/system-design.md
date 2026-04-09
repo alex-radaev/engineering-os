@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the primary design document for the product currently named `engineering-os`, and likely to be renamed to `crew`.
+This document is the primary design document for the product named `crew`.
 
 It defines:
 
@@ -69,7 +69,7 @@ The lead should manage the manager.
 
 ## Product Name And Command Model
 
-The current package name is `engineering-os`, but the likely product name is `crew`.
+The product name is `crew`.
 
 Why `crew`:
 
@@ -113,6 +113,8 @@ What they mean:
 But the lead should also infer these workflows from ordinary conversation when the intent is clear.
 
 Commands are accelerators, not prerequisites.
+
+For compatibility, some internal storage paths and scripts still use `engineering-os` for now. The user-facing product and command namespace should be `crew`.
 
 ## Core Execution Model
 

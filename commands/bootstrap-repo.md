@@ -1,12 +1,12 @@
 ---
-description: Compatibility alias for /engineering-os:adopt. Prefer the short command for repo adoption.
+description: Compatibility alias for /crew:adopt. Prefer the short command for repo adoption.
 ---
 
 # Bootstrap Repo Compatibility Alias
 
-Prefer `/engineering-os:adopt` for new usage.
+Prefer `/crew:adopt` for new usage.
 
-Prepare the current repository for the Engineering OS workflow.
+Prepare the current repository for the Crew workflow.
 
 Goals:
 
@@ -29,7 +29,7 @@ Workflow:
    - `.claude/hooks/`
    - `.claude/settings.json`
 6. Keep framework-owned instructions isolated from repo-owned instructions.
-7. If the installer reports missing or stale global memory, recommend `/engineering-os:install`.
+7. If the installer reports missing or stale global memory, recommend `/crew:install`.
 8. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
 
 Deliverable:

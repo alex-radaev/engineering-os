@@ -1,4 +1,4 @@
-# Engineering OS Status
+# Crew Status
 
 ## Read This With
 
@@ -16,7 +16,7 @@ For full continuity after compaction, read this alongside:
 
 ## What We Are Building
 
-`engineering-os` is a Claude Code plugin for structured, legible lead-guided engineering work.
+`crew` is a Claude Code plugin for structured, legible lead-guided engineering work.
 
 The goal is not a high-autonomy swarm. The goal is a lead-centered engineering workflow that makes substantial work easier to follow, safer to steer, and easier to inspect.
 
@@ -34,11 +34,11 @@ Core ideas:
 
 The MVP should shine through a very small user-facing surface:
 
-- `/engineering-os:init-repo`
-- `/engineering-os:bootstrap-repo`
-- `/engineering-os:build-feature`
-- `/engineering-os:investigate-bug`
-- `/engineering-os:parallel-review`
+- `/crew:init`
+- `/crew:adopt`
+- `/crew:build`
+- `/crew:fix`
+- `/crew:review`
 
 Claims, approvals, and artifact writers matter, but they are support machinery. They should increasingly be things the lead uses automatically or sparingly, not a growing list of commands the user must learn.
 
@@ -50,7 +50,7 @@ The repo currently contains:
 - a local development marketplace manifest
 - durable lead, builder, reviewer, and researcher agents
 - reusable skills for operating mode, handoffs, and review gates
-- workflow commands for `audit-repo`, `bootstrap-repo`, `init-repo`, and task modes
+- workflow commands for short user-facing entry points plus compatibility aliases
 - coordination commands for claims and approvals
 - internal artifact-writing support for run briefs, handoffs, reviews, and final syntheses
 - hook wiring for basic lifecycle logging
@@ -152,9 +152,9 @@ Important note:
 
 Validated in a real Claude Code session:
 
-- `/engineering-os:audit-repo` on an existing repo before bootstrap
-- `/engineering-os:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
-- `/engineering-os:audit-repo` after bootstrap to confirm harness presence
+- `/crew:audit-repo` on an existing repo before bootstrap
+- `/crew:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
+- `/crew:audit-repo` after bootstrap to confirm harness presence
 - hook output written to `.claude/logs/events.jsonl`
 - a bounded feature workflow in `makeadz`
 - a clean single-session bug investigation and fix in `makeadz`
