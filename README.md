@@ -32,13 +32,21 @@ For the broader implementation order and rename plan, see [product-roadmap.md](/
 
 The public surface should stay small.
 
-Normal entry points:
+Preferred entry points:
 
-- `/engineering-os:build-feature` — build or extend capability
-- `/engineering-os:investigate-bug` — investigate and fix broken behavior
-- `/engineering-os:bootstrap-repo` — adopt an existing repo into the workflow
-- `/engineering-os:init-repo` — initialize a new repo with the harness
-- `/engineering-os:install-global` — install or update the managed global framework memory
+- `/engineering-os:build` — build or extend capability
+- `/engineering-os:fix` — investigate and fix broken behavior
+- `/engineering-os:adopt` — adopt an existing repo into the workflow
+- `/engineering-os:init` — initialize a new repo with the harness
+- `/engineering-os:install` — install or update the managed global framework memory
+
+Compatibility aliases still exist for now:
+
+- `/engineering-os:build-feature`
+- `/engineering-os:investigate-bug`
+- `/engineering-os:bootstrap-repo`
+- `/engineering-os:init-repo`
+- `/engineering-os:install-global`
 
 Everything else should be treated as internal, advanced, or debugging-oriented workflow plumbing:
 
