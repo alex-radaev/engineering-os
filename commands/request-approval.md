@@ -1,9 +1,9 @@
 ---
-description: Open a repo-local approval request for risky, blocked, or scope-changing work.
+description: Advanced internal coordination command for opening an approval gate on risky or blocked work.
 argument-hint: <short summary>
 ---
 
-# Request Engineering OS Approval
+# Request Internal Approval
 
 Use this when the current task needs a decision before continuing.
 

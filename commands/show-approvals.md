@@ -1,9 +1,9 @@
 ---
-description: Show open or resolved Engineering OS approvals for this repo.
+description: Internal/debug command for inspecting repo-local approval state.
 argument-hint: [open|resolved|all]
 ---
 
-# Show Engineering OS Approvals
+# Show Internal Approvals
 
 Use this to inspect which approval decisions are waiting and which have already been resolved.
 

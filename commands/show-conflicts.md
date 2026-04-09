@@ -1,9 +1,9 @@
 ---
-description: Check whether specific files are already claimed and would conflict with new work.
+description: Internal/debug command for checking claim conflicts before parallel work.
 argument-hint: [path] [more paths]
 ---
 
-# Show Engineering OS Conflicts
+# Show Internal Claim Conflicts
 
 Use this before assigning new work to confirm whether target files are already claimed.
 

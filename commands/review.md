@@ -2,7 +2,7 @@
 description: Preferred short entry point for running the review phase on completed work.
 ---
 
-# Review In Engineering OS Mode
+# Review In The Lead Workflow
 
 This is the preferred short entry point for the review phase.
 

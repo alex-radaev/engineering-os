@@ -1,9 +1,9 @@
 ---
-description: Release previously claimed files when a task or handoff completes.
+description: Advanced internal coordination command for releasing claimed files after parallel work.
 argument-hint: [path] [more paths]
 ---
 
-# Release Files For Engineering OS
+# Release Files For Internal Coordination
 
 Use this when a task is complete or when ownership should be handed off.
 

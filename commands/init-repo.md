@@ -1,8 +1,10 @@
 ---
-description: Create or initialize a new repository with the Engineering OS harness already in place.
+description: Compatibility alias for /engineering-os:init. Prefer the short command for new repos.
 ---
 
-# Initialize A New Repo In Engineering OS Mode
+# Init Repo Compatibility Alias
+
+Prefer `/engineering-os:init` for new usage.
 
 Use this workflow when the user wants a fresh repository that starts with the harness already installed.
 
@@ -22,7 +24,7 @@ Workflow:
 4. Create `CLAUDE.md` with repo-owned rules and framework imports.
 5. Add initial `.claude/` files that make the harness usable immediately.
 6. Set up artifact directories for observability.
-7. If global Engineering OS memory is missing or stale, recommend `/engineering-os:install-global`.
+7. If global Engineering OS memory is missing or stale, recommend `/engineering-os:install`.
 8. Summarize what was created and how the user should start working.
 
 Deliverable:

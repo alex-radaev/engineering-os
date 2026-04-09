@@ -4,7 +4,7 @@ description: Internal startup/debug command for inspecting the current Engineeri
 
 # Read Engineering OS Wake-Up Brief
 
-Use this at the start of substantial work, or after returning to a repo, so you reconstruct context from durable repo memory instead of guessing.
+This is primarily internal workflow plumbing. Substantial workflows should already do this automatically; use it directly only for debugging, recovery, or explicit inspection.
 
 Workflow:
 

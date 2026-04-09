@@ -2,7 +2,7 @@
 description: Preferred short entry point for running the validation phase on runnable or observable behavior.
 ---
 
-# Validate In Engineering OS Mode
+# Validate In The Lead Workflow
 
 This is the preferred short entry point for the validation phase.
 

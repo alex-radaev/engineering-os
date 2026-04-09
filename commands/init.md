@@ -2,7 +2,7 @@
 description: Preferred short entry point for initializing a new repo with the workflow harness.
 ---
 
-# Initialize A New Repo In Engineering OS Mode
+# Initialize A New Repo In The Lead Workflow
 
 This is the preferred short entry point for new repositories.
 

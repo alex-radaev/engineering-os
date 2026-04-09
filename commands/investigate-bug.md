@@ -1,8 +1,10 @@
 ---
-description: Lead a debugging run with bounded task framing, evidence gathering, explicit review, and artifact discipline.
+description: Compatibility alias for /engineering-os:fix. Prefer the short command for bug work.
 ---
 
-# Investigate Bug In Engineering OS Mode
+# Investigate Bug Compatibility Alias
+
+Prefer `/engineering-os:fix` for new usage.
 
 Act as the lead for a debugging run with strong observability and bounded parallelism.
 

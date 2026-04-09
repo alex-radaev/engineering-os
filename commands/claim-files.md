@@ -1,9 +1,9 @@
 ---
-description: Claim repo files for the current Engineering OS run so ownership stays visible and conflicts are caught early.
+description: Advanced internal coordination command for claiming files during true parallel ownership.
 argument-hint: <path> [more paths]
 ---
 
-# Claim Files For Engineering OS
+# Claim Files For Internal Coordination
 
 Use this when you want to reserve specific files for the current run before editing them.
 

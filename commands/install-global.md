@@ -1,8 +1,10 @@
 ---
-description: Install or update the one global Engineering OS memory copy used by all repos.
+description: Compatibility alias for /engineering-os:install. Prefer the short command for global setup.
 ---
 
-# Install Global Engineering OS Memory
+# Install Global Compatibility Alias
+
+Prefer `/engineering-os:install` for new usage.
 
 Install or update the managed global Engineering OS memory files.
 

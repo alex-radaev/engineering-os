@@ -42,7 +42,7 @@ Preferred entry points:
 - `/engineering-os:init` — initialize a new repo with the harness
 - `/engineering-os:install` — install or update the managed global framework memory
 
-Compatibility aliases still exist for now:
+Legacy compatibility aliases still exist for migration, but they should not be the primary surface:
 
 - `/engineering-os:build-feature`
 - `/engineering-os:investigate-bug`
@@ -91,7 +91,7 @@ Project repos should not each get their own copied constitution and workflow. Th
 After installing or updating the plugin, run:
 
 ```text
-/engineering-os:install-global
+/engineering-os:install
 ```
 
 This writes or updates the managed global copy and adds `@` references to your global `~/.claude/CLAUDE.md`.
@@ -102,7 +102,7 @@ Why this exists:
 - plugin install does not automatically rewrite global `CLAUDE.md`
 - one managed global copy avoids stale per-repo framework copies
 
-If a plugin update changes constitution or workflow behavior, rerun `/engineering-os:install-global` once.
+If a plugin update changes constitution or workflow behavior, rerun `/engineering-os:install` once.
 
 ### How configuration layers work
 
@@ -116,7 +116,13 @@ If a plugin update changes constitution or workflow behavior, rerun `/engineerin
 
 ### Per-repo bootstrap
 
-To enable artifacts, state tracking, and hooks in a specific repo:
+To adopt an existing repo into the workflow, use:
+
+```text
+/engineering-os:adopt
+```
+
+The raw CLI bootstrap command still exists for debugging and scripting:
 
 ```bash
 node "<plugin-path>/scripts/engineering-os.mjs" bootstrap --repo .

@@ -1,8 +1,10 @@
 ---
-description: Lead a bounded feature delivery run with explicit framing, ownership, review, and artifact discipline.
+description: Compatibility alias for /engineering-os:build. Prefer the short command for feature work.
 ---
 
-# Build Feature In Engineering OS Mode
+# Build Feature Compatibility Alias
+
+Prefer `/engineering-os:build` for new usage.
 
 Act as the lead for a bounded feature delivery run.
 
