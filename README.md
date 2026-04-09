@@ -36,6 +36,8 @@ Preferred entry points:
 
 - `/engineering-os:build` — build or extend capability
 - `/engineering-os:fix` — investigate and fix broken behavior
+- `/engineering-os:review` — run the review phase on completed work
+- `/engineering-os:validate` — run the validation phase on runnable or observable behavior
 - `/engineering-os:adopt` — adopt an existing repo into the workflow
 - `/engineering-os:init` — initialize a new repo with the harness
 - `/engineering-os:install` — install or update the managed global framework memory
@@ -57,6 +59,8 @@ Everything else should be treated as internal, advanced, or debugging-oriented w
 - direct artifact-writing commands
 
 The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the intent is clear.
+
+`/engineering-os:ship` is still a planned future surface, not a live command yet.
 
 ## Install
 
