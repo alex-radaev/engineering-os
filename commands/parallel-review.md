@@ -1,5 +1,5 @@
 ---
-description: Decide whether a task should use an agent team and coordinate clean parallel ownership when it should.
+description: Internal coordination command for cases where parallel ownership genuinely helps.
 ---
 
 # Run Parallel Review In Engineering OS Mode

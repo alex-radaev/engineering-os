@@ -310,6 +310,30 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
     "Expand scope for wake-up test"
   ]);
 
+  await execFile("node", [
+    cliPath,
+    "write-validation-plan",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up validation plan",
+    "--environment",
+    "local"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up validation result",
+    "--environment",
+    "local",
+    "--decision",
+    "passed"
+  ]);
+
   const wakeUpOutput = await execFile("node", [
     cliPath,
     "wake-up",
@@ -325,11 +349,16 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.deepEqual(wakeUpResult.summary.pendingWorkflowBadges, ["review_required"]);
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.match(wakeUpResult.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
+  assert.match(wakeUpResult.latestArtifacts.validationResult.title, /Wake-up validation result/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.match(wakeUpResult.memory.hot.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
+  assert.match(wakeUpResult.memory.warm.validation.title, /Wake-up validation result/);
   assert.equal(wakeUpResult.memory.hot.claims.length, 1);
   assert.equal(wakeUpResult.memory.hot.openApprovals.length, 1);
   assert.equal(wakeUpResult.memory.hot.workflow.currentRun.gates.review.status, "required");
   assert.ok(wakeUpResult.memory.cold.archiveCounts.runs >= 1);
+  assert.ok(wakeUpResult.memory.cold.archiveCounts.validations >= 2);
   assert.deepEqual(wakeUpResult.memory.cold.omittedByDefault, [
     "older_artifacts",
     "resolved_approvals",

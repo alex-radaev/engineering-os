@@ -30,18 +30,25 @@ For the broader implementation order and rename plan, see [product-roadmap.md](/
 
 ## Commands
 
-Primary user-facing commands:
+The public surface should stay small.
 
-- `/engineering-os:build-feature` — lead a bounded feature delivery run
-- `/engineering-os:investigate-bug` — lead a debugging run with evidence gathering
-- `/engineering-os:parallel-review` — coordinate clean parallel ownership
-- `/engineering-os:bootstrap-repo` — prepare an existing repo for the workflow
+Normal entry points:
+
+- `/engineering-os:build-feature` — build or extend capability
+- `/engineering-os:investigate-bug` — investigate and fix broken behavior
+- `/engineering-os:bootstrap-repo` — adopt an existing repo into the workflow
 - `/engineering-os:init-repo` — initialize a new repo with the harness
-- `/engineering-os:install-global` — install or update the one global Engineering OS memory copy
+- `/engineering-os:install-global` — install or update the managed global framework memory
 
-Supporting commands: `claim-files`, `release-files`, `show-claims`, `show-conflicts`, `request-approval`, `show-approvals`, `resolve-approval`, `audit-repo`, `wake-up-brief`.
+Everything else should be treated as internal, advanced, or debugging-oriented workflow plumbing:
 
-These are workflow entry points and shortcuts. The lead should also infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the user does not invoke a command directly.
+- `parallel-review`
+- `wake-up-brief`
+- `audit-repo`
+- claims / approvals commands
+- direct artifact-writing commands
+
+The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the intent is clear.
 
 ## Install
 
@@ -159,8 +166,8 @@ Do **not** commit transient coordination state:
 ## Project structure
 
 ```
-agents/          — lead, builder, reviewer, researcher
-commands/        — user-facing slash commands
+agents/          — lead, builder, reviewer, researcher, validator
+commands/        — small public surface plus internal/debug commands
 skills/          — reusable operating behaviors
 hooks/           — event logging wiring
 scripts/         — CLI tooling and helpers

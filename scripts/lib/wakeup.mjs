@@ -8,6 +8,7 @@ import { loadWorkflowState, summarizeWorkflowState } from "./workflow-state.mjs"
 const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "engineering-os", "handoffs"];
 const REVIEWS_DIR = [".claude", "artifacts", "engineering-os", "reviews"];
+const VALIDATIONS_DIR = [".claude", "artifacts", "engineering-os", "validations"];
 const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "engineering-os", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "engineering-os", "sprint.json"];
@@ -138,13 +139,14 @@ function summarizeLatestArtifact(artifact) {
 }
 
 async function countArchive(repoPath) {
-  const [runs, handoffs, reviews] = await Promise.all([
+  const [runs, handoffs, reviews, validations] = await Promise.all([
     countFiles(path.join(repoPath, ...RUNS_DIR)),
     countFiles(path.join(repoPath, ...HANDOFFS_DIR)),
-    countFiles(path.join(repoPath, ...REVIEWS_DIR))
+    countFiles(path.join(repoPath, ...REVIEWS_DIR)),
+    countFiles(path.join(repoPath, ...VALIDATIONS_DIR))
   ]);
 
-  return { runs, handoffs, reviews };
+  return { runs, handoffs, reviews, validations };
 }
 
 function buildMemoryBuckets({
@@ -156,6 +158,8 @@ function buildMemoryBuckets({
   latestFinalSynthesis,
   latestHandoff,
   latestReview,
+  latestValidationPlan,
+  latestValidationResult,
   recentEvents,
   recentClaimHistory,
   archiveCounts
@@ -170,11 +174,13 @@ function buildMemoryBuckets({
       latestArtifacts: {
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
-        handoff: latestHandoff
+        handoff: latestHandoff,
+        validationPlan: latestValidationPlan
       }
     },
     warm: {
       review: latestReview,
+      validation: latestValidationResult,
       recentEvents,
       recentClaimHistory
     },
@@ -191,7 +197,18 @@ function buildMemoryBuckets({
 }
 
 export async function buildWakeUpBrief(repoPath) {
-  const [openApprovals, claims, sprint, workflowState, latestRunBrief, latestFinalSynthesis, latestHandoff, latestReview] =
+  const [
+    openApprovals,
+    claims,
+    sprint,
+    workflowState,
+    latestRunBrief,
+    latestFinalSynthesis,
+    latestHandoff,
+    latestReview,
+    latestValidationPlan,
+    latestValidationResult
+  ] =
     await Promise.all([
       listApprovals(repoPath, { status: "open" }),
       listClaims(repoPath),
@@ -200,7 +217,9 @@ export async function buildWakeUpBrief(repoPath) {
       latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
       latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
-      latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result")
+      latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result"),
+      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-plan"),
+      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result")
     ]);
 
   const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
@@ -219,7 +238,9 @@ export async function buildWakeUpBrief(repoPath) {
     runBrief: latestRunBrief,
     finalSynthesis: latestFinalSynthesis,
     handoff: latestHandoff,
-    review: latestReview
+    review: latestReview,
+    validationPlan: latestValidationPlan,
+    validationResult: latestValidationResult
   };
 
   const workflow = summarizeWorkflowState(workflowState);
@@ -233,6 +254,8 @@ export async function buildWakeUpBrief(repoPath) {
     latestFinalSynthesis,
     latestHandoff,
     latestReview,
+    latestValidationPlan,
+    latestValidationResult,
     recentEvents,
     recentClaimHistory,
     archiveCounts
@@ -257,10 +280,22 @@ export async function buildWakeUpBrief(repoPath) {
       hasActiveWorkflow: workflow.hasActiveRun,
       pendingWorkflowBadges: workflow.pendingBadges,
       hasRecentRunMemory: Boolean(
-        latestRunBrief || latestFinalSynthesis || latestHandoff || latestReview
+        latestRunBrief ||
+        latestFinalSynthesis ||
+        latestHandoff ||
+        latestReview ||
+        latestValidationPlan ||
+        latestValidationResult
       ),
       latestArtifact: summarizeLatestArtifact(
-        newestOf(latestFinalSynthesis, latestRunBrief, latestHandoff, latestReview)
+        newestOf(
+          latestFinalSynthesis,
+          latestRunBrief,
+          latestHandoff,
+          latestReview,
+          latestValidationPlan,
+          latestValidationResult
+        )
       ),
       archiveCounts
     }

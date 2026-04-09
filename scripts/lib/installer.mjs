@@ -85,6 +85,7 @@ This directory stores inspectable run artifacts for the Engineering OS harness.
 - \`runs/\` for run briefs and final syntheses
 - \`handoffs/\` for task ownership and completion notes
 - \`reviews/\` for review results and rejection notes
+- \`validations/\` for validation plans and validation results
 `;
 
 const STATE_README_TEMPLATE = `# Engineering OS State
@@ -355,6 +356,7 @@ async function writeHarnessFiles(repoPath, writes) {
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"),
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "handoffs"),
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "reviews"),
+    path.join(repoPath, ".claude", "artifacts", "engineering-os", "validations"),
     path.join(repoPath, ".claude", "logs"),
     path.join(repoPath, ".claude", "state", "engineering-os")
   ];

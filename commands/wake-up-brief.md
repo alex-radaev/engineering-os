@@ -1,5 +1,5 @@
 ---
-description: Read the current Engineering OS wake-up brief for this repo before substantial work.
+description: Internal startup/debug command for inspecting the current Engineering OS wake-up brief for this repo.
 ---
 
 # Read Engineering OS Wake-Up Brief
