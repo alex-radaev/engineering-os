@@ -1,10 +1,12 @@
 # Engineering OS
 
-A Claude Code plugin for structured multi-agent software work with explicit roles, bounded ownership, and inspectable handoffs.
+A Claude Code plugin for lead-guided engineering work with bounded subagents, quality gates, and inspectable handoffs.
+
+The main design document is [system-design.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/system-design.md).
 
 ## What it does
 
-Engineering OS gives Claude Code a small team model:
+Engineering OS gives Claude Code a lead-centered workflow model:
 
 - **lead** — plans, delegates, synthesizes, paces
 - **builder** — implements bounded changes within assigned scope
@@ -12,6 +14,19 @@ Engineering OS gives Claude Code a small team model:
 - **researcher** — investigates questions without editing code
 
 Each agent has strict ownership rules, structured start/completion reports, and explicit handoffs.
+
+In practice, the highest-value default mode is:
+
+- one lead stays user-facing
+- the lead infers workflow intent from normal conversation
+- the lead uses bounded subagents for smaller focused tasks
+- reviewer and later validator/deployer act as quality gates
+
+The user should mostly talk to the lead, not manage a menu of agents or remember a command graph.
+
+The next product direction is an evidence-gated validation loop: local validation, review, PR, dev deploy validation, dev logs/metrics, production promotion, and production monitoring. See [validation-loop.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/validation-loop.md).
+
+For the broader implementation order and rename plan, see [product-roadmap.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/product-roadmap.md).
 
 ## Commands
 
@@ -25,6 +40,8 @@ Primary user-facing commands:
 - `/engineering-os:install-global` — install or update the one global Engineering OS memory copy
 
 Supporting commands: `claim-files`, `release-files`, `show-claims`, `show-conflicts`, `request-approval`, `show-approvals`, `resolve-approval`, `audit-repo`, `wake-up-brief`.
+
+These are workflow entry points and shortcuts. The lead should also infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the user does not invoke a command directly.
 
 ## Install
 
