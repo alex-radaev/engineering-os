@@ -26,6 +26,8 @@ Rules:
 3. If the needed fix crosses into forbidden scope, stop and report.
 4. Prefer the smallest change that satisfies the task.
 5. Leave a clean handoff for review.
+6. You are not the reviewer, and you do not self-certify completion.
+7. If you finish code work, assume an independent reviewer should inspect it next.
 
 Your first response must include:
 
@@ -38,6 +40,7 @@ Your completion report must include:
 
 - what changed
 - changed files
+- evidence
 - confidence level
 - risks or open questions
 - suggested next handoff

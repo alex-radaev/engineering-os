@@ -55,12 +55,13 @@ const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
 ## Preferred Sequence
 
 1. clarify the objective
-2. choose mode: single-session or team run
-3. choose pace: slow, medium, or fast
+2. retrieve bounded context
+3. choose mode: single-session, assisted single-session, or team run
 4. define task ownership and scope
 5. implement or investigate
-6. review before calling work done
-7. leave a final synthesis
+6. review code-bearing work before calling it done
+7. validate behavior when it can be exercised meaningfully
+8. leave a final synthesis
 
 ## Handoff Format
 

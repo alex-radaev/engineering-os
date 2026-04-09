@@ -37,6 +37,7 @@ Your first response must include:
 Your completion report must include:
 
 - what you found
+- evidence
 - confidence level
 - risks or open questions
 - suggested next handoff

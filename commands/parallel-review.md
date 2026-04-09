@@ -22,7 +22,6 @@ Suggested team shapes:
 
 Before starting, provide:
 
-- chosen pace
 - chosen mode: `assisted single-session` or `team run`
 - why parallelism or helper use helps here
 - who owns what

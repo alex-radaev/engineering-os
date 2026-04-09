@@ -214,6 +214,51 @@ test("CLI artifact writers create markdown artifacts", async () => {
   const reviewAliasResult = JSON.parse(reviewAliasOutput.stdout);
   const reviewAliasBody = await fs.readFile(reviewAliasResult.path, "utf8");
   assert.match(reviewAliasBody, /approved_with_notes/);
+
+  const validationPlanOutput = await execFile("node", [
+    cliPath,
+    "write-validation-plan",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance validation plan",
+    "--validator",
+    "validator",
+    "--environment",
+    "local",
+    "--goal",
+    "Exercise the create flow and collect smoke evidence",
+    "--evidence",
+    "vite build,playwright smoke"
+  ]);
+  const validationPlanResult = JSON.parse(validationPlanOutput.stdout);
+  const validationPlanBody = await fs.readFile(validationPlanResult.path, "utf8");
+  assert.match(validationPlanBody, /# Validation Plan: Platform guidance validation plan/);
+  assert.match(validationPlanBody, /Exercise the create flow and collect smoke evidence/);
+
+  const validationOutput = await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance validation",
+    "--validator",
+    "validator",
+    "--environment",
+    "local",
+    "--decision",
+    "passed",
+    "--evidence",
+    "vite build,playwright smoke",
+    "--files",
+    "http://localhost:5173,app/templates/create.html"
+  ]);
+  const validationResult = JSON.parse(validationOutput.stdout);
+  const validationBody = await fs.readFile(validationResult.path, "utf8");
+  assert.match(validationBody, /# Validation Result: Platform guidance validation/);
+  assert.match(validationBody, /local/);
+  assert.match(validationBody, /passed/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
