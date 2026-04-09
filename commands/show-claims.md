@@ -1,8 +1,8 @@
 ---
-description: Show current repo-local file claims for the Engineering OS workflow.
+description: Internal/debug command for inspecting current file-claim state.
 ---
 
-# Show Engineering OS Claims
+# Show Internal Claims
 
 Use this to inspect current claimed ownership before assigning or editing work.
 

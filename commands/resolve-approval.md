@@ -1,9 +1,9 @@
 ---
-description: Resolve a pending Engineering OS approval request as approved, rejected, or canceled.
+description: Advanced internal coordination command for resolving an approval gate.
 argument-hint: <approval-id>
 ---
 
-# Resolve Engineering OS Approval
+# Resolve Internal Approval
 
 Use this after the lead or user has made a decision on a pending approval request.
 

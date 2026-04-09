@@ -55,12 +55,13 @@ const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
 ## Preferred Sequence
 
 1. clarify the objective
-2. choose mode: single-session or team run
-3. choose pace: slow, medium, or fast
+2. retrieve bounded context
+3. choose mode: single-session, assisted single-session, or team run
 4. define task ownership and scope
 5. implement or investigate
-6. review before calling work done
-7. leave a final synthesis
+6. review code-bearing work before calling it done
+7. validate behavior when it can be exercised meaningfully
+8. leave a final synthesis
 
 ## Handoff Format
 
@@ -84,6 +85,7 @@ This directory stores inspectable run artifacts for the Engineering OS harness.
 - \`runs/\` for run briefs and final syntheses
 - \`handoffs/\` for task ownership and completion notes
 - \`reviews/\` for review results and rejection notes
+- \`validations/\` for validation plans and validation results
 `;
 
 const STATE_README_TEMPLATE = `# Engineering OS State
@@ -93,6 +95,7 @@ This directory stores lightweight repo-local coordination state.
 - \`claims.json\` tracks current file ownership claims
 - \`history.jsonl\` stores append-only claim and release events
 - \`approvals.jsonl\` stores approval requests and resolutions
+- \`workflow-state.json\` stores the current run and gate badge state
 - \`sprint.json\` is an optional sprint or focus configuration
 `;
 
@@ -319,6 +322,15 @@ async function writeHarnessFiles(repoPath, writes) {
       ""
     ],
     [
+      path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json"),
+      `${JSON.stringify({
+        version: "1.0",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        currentRun: null,
+        recentRuns: []
+      }, null, 2)}\n`
+    ],
+    [
       path.join(repoPath, ".claude", "state", "engineering-os", "sprint.json"),
       `${JSON.stringify(SPRINT_TEMPLATE, null, 2)}\n`
     ],
@@ -344,6 +356,7 @@ async function writeHarnessFiles(repoPath, writes) {
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"),
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "handoffs"),
     path.join(repoPath, ".claude", "artifacts", "engineering-os", "reviews"),
+    path.join(repoPath, ".claude", "artifacts", "engineering-os", "validations"),
     path.join(repoPath, ".claude", "logs"),
     path.join(repoPath, ".claude", "state", "engineering-os")
   ];
@@ -362,6 +375,7 @@ export async function auditRepo(repoPath) {
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
     hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "engineering-os")),
     hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json")),
+    hasWorkflowState: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json")),
     global
   };
 }

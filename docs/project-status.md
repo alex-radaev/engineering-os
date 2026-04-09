@@ -1,40 +1,44 @@
-# Engineering OS Status
+# Crew Status
 
 ## Read This With
 
 For full continuity after compaction, read this alongside:
 
+- `docs/system-design.md`
 - `docs/reference-repo-plan.md`
 - `docs/memory-and-communication.md`
 - `docs/memory-system.md`
+- `docs/product-roadmap.md`
+- `docs/validation-loop.md`
 - `docs/how-it-feels.md`
 - `docs/v1-spec.md`
 - `docs/release-versioning.md`
 
 ## What We Are Building
 
-`engineering-os` is a Claude Code plugin for structured, legible multi-agent software work.
+`crew` is a Claude Code plugin for structured, legible lead-guided engineering work.
 
-The goal is not a high-autonomy swarm. The goal is a personal engineering operating system that makes team-style work easier to follow, safer to steer, and easier to inspect.
+The goal is not a high-autonomy swarm. The goal is a lead-centered engineering workflow that makes substantial work easier to follow, safer to steer, and easier to inspect.
+
+The current source-of-truth product framing now lives in `docs/system-design.md`.
 
 Core ideas:
 
 - one lead session stays user-facing
-- specialist roles do bounded work
+- specialist roles do bounded work when useful
 - ownership stays explicit
 - handoffs are structured
-- pace is configurable
 - observability is built in
 
 ## MVP Direction
 
 The MVP should shine through a very small user-facing surface:
 
-- `/engineering-os:init-repo`
-- `/engineering-os:bootstrap-repo`
-- `/engineering-os:build-feature`
-- `/engineering-os:investigate-bug`
-- `/engineering-os:parallel-review`
+- `/crew:init`
+- `/crew:adopt`
+- `/crew:build`
+- `/crew:fix`
+- `/crew:review`
 
 Claims, approvals, and artifact writers matter, but they are support machinery. They should increasingly be things the lead uses automatically or sparingly, not a growing list of commands the user must learn.
 
@@ -46,7 +50,7 @@ The repo currently contains:
 - a local development marketplace manifest
 - durable lead, builder, reviewer, and researcher agents
 - reusable skills for operating mode, handoffs, and review gates
-- workflow commands for `audit-repo`, `bootstrap-repo`, `init-repo`, and task modes
+- workflow commands for short user-facing entry points plus compatibility aliases
 - coordination commands for claims and approvals
 - internal artifact-writing support for run briefs, handoffs, reviews, and final syntheses
 - hook wiring for basic lifecycle logging
@@ -148,9 +152,9 @@ Important note:
 
 Validated in a real Claude Code session:
 
-- `/engineering-os:audit-repo` on an existing repo before bootstrap
-- `/engineering-os:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
-- `/engineering-os:audit-repo` after bootstrap to confirm harness presence
+- `/crew:audit-repo` on an existing repo before bootstrap
+- `/crew:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
+- `/crew:audit-repo` after bootstrap to confirm harness presence
 - hook output written to `.claude/logs/events.jsonl`
 - a bounded feature workflow in `makeadz`
 - a clean single-session bug investigation and fix in `makeadz`
@@ -165,6 +169,7 @@ Observed lessons:
 - small, tightly coupled tasks should usually remain single-session
 - the mode model needed a third category: `assisted single-session` for background helpers that do not form a communicating team
 - `assisted single-session` appears to be the most common and natural real-world mode so far
+- assisted single-session should be treated as a strength: bounded subagents save lead context, reduce drift, and improve focus
 - a substantial run with reviewer plus artifacts feels materially more distinct than a default Claude session
 - wake-up briefs must verify `pwd` against the returned `repoPath`; otherwise the lead can trust the wrong repo context
 - reviewer should be treated as the default for substantial implementation work, not an optional nice-to-have
@@ -176,6 +181,8 @@ Observed lessons:
 - manual versioning plus CI consistency checks is sufficient for now; auto-bump-on-merge is not yet necessary
 - artifact CLI ergonomics matter in practice; common aliases like `--verdict` and working subcommand help reduce workflow friction
 - memory should become a standalone feature track, but v1 must stay bounded: stable repo memory plus current live state plus the latest useful artifacts, not the full archive
+- the most promising next workflow distinction is a validator loop: local scenario validation, PR/dev/prod promotion gates, and logs/metrics evidence
+- the user should mostly talk to the lead; commands should be optional entry points, and the lead should infer build/fix/review/validate intent from normal conversation when it is clear
 
 ## Where We Are Now
 
@@ -203,6 +210,13 @@ What is not yet proven:
 
 - real team-run artifact generation during feature or bug workflows
 - approval queues or richer task-board state
+
+What now looks more important than originally expected:
+
+- lead behavior
+- bounded subagents
+- review and validation gates
+- memory and workflow nudges
 
 ## Current Gaps
 

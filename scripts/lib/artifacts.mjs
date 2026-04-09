@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { registerWorkflowArtifact } from "./workflow-state.mjs";
 
 const ARTIFACT_ROOT = [".claude", "artifacts", "engineering-os"];
 
@@ -117,6 +118,51 @@ function resolveArtifactConfig(kind) {
     };
   }
 
+  if (kind === "validation-plan") {
+    return {
+      directory: "validations",
+      prefix: "validation-plan",
+      render(fields) {
+        return [
+          `# Validation Plan: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Owner", fields.owner || fields.validator),
+          renderField("Environment", fields.environment),
+          renderField("Goal", fields.goal || fields.summary),
+          renderListField("Scope", fields.scope),
+          renderListField("Out Of Scope", fields.outOfScope),
+          renderListField("Evidence To Collect", fields.evidence),
+          renderField("Next Step", fields.next),
+          ""
+        ].join("\n");
+      }
+    };
+  }
+
+  if (kind === "validation-result") {
+    return {
+      directory: "validations",
+      prefix: "validation-result",
+      render(fields) {
+        return [
+          `# Validation Result: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Validator", fields.validator || fields.owner || "validator"),
+          renderField("Environment", fields.environment),
+          renderField("Decision", fields.decision || "passed_with_notes"),
+          renderField("Scenario", fields.goal || fields.summary),
+          renderListField("Evidence Collected", fields.evidence),
+          renderListField("Files / Surfaces Checked", fields.files),
+          renderField("Risks", fields.risks),
+          renderField("Required Follow-up", fields.next),
+          ""
+        ].join("\n");
+      }
+    };
+  }
+
   if (kind === "final-synthesis") {
     return {
       directory: "runs",
@@ -152,10 +198,13 @@ export async function writeArtifact(repoPath, kind, fields = {}) {
   const contents = `${config.render(fields)}\n`;
 
   await fs.writeFile(artifactPath, contents);
-
-  return {
+  const artifact = {
     kind,
     path: artifactPath,
     title: fields.title || "Untitled"
   };
+
+  await registerWorkflowArtifact(repoPath, artifact, fields);
+
+  return artifact;
 }

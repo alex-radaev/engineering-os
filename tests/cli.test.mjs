@@ -214,6 +214,51 @@ test("CLI artifact writers create markdown artifacts", async () => {
   const reviewAliasResult = JSON.parse(reviewAliasOutput.stdout);
   const reviewAliasBody = await fs.readFile(reviewAliasResult.path, "utf8");
   assert.match(reviewAliasBody, /approved_with_notes/);
+
+  const validationPlanOutput = await execFile("node", [
+    cliPath,
+    "write-validation-plan",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance validation plan",
+    "--validator",
+    "validator",
+    "--environment",
+    "local",
+    "--goal",
+    "Exercise the create flow and collect smoke evidence",
+    "--evidence",
+    "vite build,playwright smoke"
+  ]);
+  const validationPlanResult = JSON.parse(validationPlanOutput.stdout);
+  const validationPlanBody = await fs.readFile(validationPlanResult.path, "utf8");
+  assert.match(validationPlanBody, /# Validation Plan: Platform guidance validation plan/);
+  assert.match(validationPlanBody, /Exercise the create flow and collect smoke evidence/);
+
+  const validationOutput = await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance validation",
+    "--validator",
+    "validator",
+    "--environment",
+    "local",
+    "--decision",
+    "passed",
+    "--evidence",
+    "vite build,playwright smoke",
+    "--files",
+    "http://localhost:5173,app/templates/create.html"
+  ]);
+  const validationResult = JSON.parse(validationOutput.stdout);
+  const validationBody = await fs.readFile(validationResult.path, "utf8");
+  assert.match(validationBody, /# Validation Result: Platform guidance validation/);
+  assert.match(validationBody, /local/);
+  assert.match(validationBody, /passed/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
@@ -237,6 +282,17 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
 
   await execFile("node", [
     cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_required",
+    "--note",
+    "Implementation finished and waiting for independent review"
+  ]);
+
+  await execFile("node", [
+    cliPath,
     "claim",
     "--repo",
     repoPath,
@@ -254,6 +310,30 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
     "Expand scope for wake-up test"
   ]);
 
+  await execFile("node", [
+    cliPath,
+    "write-validation-plan",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up validation plan",
+    "--environment",
+    "local"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up validation result",
+    "--environment",
+    "local",
+    "--decision",
+    "passed"
+  ]);
+
   const wakeUpOutput = await execFile("node", [
     cliPath,
     "wake-up",
@@ -265,18 +345,183 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.equal(wakeUpResult.summary.memoryPolicy, "bounded-v1");
   assert.equal(wakeUpResult.summary.activeClaims, 1);
   assert.equal(wakeUpResult.summary.openApprovals, 1);
+  assert.equal(wakeUpResult.summary.hasActiveWorkflow, true);
+  assert.deepEqual(wakeUpResult.summary.pendingWorkflowBadges, ["review_required"]);
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.match(wakeUpResult.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
+  assert.match(wakeUpResult.latestArtifacts.validationResult.title, /Wake-up validation result/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.match(wakeUpResult.memory.hot.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
+  assert.match(wakeUpResult.memory.warm.validation.title, /Wake-up validation result/);
   assert.equal(wakeUpResult.memory.hot.claims.length, 1);
   assert.equal(wakeUpResult.memory.hot.openApprovals.length, 1);
+  assert.equal(wakeUpResult.memory.hot.workflow.currentRun.gates.review.status, "required");
   assert.ok(wakeUpResult.memory.cold.archiveCounts.runs >= 1);
+  assert.ok(wakeUpResult.memory.cold.archiveCounts.validations >= 2);
   assert.deepEqual(wakeUpResult.memory.cold.omittedByDefault, [
     "older_artifacts",
     "resolved_approvals",
     "full_event_log",
     "full_history_log"
   ]);
+});
+
+test("CLI workflow state tracks gate badges and artifact progress", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-workflow-state-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("node", [
+    cliPath,
+    "write-run-brief",
+    "--repo",
+    repoPath,
+    "--title",
+    "Workflow gate test",
+    "--goal",
+    "Exercise review and validation gates",
+    "--mode",
+    "assisted single-session"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_required"
+  ]);
+
+  let workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  let workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.equal(workflowResult.summary.currentRun.gates.review.status, "required");
+  assert.deepEqual(workflowResult.summary.pendingBadges, ["review_required"]);
+
+  await execFile("node", [
+    cliPath,
+    "write-review-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Workflow gate review",
+    "--decision",
+    "approved"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-validation-plan",
+    "--repo",
+    repoPath,
+    "--title",
+    "Workflow gate validation plan",
+    "--environment",
+    "local"
+  ]);
+
+  workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.equal(workflowResult.summary.currentRun.gates.review.status, "passed");
+  assert.equal(workflowResult.summary.currentRun.gates.validation.status, "expected");
+  assert.deepEqual(workflowResult.summary.pendingBadges, ["validation_expected"]);
+
+  await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Workflow gate validation result",
+    "--decision",
+    "passed"
+  ]);
+
+  workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.equal(workflowResult.summary.currentRun.gates.validation.status, "passed");
+  assert.deepEqual(workflowResult.summary.pendingBadges, []);
+});
+
+test("CLI blocks final synthesis when workflow badges are still pending", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-gate-enforcement-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("node", [
+    cliPath,
+    "write-run-brief",
+    "--repo",
+    repoPath,
+    "--title",
+    "Gate enforcement test",
+    "--goal",
+    "Ensure final synthesis respects pending gates",
+    "--mode",
+    "single-session"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_required"
+  ]);
+
+  await assert.rejects(
+    () => execFile("node", [
+      cliPath,
+      "write-final-synthesis",
+      "--repo",
+      repoPath,
+      "--title",
+      "Blocked final synthesis",
+      "--summary",
+      "Should not complete while review is pending"
+    ]),
+    /pending: review_required/
+  );
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_skipped",
+    "--note",
+    "Trivial manual docs-only correction"
+  ]);
+
+  const finalOutput = await execFile("node", [
+    cliPath,
+    "write-final-synthesis",
+    "--repo",
+    repoPath,
+    "--title",
+    "Allowed final synthesis",
+    "--summary",
+    "Review was explicitly skipped with reason"
+  ]);
+  const finalResult = JSON.parse(finalOutput.stdout);
+  const finalBody = await fs.readFile(finalResult.path, "utf8");
+  assert.match(finalBody, /Allowed final synthesis/);
 });
 
 test("CLI subcommand help works without error", async () => {

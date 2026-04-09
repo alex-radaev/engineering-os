@@ -1,8 +1,8 @@
 ---
-description: Decide whether a task should use an agent team and coordinate clean parallel ownership when it should.
+description: Internal coordination command for cases where parallel ownership genuinely helps.
 ---
 
-# Run Parallel Review In Engineering OS Mode
+# Run Parallel Review In Internal Coordination Mode
 
 Use this when parallelism helps and ownership can stay clean.
 
@@ -22,7 +22,6 @@ Suggested team shapes:
 
 Before starting, provide:
 
-- chosen pace
 - chosen mode: `assisted single-session` or `team run`
 - why parallelism or helper use helps here
 - who owns what

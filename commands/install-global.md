@@ -1,10 +1,12 @@
 ---
-description: Install or update the one global Engineering OS memory copy used by all repos.
+description: Compatibility alias for /crew:install. Prefer the short command for global setup.
 ---
 
-# Install Global Engineering OS Memory
+# Install Global Compatibility Alias
 
-Install or update the managed global Engineering OS memory files.
+Prefer `/crew:install` for new usage.
+
+Install or update the managed global Crew memory files.
 
 Use this after installing or updating the plugin when framework memory changes.
 

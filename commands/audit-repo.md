@@ -1,5 +1,5 @@
 ---
-description: Inspect the current repository and report whether the Engineering OS harness is already present.
+description: Internal setup/debug command to inspect whether the Engineering OS harness is already present.
 ---
 
 # Audit Repo For Engineering OS

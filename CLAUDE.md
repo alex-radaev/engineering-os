@@ -1,4 +1,4 @@
-# Engineering OS Plugin Repo
+# Crew Plugin Repo
 
 This repository builds a Claude Code plugin for structured multi-agent software work.
 

@@ -1,10 +1,12 @@
-# Engineering OS
+# Crew
 
-A Claude Code plugin for structured multi-agent software work with explicit roles, bounded ownership, and inspectable handoffs.
+A Claude Code plugin for lead-guided engineering work with bounded subagents, quality gates, and inspectable handoffs.
+
+The main design document is [system-design.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/system-design.md).
 
 ## What it does
 
-Engineering OS gives Claude Code a small team model:
+Crew gives Claude Code a lead-centered workflow model:
 
 - **lead** — plans, delegates, synthesizes, paces
 - **builder** — implements bounded changes within assigned scope
@@ -13,25 +15,59 @@ Engineering OS gives Claude Code a small team model:
 
 Each agent has strict ownership rules, structured start/completion reports, and explicit handoffs.
 
+In practice, the highest-value default mode is:
+
+- one lead stays user-facing
+- the lead infers workflow intent from normal conversation
+- the lead uses bounded subagents for smaller focused tasks
+- reviewer and later validator/deployer act as quality gates
+
+The user should mostly talk to the lead, not manage a menu of agents or remember a command graph.
+
+The next product direction is an evidence-gated validation loop: local validation, review, PR, dev deploy validation, dev logs/metrics, production promotion, and production monitoring. See [validation-loop.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/validation-loop.md).
+
+For the broader implementation order and rename plan, see [product-roadmap.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/product-roadmap.md).
+
 ## Commands
 
-Primary user-facing commands:
+The public surface should stay small.
 
-- `/engineering-os:build-feature` — lead a bounded feature delivery run
-- `/engineering-os:investigate-bug` — lead a debugging run with evidence gathering
-- `/engineering-os:parallel-review` — coordinate clean parallel ownership
-- `/engineering-os:bootstrap-repo` — prepare an existing repo for the workflow
-- `/engineering-os:init-repo` — initialize a new repo with the harness
-- `/engineering-os:install-global` — install or update the one global Engineering OS memory copy
+Preferred entry points:
 
-Supporting commands: `claim-files`, `release-files`, `show-claims`, `show-conflicts`, `request-approval`, `show-approvals`, `resolve-approval`, `audit-repo`, `wake-up-brief`.
+- `/crew:build` — build or extend capability
+- `/crew:fix` — investigate and fix broken behavior
+- `/crew:review` — run the review phase on completed work
+- `/crew:validate` — run the validation phase on runnable or observable behavior
+- `/crew:adopt` — adopt an existing repo into the workflow
+- `/crew:init` — initialize a new repo with the harness
+- `/crew:install` — install or update the managed global framework memory
+
+Legacy compatibility aliases still exist for migration, but they should not be the primary surface:
+
+- `/crew:build-feature`
+- `/crew:investigate-bug`
+- `/crew:bootstrap-repo`
+- `/crew:init-repo`
+- `/crew:install-global`
+
+Everything else should be treated as internal, advanced, or debugging-oriented workflow plumbing:
+
+- `parallel-review`
+- `wake-up-brief`
+- `audit-repo`
+- claims / approvals commands
+- direct artifact-writing commands
+
+The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the intent is clear.
+
+`/crew:ship` is still a planned future surface, not a live command yet.
 
 ## Install
 
 Install via the Claude Code plugin flow:
 
 ```
-claude plugin install engineering-os
+claude plugin install crew
 ```
 
 For local development, clone and register as a directory marketplace:
@@ -44,7 +80,7 @@ Then add it as a local marketplace in `~/.claude/plugins/known_marketplaces.json
 
 ### Global setup
 
-Engineering OS keeps one managed global memory copy for framework-level rules:
+Crew keeps one managed global memory copy for framework-level rules:
 
 - `~/.claude/engineering-os/constitution.md`
 - `~/.claude/engineering-os/workflow.md`
@@ -55,7 +91,7 @@ Project repos should not each get their own copied constitution and workflow. Th
 After installing or updating the plugin, run:
 
 ```text
-/engineering-os:install-global
+/crew:install
 ```
 
 This writes or updates the managed global copy and adds `@` references to your global `~/.claude/CLAUDE.md`.
@@ -66,7 +102,7 @@ Why this exists:
 - plugin install does not automatically rewrite global `CLAUDE.md`
 - one managed global copy avoids stale per-repo framework copies
 
-If a plugin update changes constitution or workflow behavior, rerun `/engineering-os:install-global` once.
+If a plugin update changes constitution or workflow behavior, rerun `/crew:install` once.
 
 ### How configuration layers work
 
@@ -80,7 +116,13 @@ If a plugin update changes constitution or workflow behavior, rerun `/engineerin
 
 ### Per-repo bootstrap
 
-To enable artifacts, state tracking, and hooks in a specific repo:
+To adopt an existing repo into the workflow, use:
+
+```text
+/crew:adopt
+```
+
+The raw CLI bootstrap command still exists for debugging and scripting:
 
 ```bash
 node "<plugin-path>/scripts/engineering-os.mjs" bootstrap --repo .
@@ -142,8 +184,8 @@ Do **not** commit transient coordination state:
 ## Project structure
 
 ```
-agents/          — lead, builder, reviewer, researcher
-commands/        — user-facing slash commands
+agents/          — lead, builder, reviewer, researcher, validator
+commands/        — small public surface plus internal/debug commands
 skills/          — reusable operating behaviors
 hooks/           — event logging wiring
 scripts/         — CLI tooling and helpers

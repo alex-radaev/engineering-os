@@ -1,8 +1,10 @@
 ---
-description: Lead a bounded feature delivery run with explicit ownership, pacing, and handoffs.
+description: Compatibility alias for /crew:build. Prefer the short command for feature work.
 ---
 
-# Build Feature In Engineering OS Mode
+# Build Feature Compatibility Alias
+
+Prefer `/crew:build` for new usage.
 
 Act as the lead for a bounded feature delivery run.
 
@@ -13,32 +15,57 @@ Workflow:
 2. Start by reading the repo wake-up brief:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
 3. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
-4. Restate the feature goal and define the likely pace: slow, medium, or fast.
-5. Choose one of:
+4. Follow this phase order:
+   - frame
+   - implement
+   - review if code changed
+   - validate if behavior can be exercised meaningfully
+   - synthesize
+5. Restate the feature goal and frame the task:
+   - what the user wants
+   - what is in scope
+   - what is out of scope
+   - what repo or external context matters
+   - whether the work should stay whole or be split into bounded sub-tasks
+6. Choose one of:
    - `single-session`
    - `assisted single-session`
    - `team run`
-6. If the task is substantial enough that future wake-up context will matter, immediately write a run brief with:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>" --pace "<pace>"`
-7. If using `single-session`, do the work directly and do not spawn helpers.
-8. Use `assisted single-session` when a helper can reduce uncertainty or validate work without becoming a communicating team.
-9. Only use a `team run` when ownership can be split cleanly.
-10. If using a `team run`, claim files only when parallel work might collide, and open approvals only when scope or ownership boundaries must be crossed.
-11. If using a `team run`, assign bounded work to:
+7. If the task is substantial enough that future wake-up context will matter, immediately write a run brief with:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>"`
+8. If using `single-session`, do the work directly and do not spawn helpers.
+9. Use `assisted single-session` when a helper can reduce uncertainty or validate work without becoming a communicating team.
+10. Only use a `team run` when ownership can be split cleanly.
+11. If using a `team run`, claim files only when parallel work might collide, and open approvals only when scope or ownership boundaries must be crossed.
+12. If using a `team run`, assign bounded work to:
    - builder for implementation
-   - reviewer for validation
+   - reviewer for change review
+   - validator for behavior checks when behavior can be exercised
    - researcher for uncertainty reduction if needed
-12. Keep ownership explicit and avoid same-file parallel editing.
-13. Require structured acknowledgements and completion reports from every teammate or helper.
-14. For substantial implementation work, reviewer validation is the default. If you skip review, say so explicitly and justify it before the final synthesis.
-15. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
+13. Keep ownership explicit and avoid same-file parallel editing.
+14. Require structured acknowledgements and completion reports from every teammate or helper.
+15. If the implementation is split into code-bearing sub-tasks, make those sub-tasks independently reviewable and review them where practical before treating them as complete.
+16. For implementation work that changes code, independent review is the default. When code work is complete and waiting for review, record that gate in workflow state:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_required`
+17. If you skip review, say so explicitly and record it in workflow state with a reason:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`
+18. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-16. When a reviewer materially validates the work, write a review artifact:
+19. When a reviewer materially reviews the change, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-17. End with a clear synthesis for the user:
+20. If the changed behavior can be exercised meaningfully, define the validation scenario and run validation after review. When validation is expected, record that gate in workflow state:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_expected`
+21. When the scenario is substantial enough to preserve, write a validation plan:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-plan --repo "$PWD" --title "<short title>" ...`
+22. If you skip validation, say so explicitly and record it in workflow state with a reason:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_skipped --note "<reason>"`
+23. When a validator materially checks behavior, write a validation artifact:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
+24. End with a clear synthesis for the user:
    - what changed
+   - what was reviewed
    - what was validated
    - risks or open questions
    - what happens next
-18. For substantial work, write a final synthesis artifact:
+25. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`
