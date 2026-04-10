@@ -17,7 +17,8 @@ Use the same conservative bootstrap workflow as `bootstrap-repo`:
    - `.github/workflows/`
    - Docker / compose / infra files
 6. if deployment clues are clear enough, write initial deployment guidance in `.claude/engineering-os/deployment.md`
-7. if the deployment picture is only partial, record what is known and what still needs verification instead of guessing
+   - mark it as `repo-derived` unless live infrastructure has actually been checked
+7. if the deployment picture is only partial, record what is known and what still needs live verification instead of guessing
 8. recommend `/crew:install` if the managed global memory is missing or stale
 
 Follow the detailed workflow and command examples from `bootstrap-repo`.

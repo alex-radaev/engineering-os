@@ -57,6 +57,9 @@ function parseArgs(argv) {
     alerts: null,
     telemetry: null,
     clues: null,
+    discoveryStatus: null,
+    verifiedFrom: null,
+    missing: null,
     refreshWhen: null,
     resource: null,
     url: null,
@@ -275,6 +278,21 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--discovery-status") {
+      flags.discoveryStatus = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--verified-from") {
+      flags.verifiedFrom = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--missing") {
+      flags.missing = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value === "--refresh-when") {
       flags.refreshWhen = rest[index + 1];
       index += 1;
@@ -333,7 +351,7 @@ function usage(target = null) {
     "wake-up": "  node scripts/engineering-os.mjs wake-up --repo <path>",
     "brief-me": "  node scripts/engineering-os.mjs brief-me --repo <path>",
     "discover-deployment": "  node scripts/engineering-os.mjs discover-deployment --repo <path>",
-    "write-deployment-guidance": "  node scripts/engineering-os.mjs write-deployment-guidance --repo <path> --title <text> [--summary <text>] [--build <text>] [--deploy <text>]",
+    "write-deployment-guidance": "  node scripts/engineering-os.mjs write-deployment-guidance --repo <path> --title <text> [--discovery-status repo-derived|partial|live-verified] [--verified-from <a,b>] [--missing <a,b>] [--summary <text>] [--build <text>] [--deploy <text>]",
     "show-workflow-state": "  node scripts/engineering-os.mjs show-workflow-state --repo <path>",
     "mark-badge": "  node scripts/engineering-os.mjs mark-badge --repo <path> --badge review_required|review_passed|review_failed|review_skipped|validation_expected|validation_passed|validation_failed|validation_skipped|dev_deploy_expected|dev_checked|dev_failed|dev_skipped|prod_deploy_expected|prod_checked|prod_failed|prod_skipped [--note <text>]",
     "write-run-brief": "  node scripts/engineering-os.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
@@ -425,6 +443,9 @@ async function main() {
       alerts: flags.alerts,
       telemetry: flags.telemetry,
       clues: flags.clues,
+      discoveryStatus: flags.discoveryStatus,
+      verifiedFrom: flags.verifiedFrom,
+      missing: flags.missing,
       refreshWhen: flags.refreshWhen,
       next: flags.next
     });

@@ -17,18 +17,23 @@ Expected shape:
 1. verify the repo and read bounded wake-up context
 2. retrieve existing repo deployment guidance before planning an environment transition
 3. if deployment guidance is missing or stale, inspect CI/CD, infra, and deployment files and write durable repo deployment guidance
-4. frame the current shipping stage:
+4. if repo files are not enough to produce actionable deploy steps, treat the guidance as incomplete:
+   - resolve live infrastructure identifiers when feasible
+   - distinguish repo-derived guidance from live-verified guidance
+   - record what is still missing if live resolution is not possible
+5. frame the current shipping stage:
    - local work complete?
    - review complete?
    - validation complete?
    - PR ready or merged?
    - dev or prod target?
-5. identify what evidence already exists and what gate is still missing
-6. use the deployer when environment transition or deployment confirmation is needed
-7. write deployment checks as environment evidence is gathered
-8. require post-deploy validation when behavior can be exercised meaningfully
-9. require explicit user approval before risky production promotion
-10. return evidence, residual risk, and the next responsible step
+6. identify what evidence already exists and what gate is still missing
+7. use the deployer when environment transition or deployment confirmation is needed
+8. write deployment checks as environment evidence is gathered
+9. after a successful deploy or live environment check, update deployment guidance with the concrete identifiers you discovered
+10. require post-deploy validation when behavior can be exercised meaningfully
+11. require explicit user approval before risky production promotion
+12. return evidence, residual risk, and the next responsible step
 
 Use deployment checks and workflow state to keep the shipping path legible:
 
@@ -47,6 +52,14 @@ Repo deployment guidance should preserve what the repo itself teaches us about s
 - environments
 - logs / metrics / alerts / telemetry surfaces
 - CI/CD and infra clue files
+
+Repo deployment guidance should also distinguish how trustworthy it is:
+
+- `repo-derived` when it only reflects what repo files reveal
+- `partial` when some live identifiers are known but important pieces are still unresolved
+- `live-verified` when concrete deploy identifiers have been confirmed from the actual platform
+
+If repo files hide identifiers behind secrets or opaque CI/CD config, do not stop at a repo-only summary when live resolution is feasible.
 
 Deployment checks should capture concrete deployment identity when available:
 

@@ -68,6 +68,9 @@ Deployment evidence should also preserve concrete deployment identity when avail
 - service URL
 - revision, image, or release identifier
 
+Deployment guidance should record whether that identity is only repo-derived, still partial, or live-verified from the actual platform.
+After a real deploy or environment check, that guidance should be updated automatically with the concrete identifiers learned during the run.
+
 ## Validation Scenario
 
 Before validation, the lead or validator should write a short scenario.

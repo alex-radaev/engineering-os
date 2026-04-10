@@ -182,6 +182,7 @@ export async function readDeploymentGuidanceSummary(repoPath) {
     path: filePath,
     title: heading.replace(/^#\s+/, "").trim(),
     summary: extractField(body, "Summary"),
+    discoveryStatus: extractField(body, "Discovery Status"),
     updatedAt: stat.mtime.toISOString()
   };
 }
@@ -197,6 +198,8 @@ export async function writeDeploymentGuidance(repoPath, fields = {}) {
     "",
     renderField("Updated", nowIso()),
     renderField("Owner", fields.owner || "lead-session"),
+    renderField("Discovery Status", fields.discoveryStatus || "repo-derived"),
+    renderListField("Verified From", fields.verifiedFrom),
     renderField("Summary", fields.summary),
     renderField("Build Path", fields.build),
     renderField("Deploy Path", fields.deploy),
@@ -206,6 +209,7 @@ export async function writeDeploymentGuidance(repoPath, fields = {}) {
     renderField("Alerts / Incidents", fields.alerts),
     renderField("Telemetry / Events", fields.telemetry),
     renderListField("Source Clues", mergedClues),
+    renderListField("Still Missing", fields.missing),
     renderField("Refresh When", fields.refreshWhen || fields.next),
     ""
   ].join("\n");

@@ -189,6 +189,15 @@ When deployment evidence is expected, record that gate in workflow state:
 
 Before rediscovering how a repo ships, reuse repo deployment guidance if it exists. If it does not exist or is clearly stale, inspect CI/CD, infra, and deployment files, then write or update `.claude/engineering-os/deployment.md`.
 
+When writing deployment guidance:
+
+- prefer actionable guidance over repo-only summaries
+- distinguish `repo-derived`, `partial`, and `live-verified` guidance explicitly
+- if repo files use opaque secrets or indirect config, treat repo-derived guidance as incomplete
+- when feasible, query the live deployment platform to resolve project, resource, region, URL, image, or revision identifiers
+- if live resolution is not possible, record exactly what is still missing and why
+- after a successful deploy or environment check, automatically update deployment guidance with the concrete identifiers learned during that run
+
 If review or validation is intentionally skipped, mark that explicitly with a note:
 
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`

@@ -312,6 +312,10 @@ test("CLI artifact writers create markdown artifacts", async () => {
     repoPath,
     "--title",
     "Platform guidance deployment model",
+    "--discovery-status",
+    "live-verified",
+    "--verified-from",
+    "cloud run,github actions",
     "--summary",
     "GitHub Actions builds the image; gcloud deploy applies it to Cloud Run.",
     "--build",
@@ -327,13 +331,18 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--alerts",
     "Cloud Monitoring alert policies on 5xx and crash loops",
     "--telemetry",
-    "BigQuery product events"
+    "BigQuery product events",
+    "--missing",
+    "staging playground service url"
   ]);
   const guidanceResult = JSON.parse(guidanceOutput.stdout);
   const guidanceBody = await fs.readFile(guidanceResult.path, "utf8");
   assert.match(guidanceBody, /# Deployment Guidance: Platform guidance deployment model/);
+  assert.match(guidanceBody, /- Discovery Status: live-verified/);
+  assert.match(guidanceBody, /- Verified From:/);
   assert.match(guidanceBody, /GitHub Actions builds the image/);
   assert.match(guidanceBody, /Cloud Logging service logs/);
+  assert.match(guidanceBody, /staging playground service url/);
   assert.match(guidanceBody, /\.github\/workflows\/deploy\.yml/);
 });
 
@@ -428,6 +437,8 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
     repoPath,
     "--title",
     "Wake-up deployment model",
+    "--discovery-status",
+    "repo-derived",
     "--summary",
     "CI builds artifacts and gcloud deploys them to dev."
   ]);
@@ -468,6 +479,7 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.equal(wakeUpResult.summary.repoMemoryFiles >= 1, true);
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
   assert.match(wakeUpResult.repoGuidance.deployment.title, /Wake-up deployment model/);
+  assert.equal(wakeUpResult.repoGuidance.deployment.discoveryStatus, "repo-derived");
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
   assert.match(wakeUpResult.latestArtifacts.validationResult.title, /Wake-up validation result/);

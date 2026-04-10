@@ -246,8 +246,12 @@ The intended progression is:
    inspect CI/CD, infra, and deployment files directly when needed
 2. next:
    write durable repo deployment guidance after discovery, for example in `.claude/engineering-os/deployment.md`
+   distinguish `repo-derived`, `partial`, and `live-verified` guidance
+   if repo files are opaque, resolve live infrastructure identifiers when feasible
 3. later:
    formalize that understanding into repo environment configuration
+
+Successful deploy or environment-check runs should write back the concrete identifiers they discovered so the next deploy does not need to rediscover them.
 
 ## Greenfield Development
 
