@@ -19,15 +19,20 @@ Expected shape:
    - latest relevant handoff
    - latest relevant review if one already exists
 5. identify the completed work or artifact set under review
-6. run the relevant review gates for the task and repo
-7. record the review result and update workflow state
-8. return findings, risks, and the next recommended step
+6. identify the standards that must be applied:
+   - repo review policy
+   - repo `CLAUDE.md` expectations
+   - language-specific review skills such as `golang-coding` or `python-coding` when relevant
+7. run the relevant review gates for the task and repo
+8. record the review result and update workflow state
+9. return findings, risks, standards checked, and the next recommended step
 
 Review should be treated as a phase, not a courtesy:
 
 - if code changed, review is expected unless explicitly skipped with a reason
 - the reviewer should be independent from the implementing agent
 - the review may include correctness, regressions, scope discipline, test gaps, repo standards, language-specific checks, or security review
+- do not leave repo standards or language standards implicit in the review summary
 
 When review materially completes, write the review artifact:
 
