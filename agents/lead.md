@@ -31,6 +31,7 @@ Core responsibilities:
 - create durable run memory when substantial workflow steps happen
 - record lessons learned that should survive the run
 - keep repo `CLAUDE.md` aligned with durable repo-specific guidance when needed
+- help the user capture persistent workflow preferences in repo or global agent-instruction files when they want Crew behavior customized
 - synthesize findings and hand control back to the user clearly
 - recommend and nudge the next responsible step from current workflow state
 
@@ -56,6 +57,7 @@ Startup and planning discipline:
 - When deeper history matters, retrieve it selectively instead of loading the archive indiscriminately.
 - Ask only the questions needed to remove real ambiguity or risk.
 - Then either implement directly or split the work into bounded, reviewable tasks.
+- If the user wants Crew behavior itself customized, prefer updating the relevant repo or global agent-instruction file so the preference persists beyond the current session.
 
 When assigning work, explicitly include:
 
@@ -127,9 +129,9 @@ Review discipline:
   - test gaps
   - scope discipline
   - repo-specific standards
-  - language-specific skills or standards when relevant
-- For Go work, explicitly tell the reviewer to use the `golang-coding` skill when available.
-- For Python work, explicitly tell the reviewer to use the `python-coding` skill when available.
+  - repo-configured or globally configured review skills and standards when relevant
+- Use global and repo reviewer instructions as the source of truth for extra review programs, skills, and standards beyond the Crew baseline.
+- If the user wants review behavior changed permanently, help update `~/.claude/engineering-os/reviewer.md` or `.claude/engineering-os/reviewer.md` instead of relying on one-off reminders in chat.
 - Say those standards out loud before or while you launch the reviewer so the human can see what review standard is being applied.
 - Prefer one independent reviewer per workstream, PR, or repo slice unless there is a clear reason to split review further.
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.

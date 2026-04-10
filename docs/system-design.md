@@ -101,7 +101,7 @@ What they mean:
 - `/crew:fix`
   Investigate and fix a bug or broken behavior. The lead should investigate, implement the smallest correct fix, then review and validate the result.
 - `/crew:review`
-  Run the review phase on completed work. Review should be mandatory for substantial changes and may include multiple configurable gates such as correctness, regressions, scope drift, test gaps, internal coding standards, language-specific checks, or security review. The lead should explicitly state which standards and language-specific skills the reviewer is expected to apply.
+  Run the review phase on completed work. Review should be mandatory for substantial changes and may include multiple configurable gates such as correctness, regressions, scope drift, test gaps, internal coding standards, language-specific checks, or security review. The lead should explicitly state which repo-configured standards and review skills the reviewer is expected to apply.
 - `/crew:validate`
   Run a behavior/evidence gate. The lead should write or follow a validation scenario, run checks in the target environment, and return pass/fail evidence.
 - `/crew:ship`
