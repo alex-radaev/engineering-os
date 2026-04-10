@@ -119,6 +119,7 @@ Good artifact types:
 - review result
 - validation plan
 - validation result
+- deployment check
 - final synthesis
 
 Use the Engineering OS CLI for this instead of inventing ad hoc files:
@@ -126,6 +127,7 @@ Use the Engineering OS CLI for this instead of inventing ad hoc files:
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-run-brief --repo "$PWD" ...`
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-handoff --repo "$PWD" ...`
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" ...`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-check --repo "$PWD" ...`
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-final-synthesis --repo "$PWD" ...`
 
 Default behavior:
@@ -135,6 +137,7 @@ Default behavior:
 - write a review result when a reviewer materially reviews the change
 - write a validation plan when a substantial validation scenario should be preserved
 - write a validation result when a validator materially exercises behavior
+- write a deployment check when deployer evidence materially confirms a dev or prod transition
 - write a final synthesis at the end of substantial work
 
 Treat these writes as expected workflow steps, not optional note-taking.
@@ -147,10 +150,20 @@ When behavior should be validated after review, record that gate in workflow sta
 
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_expected`
 
+When deployment evidence is expected, record that gate in workflow state:
+
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge dev_deploy_expected`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge prod_deploy_expected`
+
 If review or validation is intentionally skipped, mark that explicitly with a note:
 
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_skipped --note "<reason>"`
+
+If deployment evidence is intentionally skipped, mark that explicitly with a note:
+
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge dev_skipped --note "<reason>"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge prod_skipped --note "<reason>"`
 
 Use workflow state to keep pending gates visible during the run and at wake-up.
 

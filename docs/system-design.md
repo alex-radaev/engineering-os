@@ -103,6 +103,7 @@ What they mean:
   Run a behavior/evidence gate. The lead should write or follow a validation scenario, run checks in the target environment, and return pass/fail evidence.
 - `/crew:ship`
   Move work through PR, dev, and production with evidence. This includes merge readiness, deploy/validate loops, and promotion nudges.
+  `ship` is both a user-facing entry point and a workflow phase the lead should recommend when the work is ready to move forward.
 - `/crew:init`
   Set up a brand-new repo with the repo-local Crew harness.
 - `/crew:adopt`
@@ -111,10 +112,22 @@ What they mean:
   Install or update the one managed global Crew memory copy under `~/.claude/engineering-os/`.
 
 But the lead should also infer these workflows from ordinary conversation when the intent is clear.
+In particular, the lead should notice when work is ready to move into PR, dev, or production, and nudge the user toward `ship` without waiting for the perfect command.
 
 Commands are accelerators, not prerequisites.
 
 For compatibility, some internal storage paths and scripts still use `engineering-os` for now. The user-facing product and command namespace should be `crew`.
+
+Some workflows are distinct enough that the lead should treat them as workflow variants, not just ordinary `build` or `ship` runs.
+
+Important examples:
+
+- greenfield development
+  This is not just feature work in an empty repo. It may involve ideation, narrowing scope, research, stack choice, architecture, data modeling, scaffolding, and the first vertical slice.
+- initial deployment
+  This is not the same as routine shipping. It may involve discovering or establishing the first deployment path, separating build from rollout, confirming resource naming, and creating the first post-deploy validation/monitoring loop.
+
+These should reuse the same lead-centered system and base agents where possible, but they should eventually get distinct workflow shapes.
 
 ## Core Execution Model
 
@@ -161,6 +174,40 @@ Use this only when:
 - ownership boundaries can stay clear
 
 This is an escalation mode, not the main promise.
+
+## Workflow Variants
+
+Some workflows need a different phase model, even if they still use the same lead, reviewer, validator, and deployer roles.
+
+### Greenfield Development
+
+Greenfield work is a distinct workflow family.
+
+It may include:
+
+- brainstorming and ideation
+- narrowing scope to a first credible slice
+- research and option comparison
+- stack and architecture choice
+- database or data-model design
+- scaffolding and repo setup
+- first vertical slice implementation
+
+This should not be modeled as ordinary feature delivery in an empty repo.
+
+### Initial Deployment
+
+Initial deployment is a distinct shipping workflow.
+
+It may include:
+
+- discovering CI/CD and deployment paths
+- separating build, publish, rollout, and verification
+- deciding or confirming resource names and service URLs
+- establishing the first environment evidence loop
+- confirming the first post-deploy validation and monitoring flow
+
+This should not be modeled as the same thing as routine dev/prod promotion.
 
 ## Main System Components
 
@@ -340,6 +387,13 @@ Planned artifacts:
 - validation result
 - deployment check
 
+Deployment checks should preserve concrete deployment identity when available, for example:
+
+- environment
+- resource or service name
+- service URL
+- revision, image, or release identifier
+
 The artifact and state layer should eventually support gate badges on work chunks, for example:
 
 - review_required
@@ -383,7 +437,21 @@ Current structure:
 Planned:
 
 - repo-specific environment configuration for validation and deployment
-  This should describe how the repo runs in real environments, for example local run commands, test commands, dev and prod URLs, deploy commands, log and metrics access hints, and service-specific notes.
+  This should describe how the repo runs in real environments, for example local run commands, test commands, dev and prod URLs, deploy commands, and service-specific notes.
+  The environment surface should keep distinct evidence channels instead of flattening them:
+  - logs
+  - metrics
+  - alerts / incidents
+  - telemetry / product or domain events
+
+Before this is formalized, deployment understanding should progress in three steps:
+
+1. today:
+   deployer may inspect CI/CD, infra, and deployment files directly when needed
+2. next:
+   deployer or lead writes durable repo deployment guidance after discovery
+3. later:
+   Crew formalizes that understanding into stable repo environment configuration
 
 The important distinction is:
 
@@ -409,6 +477,15 @@ Planned:
 - richer event schema
 - validation/deployment evidence visibility
 - better nudges derived from incomplete workflow state
+
+For deployment and post-deploy validation, evidence should usually come from separate surfaces:
+
+- service logs
+- service metrics
+- alerting state or incidents
+- telemetry or product/domain events
+
+Crew should not treat these as one interchangeable blob of "monitoring."
 
 ## Component Contracts
 

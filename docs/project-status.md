@@ -9,6 +9,7 @@ For full continuity after compaction, read this alongside:
 - `docs/memory-and-communication.md`
 - `docs/memory-system.md`
 - `docs/product-roadmap.md`
+- `docs/implementation-commitments.md`
 - `docs/validation-loop.md`
 - `docs/how-it-feels.md`
 - `docs/v1-spec.md`

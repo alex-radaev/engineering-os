@@ -9,6 +9,7 @@ const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "engineering-os", "handoffs"];
 const REVIEWS_DIR = [".claude", "artifacts", "engineering-os", "reviews"];
 const VALIDATIONS_DIR = [".claude", "artifacts", "engineering-os", "validations"];
+const DEPLOYMENTS_DIR = [".claude", "artifacts", "engineering-os", "deployments"];
 const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "engineering-os", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "engineering-os", "sprint.json"];
@@ -139,14 +140,15 @@ function summarizeLatestArtifact(artifact) {
 }
 
 async function countArchive(repoPath) {
-  const [runs, handoffs, reviews, validations] = await Promise.all([
+  const [runs, handoffs, reviews, validations, deployments] = await Promise.all([
     countFiles(path.join(repoPath, ...RUNS_DIR)),
     countFiles(path.join(repoPath, ...HANDOFFS_DIR)),
     countFiles(path.join(repoPath, ...REVIEWS_DIR)),
-    countFiles(path.join(repoPath, ...VALIDATIONS_DIR))
+    countFiles(path.join(repoPath, ...VALIDATIONS_DIR)),
+    countFiles(path.join(repoPath, ...DEPLOYMENTS_DIR))
   ]);
 
-  return { runs, handoffs, reviews, validations };
+  return { runs, handoffs, reviews, validations, deployments };
 }
 
 function buildMemoryBuckets({
@@ -160,6 +162,7 @@ function buildMemoryBuckets({
   latestReview,
   latestValidationPlan,
   latestValidationResult,
+  latestDeploymentCheck,
   recentEvents,
   recentClaimHistory,
   archiveCounts
@@ -175,7 +178,8 @@ function buildMemoryBuckets({
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
         handoff: latestHandoff,
-        validationPlan: latestValidationPlan
+        validationPlan: latestValidationPlan,
+        deploymentCheck: latestDeploymentCheck
       }
     },
     warm: {
@@ -207,7 +211,8 @@ export async function buildWakeUpBrief(repoPath) {
     latestHandoff,
     latestReview,
     latestValidationPlan,
-    latestValidationResult
+    latestValidationResult,
+    latestDeploymentCheck
   ] =
     await Promise.all([
       listApprovals(repoPath, { status: "open" }),
@@ -219,7 +224,8 @@ export async function buildWakeUpBrief(repoPath) {
       latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
       latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result"),
       latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-plan"),
-      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result")
+      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result"),
+      latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-check")
     ]);
 
   const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
@@ -240,7 +246,8 @@ export async function buildWakeUpBrief(repoPath) {
     handoff: latestHandoff,
     review: latestReview,
     validationPlan: latestValidationPlan,
-    validationResult: latestValidationResult
+    validationResult: latestValidationResult,
+    deploymentCheck: latestDeploymentCheck
   };
 
   const workflow = summarizeWorkflowState(workflowState);
@@ -256,6 +263,7 @@ export async function buildWakeUpBrief(repoPath) {
     latestReview,
     latestValidationPlan,
     latestValidationResult,
+    latestDeploymentCheck,
     recentEvents,
     recentClaimHistory,
     archiveCounts
@@ -285,7 +293,8 @@ export async function buildWakeUpBrief(repoPath) {
         latestHandoff ||
         latestReview ||
         latestValidationPlan ||
-        latestValidationResult
+        latestValidationResult ||
+        latestDeploymentCheck
       ),
       latestArtifact: summarizeLatestArtifact(
         newestOf(
@@ -294,7 +303,8 @@ export async function buildWakeUpBrief(repoPath) {
           latestHandoff,
           latestReview,
           latestValidationPlan,
-          latestValidationResult
+          latestValidationResult,
+          latestDeploymentCheck
         )
       ),
       archiveCounts

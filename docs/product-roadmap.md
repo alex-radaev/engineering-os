@@ -4,6 +4,8 @@ This document is a build-order and product-shaping companion to [system-design.m
 
 Use `system-design.md` for the main system definition.
 
+Use [implementation-commitments.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/implementation-commitments.md) for deferred-but-committed work we explicitly plan to build later.
+
 ## Current Read
 
 Engineering OS is useful, but the original positioning is too broad.
@@ -67,6 +69,11 @@ Possible future command surface:
 
 Old commands can remain as compatibility aliases during transition.
 
+Later, we may need distinct workflow variants beyond the base command set, especially for:
+
+- greenfield development
+- initial deployment
+
 ## Public vs Internal Commands
 
 The public surface should stay small.
@@ -103,6 +110,8 @@ Examples:
 - "This is broken" -> fix
 - "Can we sanity-check this?" -> review or validate
 - "Should we ship this?" -> ship
+
+And when the user does not ask directly, the lead should still notice lifecycle state and recommend `ship` when the work is ready to move into PR, dev, or production.
 
 ## Agents Are Lead Tools
 
@@ -220,6 +229,47 @@ Promotion remains a lead/user decision based on evidence.
 
 Mention deployer in plans early, but do not build it before local validation is proven.
 
+Deployer should not rediscover deployment from scratch forever.
+
+The intended progression is:
+
+1. today:
+   inspect CI/CD, infra, and deployment files directly when needed
+2. next:
+   write durable repo deployment guidance after discovery
+3. later:
+   formalize that understanding into repo environment configuration
+
+## Greenfield Development
+
+Greenfield development is different enough to deserve its own workflow shape later.
+
+It may include:
+
+- ideation
+- narrowing scope
+- product or technical research
+- architecture
+- data modeling
+- first repo setup
+- first vertical slice
+
+This should probably be a workflow variant of `build`, not just ordinary feature work in an empty repo.
+
+## Initial Deployment
+
+Initial deployment is different enough to deserve its own shipping workflow variant.
+
+It may include:
+
+- discovering the deployment path from CI/CD and infra files
+- separating build from rollout
+- confirming resource naming and service URLs
+- creating the first post-deploy validation loop
+- establishing the first logs/metrics/alerts/telemetry checks
+
+This should probably be a workflow variant of `ship`, not the same thing as routine promotion.
+
 ## Local Validation Loop
 
 Build this before dev/prod shipping automation.
@@ -312,6 +362,8 @@ It should define:
 - prod deployment command
 - log commands
 - metrics commands
+- alert or incident checks
+- telemetry or domain-event checks
 - provider notes, such as Cloud Run service, project, and region
 
 Start with markdown if we want flexibility.
@@ -330,6 +382,14 @@ Keep the managed global memory direction:
 Later improvement:
 
 - detect stale global memory and nudge the user to update it
+
+## Deferred But Committed
+
+When we explicitly agree that something should be built later, but not now, record it in:
+
+- [implementation-commitments.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/implementation-commitments.md)
+
+This prevents "yes, later" decisions from being lost across sessions.
 
 Memory details:
 

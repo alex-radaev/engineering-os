@@ -7,10 +7,11 @@ This repository builds a Claude Code plugin for structured multi-agent software 
 If you are a future coding agent picking this repo up after compaction, read these in roughly this order:
 
 1. `docs/project-status.md`
-2. `docs/reference-repo-plan.md`
-3. `docs/memory-and-communication.md`
-4. `docs/how-it-feels.md`
-5. `docs/v1-spec.md`
+2. `docs/implementation-commitments.md`
+3. `docs/reference-repo-plan.md`
+4. `docs/memory-and-communication.md`
+5. `docs/how-it-feels.md`
+6. `docs/v1-spec.md`
 
 These files capture:
 

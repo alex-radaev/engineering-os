@@ -259,6 +259,37 @@ test("CLI artifact writers create markdown artifacts", async () => {
   assert.match(validationBody, /# Validation Result: Platform guidance validation/);
   assert.match(validationBody, /local/);
   assert.match(validationBody, /passed/);
+
+  const deploymentCheckOutput = await execFile("node", [
+    cliPath,
+    "write-deployment-check",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance dev deploy",
+    "--deployer",
+    "deployer",
+    "--environment",
+    "dev",
+    "--resource",
+    "cloud-run:platform-guidance-dev",
+    "--url",
+    "https://platform-guidance-dev.example.com",
+    "--revision",
+    "platform-guidance-dev-00012-abc",
+    "--decision",
+    "passed",
+    "--evidence",
+    "gcloud deploy output,health check",
+    "--files",
+    "https://platform-guidance-dev.example.com"
+  ]);
+  const deploymentCheckResult = JSON.parse(deploymentCheckOutput.stdout);
+  const deploymentCheckBody = await fs.readFile(deploymentCheckResult.path, "utf8");
+  assert.match(deploymentCheckBody, /# Deployment Check: Platform guidance dev deploy/);
+  assert.match(deploymentCheckBody, /cloud-run:platform-guidance-dev/);
+  assert.match(deploymentCheckBody, /https:\/\/platform-guidance-dev\.example\.com/);
+  assert.match(deploymentCheckBody, /platform-guidance-dev-00012-abc/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
@@ -334,6 +365,36 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
     "passed"
   ]);
 
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "dev_deploy_expected",
+    "--note",
+    "Dev deployment evidence still needed"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-deployment-check",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up deployment check",
+    "--environment",
+    "dev",
+    "--resource",
+    "cloud-run:wake-up-service",
+    "--url",
+    "https://wake-up.example.com",
+    "--revision",
+    "wake-up-service-00021-xyz",
+    "--decision",
+    "passed"
+  ]);
+
   const wakeUpOutput = await execFile("node", [
     cliPath,
     "wake-up",
@@ -351,14 +412,17 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
   assert.match(wakeUpResult.latestArtifacts.validationResult.title, /Wake-up validation result/);
+  assert.match(wakeUpResult.latestArtifacts.deploymentCheck.title, /Wake-up deployment check/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
+  assert.match(wakeUpResult.memory.hot.latestArtifacts.deploymentCheck.title, /Wake-up deployment check/);
   assert.match(wakeUpResult.memory.warm.validation.title, /Wake-up validation result/);
   assert.equal(wakeUpResult.memory.hot.claims.length, 1);
   assert.equal(wakeUpResult.memory.hot.openApprovals.length, 1);
   assert.equal(wakeUpResult.memory.hot.workflow.currentRun.gates.review.status, "required");
   assert.ok(wakeUpResult.memory.cold.archiveCounts.runs >= 1);
   assert.ok(wakeUpResult.memory.cold.archiveCounts.validations >= 2);
+  assert.ok(wakeUpResult.memory.cold.archiveCounts.deployments >= 1);
   assert.deepEqual(wakeUpResult.memory.cold.omittedByDefault, [
     "older_artifacts",
     "resolved_approvals",
@@ -455,6 +519,54 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   ]);
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.validation.status, "passed");
+  assert.deepEqual(workflowResult.summary.pendingBadges, []);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "dev_deploy_expected"
+  ]);
+
+  workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.equal(workflowResult.summary.currentRun.gates.deployment.dev.status, "expected");
+  assert.deepEqual(workflowResult.summary.pendingBadges, ["dev_deploy_expected"]);
+
+  await execFile("node", [
+    cliPath,
+    "write-deployment-check",
+    "--repo",
+    repoPath,
+    "--title",
+    "Workflow gate dev deployment",
+    "--environment",
+    "dev",
+    "--resource",
+    "cloud-run:workflow-gate-dev",
+    "--url",
+    "https://workflow-gate-dev.example.com",
+    "--revision",
+    "workflow-gate-dev-00001-abc",
+    "--decision",
+    "passed"
+  ]);
+
+  workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.equal(workflowResult.summary.currentRun.gates.deployment.dev.status, "passed");
   assert.deepEqual(workflowResult.summary.pendingBadges, []);
 });
 

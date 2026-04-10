@@ -42,7 +42,11 @@ function parseArgs(argv) {
     confidence: null,
     reviewer: null,
     validator: null,
+    deployer: null,
     environment: null,
+    resource: null,
+    url: null,
+    revision: null,
     badge: null
   };
   const positionals = [];
@@ -207,8 +211,28 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--deployer") {
+      flags.deployer = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value === "--environment") {
       flags.environment = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--resource") {
+      flags.resource = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--url") {
+      flags.url = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--revision") {
+      flags.revision = rest[index + 1];
       index += 1;
       continue;
     }
@@ -249,12 +273,13 @@ function usage(target = null) {
     "resolve-approval": "  node scripts/engineering-os.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
     "wake-up": "  node scripts/engineering-os.mjs wake-up --repo <path>",
     "show-workflow-state": "  node scripts/engineering-os.mjs show-workflow-state --repo <path>",
-    "mark-badge": "  node scripts/engineering-os.mjs mark-badge --repo <path> --badge review_required|review_passed|review_failed|review_skipped|validation_expected|validation_passed|validation_failed|validation_skipped [--note <text>]",
+    "mark-badge": "  node scripts/engineering-os.mjs mark-badge --repo <path> --badge review_required|review_passed|review_failed|review_skipped|validation_expected|validation_passed|validation_failed|validation_skipped|dev_deploy_expected|dev_checked|dev_failed|dev_skipped|prod_deploy_expected|prod_checked|prod_failed|prod_skipped [--note <text>]",
     "write-run-brief": "  node scripts/engineering-os.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
     "write-handoff": "  node scripts/engineering-os.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
     "write-review-result": "  node scripts/engineering-os.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>]",
     "write-validation-plan": "  node scripts/engineering-os.mjs write-validation-plan --repo <path> --title <text> [--validator <role>] [--environment <name>]",
     "write-validation-result": "  node scripts/engineering-os.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <name>] [--decision <decision>]",
+    "write-deployment-check": "  node scripts/engineering-os.mjs write-deployment-check --repo <path> --title <text> [--deployer <role>] [--environment dev|prod] [--resource <name>] [--url <service-url>] [--revision <id>] [--decision <decision>]",
     "write-final-synthesis": "  node scripts/engineering-os.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
   };
 
@@ -398,6 +423,22 @@ async function main() {
       title: flags.title || positionals.join(" ") || "Validation Result",
       validator: flags.validator || flags.owner || "validator",
       environment: flags.environment,
+      decision: flags.decision,
+      goal: flags.goal,
+      summary: flags.summary,
+      evidence: flags.evidence,
+      files: flags.files,
+      risks: flags.risks,
+      next: flags.next
+    });
+  } else if (command === "write-deployment-check") {
+    result = await writeArtifact(repoPath, "deployment-check", {
+      title: flags.title || positionals.join(" ") || "Deployment Check",
+      deployer: flags.deployer || flags.owner || "deployer",
+      environment: flags.environment,
+      resource: flags.resource,
+      url: flags.url,
+      revision: flags.revision,
       decision: flags.decision,
       goal: flags.goal,
       summary: flags.summary,

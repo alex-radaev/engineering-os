@@ -79,7 +79,11 @@ function createRun(fields = {}) {
     next: fields.next || "",
     gates: {
       review: null,
-      validation: null
+      validation: null,
+      deployment: {
+        dev: null,
+        prod: null
+      }
     },
     artifacts: {
       runBrief: fields.path || null,
@@ -87,6 +91,10 @@ function createRun(fields = {}) {
       reviewResult: null,
       validationPlan: null,
       validationResult: null,
+      deploymentChecks: {
+        dev: null,
+        prod: null
+      },
       finalSynthesis: null
     }
   };
@@ -142,6 +150,38 @@ function applyBadge(run, badge, note = "") {
   }
   if (badge === "validation_skipped") {
     run.gates.validation = { status: "skipped", updatedAt, note };
+    return;
+  }
+  if (badge === "dev_deploy_expected") {
+    run.gates.deployment.dev = { status: "expected", updatedAt, note };
+    return;
+  }
+  if (badge === "dev_checked") {
+    run.gates.deployment.dev = { status: "passed", updatedAt, note };
+    return;
+  }
+  if (badge === "dev_failed") {
+    run.gates.deployment.dev = { status: "failed", updatedAt, note };
+    return;
+  }
+  if (badge === "dev_skipped") {
+    run.gates.deployment.dev = { status: "skipped", updatedAt, note };
+    return;
+  }
+  if (badge === "prod_deploy_expected") {
+    run.gates.deployment.prod = { status: "expected", updatedAt, note };
+    return;
+  }
+  if (badge === "prod_checked") {
+    run.gates.deployment.prod = { status: "passed", updatedAt, note };
+    return;
+  }
+  if (badge === "prod_failed") {
+    run.gates.deployment.prod = { status: "failed", updatedAt, note };
+    return;
+  }
+  if (badge === "prod_skipped") {
+    run.gates.deployment.prod = { status: "skipped", updatedAt, note };
     return;
   }
 
@@ -211,6 +251,16 @@ export async function registerWorkflowArtifact(repoPath, artifact, fields = {}) 
       fields.decision === "failed" ? "validation_failed" : "validation_passed",
       fields.summary || fields.goal || ""
     );
+  } else if (artifact.kind === "deployment-check") {
+    const environment = fields.environment === "prod" ? "prod" : "dev";
+    run.artifacts.deploymentChecks[environment] = artifact.path;
+    applyBadge(
+      run,
+      fields.decision === "failed"
+        ? `${environment}_failed`
+        : `${environment}_checked`,
+      fields.summary || fields.goal || ""
+    );
   } else if (artifact.kind === "final-synthesis") {
     const pendingBadges = summarizeWorkflowState({ currentRun: run }).pendingBadges;
     if (pendingBadges.length > 0) {
@@ -247,6 +297,12 @@ export function summarizeWorkflowState(state) {
   }
   if (currentRun.gates?.validation?.status === "expected") {
     pendingBadges.push("validation_expected");
+  }
+  if (currentRun.gates?.deployment?.dev?.status === "expected") {
+    pendingBadges.push("dev_deploy_expected");
+  }
+  if (currentRun.gates?.deployment?.prod?.status === "expected") {
+    pendingBadges.push("prod_deploy_expected");
   }
 
   return {
