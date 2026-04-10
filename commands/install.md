@@ -6,10 +6,16 @@ description: Preferred short entry point for installing or updating the managed 
 
 This is the preferred short entry point for global setup.
 
-Use the same workflow as `install-global`:
+Install or update the managed global Crew memory files directly.
 
 1. install or update the one managed global framework memory copy under `~/.claude/engineering-os/`
 2. ensure global `~/.claude/CLAUDE.md` imports that managed memory
-3. report what changed and whether the user should reload plugins
+3. run:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" install-global`
+4. report:
+   - which files changed
+   - whether global memory is installed
+   - the installed global memory version
+   - whether the user should run `/reload-plugins`
 
-Follow the detailed workflow and command examples from `install-global`.
+Do not delegate this to another command name or skill reference. `/crew:install` is the primary user-facing command.
