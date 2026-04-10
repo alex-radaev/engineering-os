@@ -17,5 +17,9 @@ Install or update the managed global Crew memory files directly.
    - whether global memory is installed
    - the installed global memory version
    - whether the user should run `/reload-plugins`
+5. end with a short welcome message:
+   - congratulate the user on the excellent life choice of installing Crew
+   - keep it brief and slightly tongue-in-cheek
+   - remind them of the next useful commands: `/crew:init`, `/crew:adopt`, and `/crew:brief-me`
 
 Do not delegate this to another command name or skill reference. `/crew:install` is the primary user-facing command.
