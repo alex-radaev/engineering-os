@@ -3,8 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFile as execFileCallback } from "node:child_process";
+import { promisify } from "node:util";
 
 import { auditRepo, bootstrapRepo, initRepo, installGlobal } from "../scripts/lib/installer.mjs";
+
+const execFile = promisify(execFileCallback);
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -34,6 +38,7 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   assert.match(claudeMd, /engineering-os:start/);
   assert.ok(settings.hooks.SessionStart);
   assert.ok(settings.hooks.TaskCreated);
+  assert.ok(settings.hooks.PreToolUse);
   assert.deepEqual(claimsState.claims, {});
 });
 
@@ -62,6 +67,78 @@ test("init creates a new repo harness and audit sees it", async () => {
   assert.equal(audit.hasHarnessLayer, true);
   assert.equal(audit.hasStateLayer, true);
   assert.equal(audit.hasWorkflowState, true);
+});
+
+test("bootstrap installs a soft git gate reminder hook", async () => {
+  const repoPath = await makeTempDir("engineering-os-git-gate-hook-");
+  await fs.writeFile(path.join(repoPath, "CLAUDE.md"), "# Repo\n");
+
+  await bootstrapRepo(repoPath);
+
+  const settings = JSON.parse(
+    await fs.readFile(path.join(repoPath, ".claude", "settings.json"), "utf8")
+  );
+  assert.ok(settings.hooks.PreToolUse);
+  assert.match(
+    settings.hooks.PreToolUse[0].hooks[0].command,
+    /\.claude\/hooks\/check_git_gate\.sh/
+  );
+
+  const hookPath = path.join(repoPath, ".claude", "hooks", "check_git_gate.sh");
+  const hookStat = await fs.stat(hookPath);
+  assert.ok((hookStat.mode & 0o111) !== 0);
+
+  const workflowPath = path.join(
+    repoPath,
+    ".claude",
+    "state",
+    "engineering-os",
+    "workflow-state.json"
+  );
+  await fs.writeFile(
+    workflowPath,
+    `${JSON.stringify({
+      version: "1.0",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      currentRun: {
+        title: "Gate test",
+        goal: "Check reminder hook",
+        mode: "single-session",
+        status: "active",
+        gates: {
+          review: { status: "required", updatedAt: "2026-01-01T00:00:00.000Z", note: "" },
+          validation: null,
+          deployment: { dev: null, prod: null }
+        }
+      },
+      recentRuns: []
+    }, null, 2)}\n`
+  );
+
+  const hookInput = JSON.stringify({
+    session_id: "session-1",
+    transcript_path: "/tmp/transcript.jsonl",
+    cwd: repoPath,
+    permission_mode: "default",
+    hook_event_name: "PreToolUse",
+    tool_name: "Bash",
+    tool_input: {
+      command: "git commit -m \"test\""
+    }
+  });
+
+  const { stdout } = await execFile("bash", ["-lc", "printf '%s' \"$HOOK_INPUT\" | \"$HOOK_PATH\""], {
+    cwd: repoPath,
+    env: {
+      ...process.env,
+      HOOK_INPUT: hookInput,
+      HOOK_PATH: hookPath
+    }
+  });
+  const reminder = JSON.parse(stdout);
+  assert.equal(reminder.continue, true);
+  assert.equal(reminder.suppressOutput, true);
+  assert.match(reminder.systemMessage, /pending workflow gates before git commit: review_required/);
 });
 
 test("init rejects a non-empty existing directory without opt-in", async () => {
