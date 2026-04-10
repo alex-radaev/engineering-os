@@ -42,7 +42,7 @@ Check:
 
 - repo-specific standards from `CLAUDE.md` or repo reviewer instructions
 - global reviewer standards when they apply
-- language-specific standards and skills, for example `golang-coding` or `python-coding`, when they are available and relevant
+- any configured review skills or language-specific standards named in repo or global reviewer instructions when they are available and relevant
 
 Do not leave this implicit. The reviewer should say which standards and skills were actually applied.
 
@@ -60,7 +60,7 @@ Include:
 
 - gates run
 - repo standards checked
-- language-specific skills consulted
+- configured review skills consulted
 - evidence checked
 - failures or risks found
 - whether the task should advance

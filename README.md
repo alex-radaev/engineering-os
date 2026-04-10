@@ -143,18 +143,63 @@ Agents support two-tier custom instructions, same model as Claude Code settings:
 
 Both files are read if they exist. Repo instructions take precedence over global on conflict.
 
-### Example
+Use these files to customize what Crew agents do beyond the framework baseline.
+
+Good uses:
+
+- tell the reviewer which extra standards or skills to apply
+- tell the builder about repo-specific coding expectations
+- tell the deployer about environment-specific safety rules
+- tell the lead about project habits you want it to remember
+
+The framework keeps the baseline behavior.
+Your agent instruction files define the repo- or team-specific extensions.
+
+### Review customization
+
+The review model is:
+
+- Crew baseline review always applies
+  - correctness
+  - regressions
+  - test gaps
+  - scope discipline
+- repo or global reviewer instructions add extra review gates, standards, and skills
+
+That means you should put your review program in:
+
+- `~/.claude/engineering-os/reviewer.md` for machine-wide defaults
+- `.claude/engineering-os/reviewer.md` for repo-specific review behavior
+
+The reviewer will read those files before review, and the lead should dispatch review using them as the source of truth for extra review standards.
+
+### Examples
 
 `~/.claude/engineering-os/reviewer.md` (global):
 ```markdown
-- Use the python-coding skill when reviewing Python code
-- Use the golang-coding skill when reviewing Go code
+- For Go repos, use our Go review skill and check dependency-injection, context handling, and error wrapping.
+- For Python repos, use our Python review skill and check typing, async boundaries, and test quality.
+- For security-sensitive changes, add a security review gate.
 ```
 
 `.claude/engineering-os/builder.md` (repo-level):
 ```markdown
 - Follow strict typing — no `Any` unless unavoidable
 - All new functions must have tests
+```
+
+`.claude/engineering-os/reviewer.md` (repo-level):
+```markdown
+- For this repo, always review against our internal API compatibility rules.
+- For Go code, apply the team's configured Go review skill.
+- Call out blockers, suggestions, and nits separately.
+```
+
+If you want to change how Crew behaves in a repo, you can also ask the lead to help write or update these files for you.
+For example:
+
+```text
+Update our reviewer instructions so Go reviews always apply our internal Go standards and separate blockers from nits.
 ```
 
 ## Agent models
