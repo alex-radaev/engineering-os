@@ -506,6 +506,26 @@ export async function auditRepo(repoPath) {
   };
 }
 
+function buildWelcome({ mode, repoScoped = false }) {
+  const commands = repoScoped
+    ? ["/crew:brief-me", "/crew:build", "/crew:fix", "/crew:ship"]
+    : ["/crew:init", "/crew:adopt", "/crew:brief-me"];
+
+  const headlineByMode = {
+    init: "Crew is now wired into this repo. Excellent judgment.",
+    bootstrap: "This repo is now on Crew. Tasteful choice.",
+    "install-global": "Crew global memory is installed. Bold and correct."
+  };
+
+  return {
+    headline: headlineByMode[mode] || "Crew is ready.",
+    commands,
+    guidance: repoScoped
+      ? "Start with /crew:brief-me for a quick situational report, then /crew:build or /crew:fix for real work."
+      : "Use /crew:init for a new repo, /crew:adopt for an existing repo, and /crew:brief-me once a repo is wired in."
+  };
+}
+
 export async function bootstrapRepo(repoPath) {
   if (!(await pathExists(repoPath))) {
     throw new Error(`Repository path does not exist: ${repoPath}`);
@@ -520,7 +540,8 @@ export async function bootstrapRepo(repoPath) {
     mode: "bootstrap",
     repoPath,
     writes,
-    audit: await auditRepo(repoPath)
+    audit: await auditRepo(repoPath),
+    welcome: buildWelcome({ mode: "bootstrap", repoScoped: true })
   };
 }
 
@@ -600,7 +621,8 @@ export async function installGlobal() {
   return {
     mode: "install-global",
     writes,
-    global: await inspectGlobalInstall()
+    global: await inspectGlobalInstall(),
+    welcome: buildWelcome({ mode: "install-global", repoScoped: false })
   };
 }
 
@@ -628,6 +650,7 @@ export async function initRepo(repoPath, options = {}) {
     mode: "init",
     repoPath,
     writes: [...writes, ...result.writes],
-    audit: result.audit
+    audit: result.audit,
+    welcome: buildWelcome({ mode: "init", repoScoped: true })
   };
 }

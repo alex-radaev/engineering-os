@@ -30,3 +30,4 @@ Then report:
 - whether global memory is installed
 - the installed global memory version
 - whether the user should run `/reload-plugins`
+- a short welcome/orientation message with the main Crew commands

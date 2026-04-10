@@ -39,6 +39,7 @@ Workflow:
 9. If deployment is only partly clear, record the known build/deploy path and what still needs live verification instead of guessing.
 10. If the installer reports missing or stale global memory, recommend `/crew:install`.
 11. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
+12. End with a short welcome message and show the main Crew commands for getting started.
 
 Deliverable:
 

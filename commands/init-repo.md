@@ -35,6 +35,7 @@ Workflow:
 9. If deployment is only partly clear, record the known build/deploy path and what still needs live verification instead of guessing.
 10. If global Crew memory is missing or stale, recommend `/crew:install`.
 11. Summarize what was created, what deployment memory was seeded, and how the user should start working.
+12. End with a short welcome message and show the main Crew commands for getting started.
 
 Deliverable:
 

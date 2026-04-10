@@ -23,6 +23,8 @@ test("CLI init creates a harnessed repo", async () => {
 
   assert.equal(result.mode, "init");
   assert.equal(result.audit.hasHarnessLayer, true);
+  assert.match(result.welcome.headline, /Crew/);
+  assert.ok(result.welcome.commands.includes("/crew:brief-me"));
 
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
   assert.match(claudeMd, /engineering-os:start/);
@@ -37,6 +39,8 @@ test("CLI bootstrap preserves existing CLAUDE.md content", async () => {
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
 
   assert.equal(result.mode, "bootstrap");
+  assert.match(result.welcome.headline, /Crew/);
+  assert.ok(result.welcome.commands.includes("/crew:build"));
   assert.match(claudeMd, /# Existing/);
   assert.match(claudeMd, /engineering-os:start/);
 });
@@ -888,6 +892,8 @@ test("CLI install-global writes managed global memory into HOME", async () => {
   const result = JSON.parse(installOutput.stdout);
 
   assert.equal(result.mode, "install-global");
+  assert.match(result.welcome.headline, /Crew/);
+  assert.ok(result.welcome.commands.includes("/crew:init"));
   assert.equal(result.global.hasGlobalMemory, true);
   assert.equal(result.global.globalMemoryStale, false);
   assert.deepEqual(result.writes, [
