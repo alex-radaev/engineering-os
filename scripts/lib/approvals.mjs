@@ -33,6 +33,15 @@ async function ensureApprovalLog(repoPath) {
   await ensureFile(path.join(repoPath, ...APPROVALS_PATH), "");
 }
 
+async function approvalLogExists(repoPath) {
+  try {
+    await fs.access(path.join(repoPath, ...APPROVALS_PATH));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function defaultApprover(kind) {
   return USER_APPROVAL_KINDS.has(kind) ? "user" : "lead";
 }
@@ -57,7 +66,10 @@ async function appendApprovalEvent(repoPath, event) {
   await fs.appendFile(approvalsPath, `${JSON.stringify({ timestamp: nowIso(), ...event })}\n`);
 }
 
-async function readApprovalEvents(repoPath) {
+async function readApprovalEvents(repoPath, options = {}) {
+  if (options.createIfMissing === false && !(await approvalLogExists(repoPath))) {
+    return [];
+  }
   await ensureApprovalLog(repoPath);
   const approvalsPath = path.join(repoPath, ...APPROVALS_PATH);
   const raw = await fs.readFile(approvalsPath, "utf8");
@@ -129,7 +141,7 @@ export async function requestApproval(repoPath, options = {}) {
 export async function listApprovals(repoPath, options = {}) {
   const status = normalizeStatusFilter(options.status);
   const approver = options.approver || null;
-  const events = await readApprovalEvents(repoPath);
+  const events = await readApprovalEvents(repoPath, { createIfMissing: options.createIfMissing });
   const approvals = replayApprovals(events);
 
   return approvals.filter((approval) => {

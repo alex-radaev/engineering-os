@@ -1,10 +1,12 @@
 ---
-description: Internal startup/debug command for inspecting the current Engineering OS wake-up brief for this repo.
+description: Internal startup/debug command for inspecting the raw Crew wake-up brief for this repo.
 ---
 
 # Read Engineering OS Wake-Up Brief
 
 This is primarily internal workflow plumbing. Substantial workflows should already do this automatically; use it directly only for debugging, recovery, or explicit inspection.
+
+If the user wants a friendly "where are we?" report, prefer `/crew:brief-me`.
 
 Workflow:
 

@@ -492,6 +492,166 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   ]);
 });
 
+test("CLI brief-me synthesizes workflow state, git activity, and next step", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-brief-me-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("git", ["init", "-b", "main"], { cwd: repoPath });
+  await execFile("git", ["config", "user.name", "Crew Test"], { cwd: repoPath });
+  await execFile("git", ["config", "user.email", "crew@example.com"], { cwd: repoPath });
+  await fs.writeFile(path.join(repoPath, "README.md"), "# Brief Me\n");
+  await execFile("git", ["add", "README.md"], { cwd: repoPath });
+  await execFile("git", ["-c", "commit.gpgsign=false", "commit", "-m", "docs: add readme"], {
+    cwd: repoPath
+  });
+
+  await execFile("node", [
+    cliPath,
+    "write-run-brief",
+    "--repo",
+    repoPath,
+    "--title",
+    "Brief me test run",
+    "--goal",
+    "Exercise repo briefing",
+    "--mode",
+    "assisted single-session",
+    "--next",
+    "Run review before commit"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_required",
+    "--note",
+    "Implementation changed code and needs review"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "request-approval",
+    "--repo",
+    repoPath,
+    "--summary",
+    "Approve broadening the brief"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-deployment-guidance",
+    "--repo",
+    repoPath,
+    "--title",
+    "Brief me deployment model",
+    "--summary",
+    "GitHub Actions builds images and gcloud rolls them out."
+  ]);
+
+  await fs.writeFile(path.join(repoPath, "notes.txt"), "untracked\n");
+
+  const briefOutput = await execFile("node", [
+    cliPath,
+    "brief-me",
+    "--repo",
+    repoPath
+  ]);
+  const briefResult = JSON.parse(briefOutput.stdout);
+
+  assert.equal(briefResult.repoPath, repoPath);
+  assert.equal(briefResult.summary.isGitRepo, true);
+  assert.equal(briefResult.summary.hasActiveWorkflow, true);
+  assert.deepEqual(briefResult.summary.pendingWorkflowBadges, ["review_required"]);
+  assert.equal(briefResult.sections.currentObjective.title, "Brief me test run");
+  assert.equal(briefResult.sections.currentObjective.goal, "Exercise repo briefing");
+  assert.equal(briefResult.sections.recentActivity.git.workingTree.branch, "main");
+  assert.equal(briefResult.sections.recentActivity.git.workingTree.hasChanges, true);
+  assert.ok(briefResult.sections.recentActivity.git.workingTree.untrackedCount >= 1);
+  assert.ok(briefResult.sections.recentActivity.git.workingTree.changedPaths.includes("notes.txt"));
+  assert.equal(briefResult.sections.recentActivity.latestArtifacts[0].label.length > 0, true);
+  assert.ok(briefResult.sections.recentActivity.repoMemory.some((entry) => entry.path.endsWith("CLAUDE.md")));
+  assert.ok(
+    briefResult.sections.recentActivity.retrievalGuide.some((entry) => entry.path.endsWith("CLAUDE.md"))
+  );
+  assert.match(
+    briefResult.sections.blockedOrMissing.join("\n"),
+    /Independent review is still required/
+  );
+  assert.match(
+    briefResult.sections.importantReminders.join("\n"),
+    /Working tree has/
+  );
+  assert.match(briefResult.sections.recommendedNextStep, /Run independent review next/);
+  assert.ok(briefResult.sections.secondaryOptions.length >= 1);
+});
+
+test("CLI brief-me is read-only for an uninitialized repo", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-brief-me-readonly-");
+  await fs.writeFile(path.join(repoPath, "README.md"), "# Plain repo\n");
+
+  const briefOutput = await execFile("node", [
+    cliPath,
+    "brief-me",
+    "--repo",
+    repoPath
+  ]);
+  const briefResult = JSON.parse(briefOutput.stdout);
+
+  assert.equal(briefResult.repoPath, repoPath);
+  await assert.rejects(fs.access(path.join(repoPath, ".claude")));
+  assert.match(briefResult.sections.recommendedNextStep, /\/crew:adopt/);
+});
+
+test("CLI brief-me surfaces failed gates before generic next steps", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-brief-me-failed-gates-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("node", [
+    cliPath,
+    "write-run-brief",
+    "--repo",
+    repoPath,
+    "--title",
+    "Failed gate briefing",
+    "--goal",
+    "Catch failed review in the briefing",
+    "--mode",
+    "single-session",
+    "--next",
+    "This should not win over a failed review"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "write-review-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Failed review result",
+    "--decision",
+    "rejected",
+    "--summary",
+    "Missing null guard"
+  ]);
+
+  const briefOutput = await execFile("node", [
+    cliPath,
+    "brief-me",
+    "--repo",
+    repoPath
+  ]);
+  const briefResult = JSON.parse(briefOutput.stdout);
+
+  assert.match(
+    briefResult.sections.blockedOrMissing.join("\n"),
+    /Independent review failed: Missing null guard/
+  );
+  assert.match(briefResult.sections.recommendedNextStep, /Address the failed review findings/);
+});
+
 test("CLI workflow state tracks gate badges and artifact progress", async () => {
   const repoPath = await makeTempDir("engineering-os-cli-workflow-state-");
   await execFile("node", [cliPath, "init", "--repo", repoPath]);

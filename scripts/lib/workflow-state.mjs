@@ -38,7 +38,19 @@ export async function ensureWorkflowStateScaffold(repoPath) {
   );
 }
 
-export async function loadWorkflowState(repoPath) {
+async function workflowStateExists(repoPath) {
+  try {
+    await fs.access(path.join(repoPath, ...WORKFLOW_STATE_PATH));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadWorkflowState(repoPath, options = {}) {
+  if (options.createIfMissing === false && !(await workflowStateExists(repoPath))) {
+    return defaultWorkflowState();
+  }
   await ensureWorkflowStateScaffold(repoPath);
   const workflowPath = path.join(repoPath, ...WORKFLOW_STATE_PATH);
   return JSON.parse(await fs.readFile(workflowPath, "utf8"));

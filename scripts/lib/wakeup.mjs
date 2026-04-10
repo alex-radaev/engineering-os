@@ -235,7 +235,8 @@ function buildMemoryBuckets({
   };
 }
 
-export async function buildWakeUpBrief(repoPath) {
+export async function buildWakeUpBrief(repoPath, options = {}) {
+  const readOnly = options.readOnly === true;
   const [
     openApprovals,
     claims,
@@ -251,10 +252,10 @@ export async function buildWakeUpBrief(repoPath) {
     latestDeploymentCheck
   ] =
     await Promise.all([
-      listApprovals(repoPath, { status: "open" }),
-      listClaims(repoPath),
+      listApprovals(repoPath, { status: "open", createIfMissing: !readOnly }),
+      listClaims(repoPath, { createIfMissing: !readOnly }),
       readJson(path.join(repoPath, ...SPRINT_PATH)),
-      loadWorkflowState(repoPath),
+      loadWorkflowState(repoPath, { createIfMissing: !readOnly }),
       readDeploymentGuidanceSummary(repoPath),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
