@@ -290,6 +290,51 @@ test("CLI artifact writers create markdown artifacts", async () => {
   assert.match(deploymentCheckBody, /cloud-run:platform-guidance-dev/);
   assert.match(deploymentCheckBody, /https:\/\/platform-guidance-dev\.example\.com/);
   assert.match(deploymentCheckBody, /platform-guidance-dev-00012-abc/);
+
+  await fs.mkdir(path.join(repoPath, ".github", "workflows"), { recursive: true });
+  await fs.writeFile(path.join(repoPath, ".github", "workflows", "deploy.yml"), "name: deploy\n");
+  await fs.writeFile(path.join(repoPath, "Dockerfile"), "FROM node:20\n");
+
+  const discoverOutput = await execFile("node", [
+    cliPath,
+    "discover-deployment",
+    "--repo",
+    repoPath
+  ]);
+  const discoverResult = JSON.parse(discoverOutput.stdout);
+  assert.ok(discoverResult.clues.includes(".github/workflows/deploy.yml"));
+  assert.ok(discoverResult.clues.includes("Dockerfile"));
+
+  const guidanceOutput = await execFile("node", [
+    cliPath,
+    "write-deployment-guidance",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance deployment model",
+    "--summary",
+    "GitHub Actions builds the image; gcloud deploy applies it to Cloud Run.",
+    "--build",
+    "merge to main or manual GitHub workflow builds container image",
+    "--deploy",
+    "gcloud run deploy applies the built image",
+    "--environments",
+    "dev,prod",
+    "--logs",
+    "Cloud Logging service logs",
+    "--metrics",
+    "Cloud Monitoring request/error/cpu metrics",
+    "--alerts",
+    "Cloud Monitoring alert policies on 5xx and crash loops",
+    "--telemetry",
+    "BigQuery product events"
+  ]);
+  const guidanceResult = JSON.parse(guidanceOutput.stdout);
+  const guidanceBody = await fs.readFile(guidanceResult.path, "utf8");
+  assert.match(guidanceBody, /# Deployment Guidance: Platform guidance deployment model/);
+  assert.match(guidanceBody, /GitHub Actions builds the image/);
+  assert.match(guidanceBody, /Cloud Logging service logs/);
+  assert.match(guidanceBody, /\.github\/workflows\/deploy\.yml/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
@@ -378,6 +423,17 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
 
   await execFile("node", [
     cliPath,
+    "write-deployment-guidance",
+    "--repo",
+    repoPath,
+    "--title",
+    "Wake-up deployment model",
+    "--summary",
+    "CI builds artifacts and gcloud deploys them to dev."
+  ]);
+
+  await execFile("node", [
+    cliPath,
     "write-deployment-check",
     "--repo",
     repoPath,
@@ -408,11 +464,16 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.equal(wakeUpResult.summary.openApprovals, 1);
   assert.equal(wakeUpResult.summary.hasActiveWorkflow, true);
   assert.deepEqual(wakeUpResult.summary.pendingWorkflowBadges, ["review_required"]);
+  assert.equal(wakeUpResult.summary.hasDeploymentGuidance, true);
+  assert.equal(wakeUpResult.summary.repoMemoryFiles >= 1, true);
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
+  assert.match(wakeUpResult.repoGuidance.deployment.title, /Wake-up deployment model/);
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
   assert.match(wakeUpResult.latestArtifacts.validationResult.title, /Wake-up validation result/);
   assert.match(wakeUpResult.latestArtifacts.deploymentCheck.title, /Wake-up deployment check/);
+  assert.match(wakeUpResult.memory.hot.repoGuidance.deployment.title, /Wake-up deployment model/);
+  assert.ok(wakeUpResult.memory.hot.repoMemory.some((entry) => entry.path.endsWith("CLAUDE.md")));
   assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.validationPlan.title, /Wake-up validation plan/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.deploymentCheck.title, /Wake-up deployment check/);

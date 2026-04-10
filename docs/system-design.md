@@ -449,7 +449,7 @@ Before this is formalized, deployment understanding should progress in three ste
 1. today:
    deployer may inspect CI/CD, infra, and deployment files directly when needed
 2. next:
-   deployer or lead writes durable repo deployment guidance after discovery
+   deployer or lead writes durable repo deployment guidance after discovery, for example in `.claude/engineering-os/deployment.md`
 3. later:
    Crew formalizes that understanding into stable repo environment configuration
 

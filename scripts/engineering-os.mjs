@@ -2,6 +2,10 @@
 
 import path from "node:path";
 import { writeArtifact } from "./lib/artifacts.mjs";
+import {
+  discoverDeploymentClues,
+  writeDeploymentGuidance
+} from "./lib/deployment-guidance.mjs";
 import { auditRepo, bootstrapRepo, initRepo, installGlobal } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
@@ -44,6 +48,15 @@ function parseArgs(argv) {
     validator: null,
     deployer: null,
     environment: null,
+    build: null,
+    deploy: null,
+    environments: null,
+    logs: null,
+    metrics: null,
+    alerts: null,
+    telemetry: null,
+    clues: null,
+    refreshWhen: null,
     resource: null,
     url: null,
     revision: null,
@@ -221,6 +234,51 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--build") {
+      flags.build = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--deploy") {
+      flags.deploy = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--environments") {
+      flags.environments = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--logs") {
+      flags.logs = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--metrics") {
+      flags.metrics = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--alerts") {
+      flags.alerts = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--telemetry") {
+      flags.telemetry = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--clues") {
+      flags.clues = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--refresh-when") {
+      flags.refreshWhen = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value === "--resource") {
       flags.resource = rest[index + 1];
       index += 1;
@@ -272,6 +330,8 @@ function usage(target = null) {
     "show-approvals": "  node scripts/engineering-os.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
     "resolve-approval": "  node scripts/engineering-os.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
     "wake-up": "  node scripts/engineering-os.mjs wake-up --repo <path>",
+    "discover-deployment": "  node scripts/engineering-os.mjs discover-deployment --repo <path>",
+    "write-deployment-guidance": "  node scripts/engineering-os.mjs write-deployment-guidance --repo <path> --title <text> [--summary <text>] [--build <text>] [--deploy <text>]",
     "show-workflow-state": "  node scripts/engineering-os.mjs show-workflow-state --repo <path>",
     "mark-badge": "  node scripts/engineering-os.mjs mark-badge --repo <path> --badge review_required|review_passed|review_failed|review_skipped|validation_expected|validation_passed|validation_failed|validation_skipped|dev_deploy_expected|dev_checked|dev_failed|dev_skipped|prod_deploy_expected|prod_checked|prod_failed|prod_skipped [--note <text>]",
     "write-run-brief": "  node scripts/engineering-os.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
@@ -346,6 +406,24 @@ async function main() {
     });
   } else if (command === "wake-up") {
     result = await buildWakeUpBrief(repoPath);
+  } else if (command === "discover-deployment") {
+    result = await discoverDeploymentClues(repoPath);
+  } else if (command === "write-deployment-guidance") {
+    result = await writeDeploymentGuidance(repoPath, {
+      title: flags.title || positionals.join(" ") || "Repo Deployment Model",
+      owner: flags.owner || "lead-session",
+      summary: flags.summary,
+      build: flags.build,
+      deploy: flags.deploy,
+      environments: flags.environments,
+      logs: flags.logs,
+      metrics: flags.metrics,
+      alerts: flags.alerts,
+      telemetry: flags.telemetry,
+      clues: flags.clues,
+      refreshWhen: flags.refreshWhen,
+      next: flags.next
+    });
   } else if (command === "show-workflow-state") {
     const workflowState = await loadWorkflowState(repoPath);
     result = {

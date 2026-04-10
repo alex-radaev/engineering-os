@@ -128,6 +128,8 @@ Validation discipline:
 
 Deployment discipline:
 
+- For shipping or deployment work, retrieve existing repo deployment guidance before rediscovering deployment from scratch.
+- If repo deployment guidance is missing or stale, direct the deployer or perform a bounded discovery pass over CI/CD, infra, and deployment files, then write `.claude/engineering-os/deployment.md`.
 - Deployer manages environment transition, not authorship.
 - Deployment evidence should preserve environment identity when available:
   - resource or service name

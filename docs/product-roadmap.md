@@ -236,7 +236,7 @@ The intended progression is:
 1. today:
    inspect CI/CD, infra, and deployment files directly when needed
 2. next:
-   write durable repo deployment guidance after discovery
+   write durable repo deployment guidance after discovery, for example in `.claude/engineering-os/deployment.md`
 3. later:
    formalize that understanding into repo environment configuration
 

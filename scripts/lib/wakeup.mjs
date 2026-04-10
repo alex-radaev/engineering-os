@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
+import { readDeploymentGuidanceSummary } from "./deployment-guidance.mjs";
 import { loadWorkflowState, summarizeWorkflowState } from "./workflow-state.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
@@ -119,6 +120,34 @@ async function latestArtifactByPrefix(repoPath, subdir, prefix) {
   };
 }
 
+async function listRepoGuidance(repoPath) {
+  const claudePath = path.join(repoPath, "CLAUDE.md");
+  const repoGuidesDir = path.join(repoPath, ".claude", "engineering-os");
+  const guides = [];
+
+  if (await pathExists(claudePath)) {
+    guides.push({
+      path: claudePath,
+      kind: "claude-md"
+    });
+  }
+
+  if (await pathExists(repoGuidesDir)) {
+    const entries = await fs.readdir(repoGuidesDir);
+    for (const entry of entries.sort()) {
+      if (!entry.endsWith(".md")) {
+        continue;
+      }
+      guides.push({
+        path: path.join(repoGuidesDir, entry),
+        kind: "repo-guide"
+      });
+    }
+  }
+
+  return guides;
+}
+
 function newestOf(...artifacts) {
   return (
     artifacts
@@ -156,6 +185,7 @@ function buildMemoryBuckets({
   openApprovals,
   sprint,
   workflow,
+  latestDeploymentGuidance,
   latestRunBrief,
   latestFinalSynthesis,
   latestHandoff,
@@ -163,6 +193,7 @@ function buildMemoryBuckets({
   latestValidationPlan,
   latestValidationResult,
   latestDeploymentCheck,
+  repoMemory,
   recentEvents,
   recentClaimHistory,
   archiveCounts
@@ -174,6 +205,10 @@ function buildMemoryBuckets({
       openApprovals,
       sprint,
       workflow,
+      repoGuidance: {
+        deployment: latestDeploymentGuidance
+      },
+      repoMemory,
       latestArtifacts: {
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
@@ -206,6 +241,7 @@ export async function buildWakeUpBrief(repoPath) {
     claims,
     sprint,
     workflowState,
+    latestDeploymentGuidance,
     latestRunBrief,
     latestFinalSynthesis,
     latestHandoff,
@@ -219,6 +255,7 @@ export async function buildWakeUpBrief(repoPath) {
       listClaims(repoPath),
       readJson(path.join(repoPath, ...SPRINT_PATH)),
       loadWorkflowState(repoPath),
+      readDeploymentGuidanceSummary(repoPath),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
       latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
@@ -233,6 +270,7 @@ export async function buildWakeUpBrief(repoPath) {
     readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
     countArchive(repoPath)
   ]);
+  const repoMemory = await listRepoGuidance(repoPath);
 
   const recentEvents = recentEventsRaw.map((event) => ({
     timestamp: event.timestamp,
@@ -257,6 +295,7 @@ export async function buildWakeUpBrief(repoPath) {
     openApprovals,
     sprint,
     workflow,
+    latestDeploymentGuidance,
     latestRunBrief,
     latestFinalSynthesis,
     latestHandoff,
@@ -264,6 +303,7 @@ export async function buildWakeUpBrief(repoPath) {
     latestValidationPlan,
     latestValidationResult,
     latestDeploymentCheck,
+    repoMemory,
     recentEvents,
     recentClaimHistory,
     archiveCounts
@@ -276,6 +316,10 @@ export async function buildWakeUpBrief(repoPath) {
     claims,
     openApprovals,
     workflow,
+    repoGuidance: {
+      deployment: latestDeploymentGuidance
+    },
+    repoMemory,
     recentClaimHistory,
     recentEvents,
     latestArtifacts,
@@ -287,6 +331,8 @@ export async function buildWakeUpBrief(repoPath) {
       openApprovals: openApprovals.length,
       hasActiveWorkflow: workflow.hasActiveRun,
       pendingWorkflowBadges: workflow.pendingBadges,
+      hasDeploymentGuidance: Boolean(latestDeploymentGuidance),
+      repoMemoryFiles: repoMemory.length,
       hasRecentRunMemory: Boolean(
         latestRunBrief ||
         latestFinalSynthesis ||

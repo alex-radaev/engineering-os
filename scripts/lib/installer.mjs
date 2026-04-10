@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const GLOBAL_MEMORY_VERSION = "1.0";
+const GLOBAL_MEMORY_VERSION = "1.1";
 const GLOBAL_METADATA_TEMPLATE = {
   managedBy: "engineering-os",
   version: GLOBAL_MEMORY_VERSION,
@@ -10,7 +10,7 @@ const GLOBAL_METADATA_TEMPLATE = {
 
 const CLAUDE_IMPORT_BLOCK = [
   "<!-- engineering-os:start -->",
-  "<!-- Engineering OS global memory lives in ~/.claude/engineering-os/. Run /engineering-os:install-global after plugin updates that change framework memory. -->",
+  "<!-- Engineering OS global memory lives in ~/.claude/engineering-os/. Run /crew:install after plugin updates that change framework memory. -->",
   "<!-- engineering-os:end -->"
 ].join("\n");
 
@@ -22,24 +22,40 @@ This repository uses the Engineering OS harness for structured software work ins
 
 1. Keep one owner per task.
 2. Keep task scope explicit.
-3. Prefer a single session unless parallelism clearly helps.
+3. Retrieve bounded repo context before substantial work.
 4. Require structured handoffs for substantial work.
 5. Treat review as a gate, not a courtesy.
+6. Treat validation and deployment evidence as separate gates when behavior or environments are involved.
+7. Leave durable artifacts and repo memory behind when work would matter later.
 
 ## Team Roles
 
 - lead: planning, delegation, synthesis
 - builder: bounded implementation
-- reviewer: validation and regression detection
+- reviewer: independent change review
+- validator: behavior and scenario verification
+- deployer: deployment and environment evidence
 - researcher: read-only investigation
 
-## Artifact Habit
+## Memory And Artifact Habit
+
+Substantial work should start from bounded repo memory:
+
+- \`CLAUDE.md\`
+- \`.claude/engineering-os/*.md\`
+- latest relevant wake-up context and artifacts
 
 Substantial work should leave inspectable artifacts under:
 
 - \`.claude/artifacts/engineering-os/runs/\`
 - \`.claude/artifacts/engineering-os/handoffs/\`
 - \`.claude/artifacts/engineering-os/reviews/\`
+- \`.claude/artifacts/engineering-os/validations/\`
+- \`.claude/artifacts/engineering-os/deployments/\`
+
+For shipping work, keep durable repo deployment guidance in:
+
+- \`.claude/engineering-os/deployment.md\`
 
 ## Scope Discipline
 
@@ -54,14 +70,31 @@ const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
 
 ## Preferred Sequence
 
-1. clarify the objective
-2. retrieve bounded context
+1. verify the repo and current workspace
+2. retrieve bounded wake-up context before substantial work
 3. choose mode: single-session, assisted single-session, or team run
 4. define task ownership and scope
-5. implement or investigate
+5. implement or investigate in bounded chunks
 6. review code-bearing work before calling it done
 7. validate behavior when it can be exercised meaningfully
-8. leave a final synthesis
+8. gather deployment evidence when shipping through environments
+9. leave a final synthesis
+
+## Default Gate Policy
+
+- code changed -> independent review required
+- runnable, observable, or user-visible behavior changed -> validation expected
+- deployment or promotion work -> deployment evidence expected
+- production promotion -> explicit user approval required
+
+## Write-Back Discipline
+
+- substantial run start -> run brief
+- ownership change -> handoff
+- review completion -> review result
+- validation completion -> validation result
+- meaningful deployment evidence -> deployment check
+- substantial completion -> final synthesis
 
 ## Handoff Format
 
