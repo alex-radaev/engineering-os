@@ -61,6 +61,13 @@ Concrete examples:
 
 The validator is an evidence gate.
 
+Deployment evidence should also preserve concrete deployment identity when available:
+
+- target environment
+- resource or service name
+- service URL
+- revision, image, or release identifier
+
 ## Validation Scenario
 
 Before validation, the lead or validator should write a short scenario.
@@ -205,6 +212,16 @@ Possible public commands after the rename:
 `validate` should run the evidence gate.
 
 `ship` should coordinate the PR, dev, and prod promotion loop.
+
+But the stronger product behavior is not just "user runs `/crew:ship`."
+
+The lead should notice when the work is ready to move forward and nudge the user into the shipping phase:
+
+- PR ready but not merged
+- local validation complete, dev deployment still missing
+- dev deployment complete, dev evidence still incomplete
+- dev evidence complete, production decision still missing
+- production deployed, monitoring still recommended
 
 ## Open Questions
 

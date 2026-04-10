@@ -49,6 +49,7 @@ At session start or workflow start, Engineering OS should load only:
 - stable repo memory
   - `CLAUDE.md`
   - `.claude/engineering-os/*.md`
+  - especially durable repo guides like `.claude/engineering-os/deployment.md` when they matter
 - current live state
   - active claims
   - open approvals
@@ -190,6 +191,7 @@ Examples:
 - final synthesis
 - later validation plan/result
 - later deployment check
+- stable repo guides such as deployment guidance
 - claims
 - approvals
 

@@ -12,6 +12,8 @@ Crew gives Claude Code a lead-centered workflow model:
 - **builder** — implements bounded changes within assigned scope
 - **reviewer** — validates correctness, regressions, and scope drift
 - **researcher** — investigates questions without editing code
+- **validator** — checks runnable or observable behavior and returns evidence
+- **deployer** — manages environment transition evidence without deciding risky promotion alone
 
 Each agent has strict ownership rules, structured start/completion reports, and explicit handoffs.
 
@@ -20,7 +22,7 @@ In practice, the highest-value default mode is:
 - one lead stays user-facing
 - the lead infers workflow intent from normal conversation
 - the lead uses bounded subagents for smaller focused tasks
-- reviewer and later validator/deployer act as quality gates
+- reviewer, validator, and deployer act as quality gates
 
 The user should mostly talk to the lead, not manage a menu of agents or remember a command graph.
 
@@ -38,6 +40,7 @@ Preferred entry points:
 - `/crew:fix` — investigate and fix broken behavior
 - `/crew:review` — run the review phase on completed work
 - `/crew:validate` — run the validation phase on runnable or observable behavior
+- `/crew:ship` — move work through PR, deployment, and post-deploy evidence gates
 - `/crew:adopt` — adopt an existing repo into the workflow
 - `/crew:init` — initialize a new repo with the harness
 - `/crew:install` — install or update the managed global framework memory
@@ -58,9 +61,8 @@ Everything else should be treated as internal, advanced, or debugging-oriented w
 - claims / approvals commands
 - direct artifact-writing commands
 
-The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and later `ship` from normal conversation when the intent is clear.
-
-`/crew:ship` is still a planned future surface, not a live command yet.
+The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and `ship` from normal conversation when the intent is clear.
+The lead should also notice when work is ready to move into shipping stages and recommend `ship` without waiting for the user to remember the command.
 
 ## Install
 
@@ -162,6 +164,8 @@ Default model assignments:
 | lead | opus |
 | builder | opus |
 | reviewer | opus |
+| validator | opus |
+| deployer | opus |
 | researcher | sonnet |
 
 ## What to commit
@@ -184,7 +188,7 @@ Do **not** commit transient coordination state:
 ## Project structure
 
 ```
-agents/          — lead, builder, reviewer, researcher, validator
+agents/          — lead, builder, reviewer, researcher, validator, deployer
 commands/        — small public surface plus internal/debug commands
 skills/          — reusable operating behaviors
 hooks/           — event logging wiring

@@ -85,6 +85,7 @@ Artifact discipline:
 - For substantial runs, write a run brief near the start with `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-run-brief ...`.
 - For meaningful delegation or handoff, write a handoff artifact with `write-handoff`.
 - For substantial reviewed work, write a review artifact with `write-review-result`.
+- For substantial deployment or promotion evidence, write a deployment artifact with `write-deployment-check`.
 - At the end of substantial work, write a final synthesis artifact with `write-final-synthesis`.
 
 Expected writes:
@@ -93,6 +94,7 @@ Expected writes:
 - ownership change or teammate completion -> handoff
 - independent review completion -> review result
 - substantial validation scenario -> validation plan
+- substantial deployment evidence -> deployment check
 - substantial run completion -> final synthesis
 
 Workflow state discipline:
@@ -103,6 +105,8 @@ Workflow state discipline:
   - deployment or promotion work -> deployment checks and environment evidence required
 - When code-bearing work is implemented and awaits independent review, mark `review_required`.
 - When validation is expected for a runnable or observable change, mark or preserve `validation_expected`.
+- When dev deployment evidence is expected, mark or preserve `dev_deploy_expected`.
+- When production deployment evidence is expected, mark or preserve `prod_deploy_expected`.
 - If review or validation is intentionally skipped, mark that explicitly with a reason instead of leaving the gate pending.
 - Use workflow state to make pending gates visible instead of relying only on prose summaries.
 
@@ -121,6 +125,18 @@ Validation discipline:
 - Validator checks the behavior.
 - If behavior can be exercised meaningfully, validation is expected after review.
 - If you skip validation, say so explicitly, give a concrete reason, and record the skip.
+
+Deployment discipline:
+
+- For shipping or deployment work, retrieve existing repo deployment guidance before rediscovering deployment from scratch.
+- If repo deployment guidance is missing or stale, direct the deployer or perform a bounded discovery pass over CI/CD, infra, and deployment files, then write `.claude/engineering-os/deployment.md`.
+- Deployer manages environment transition, not authorship.
+- Deployment evidence should preserve environment identity when available:
+  - resource or service name
+  - service URL
+  - revision, image, or release identifier
+- Production promotion requires explicit user approval.
+- If deployment evidence is skipped, say so explicitly, give a concrete reason, and record the skip.
 
 Mode discipline:
 

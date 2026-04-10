@@ -3,12 +3,14 @@ import path from "node:path";
 
 import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
+import { readDeploymentGuidanceSummary } from "./deployment-guidance.mjs";
 import { loadWorkflowState, summarizeWorkflowState } from "./workflow-state.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "engineering-os", "handoffs"];
 const REVIEWS_DIR = [".claude", "artifacts", "engineering-os", "reviews"];
 const VALIDATIONS_DIR = [".claude", "artifacts", "engineering-os", "validations"];
+const DEPLOYMENTS_DIR = [".claude", "artifacts", "engineering-os", "deployments"];
 const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "engineering-os", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "engineering-os", "sprint.json"];
@@ -118,6 +120,34 @@ async function latestArtifactByPrefix(repoPath, subdir, prefix) {
   };
 }
 
+async function listRepoGuidance(repoPath) {
+  const claudePath = path.join(repoPath, "CLAUDE.md");
+  const repoGuidesDir = path.join(repoPath, ".claude", "engineering-os");
+  const guides = [];
+
+  if (await pathExists(claudePath)) {
+    guides.push({
+      path: claudePath,
+      kind: "claude-md"
+    });
+  }
+
+  if (await pathExists(repoGuidesDir)) {
+    const entries = await fs.readdir(repoGuidesDir);
+    for (const entry of entries.sort()) {
+      if (!entry.endsWith(".md")) {
+        continue;
+      }
+      guides.push({
+        path: path.join(repoGuidesDir, entry),
+        kind: "repo-guide"
+      });
+    }
+  }
+
+  return guides;
+}
+
 function newestOf(...artifacts) {
   return (
     artifacts
@@ -139,14 +169,15 @@ function summarizeLatestArtifact(artifact) {
 }
 
 async function countArchive(repoPath) {
-  const [runs, handoffs, reviews, validations] = await Promise.all([
+  const [runs, handoffs, reviews, validations, deployments] = await Promise.all([
     countFiles(path.join(repoPath, ...RUNS_DIR)),
     countFiles(path.join(repoPath, ...HANDOFFS_DIR)),
     countFiles(path.join(repoPath, ...REVIEWS_DIR)),
-    countFiles(path.join(repoPath, ...VALIDATIONS_DIR))
+    countFiles(path.join(repoPath, ...VALIDATIONS_DIR)),
+    countFiles(path.join(repoPath, ...DEPLOYMENTS_DIR))
   ]);
 
-  return { runs, handoffs, reviews, validations };
+  return { runs, handoffs, reviews, validations, deployments };
 }
 
 function buildMemoryBuckets({
@@ -154,12 +185,15 @@ function buildMemoryBuckets({
   openApprovals,
   sprint,
   workflow,
+  latestDeploymentGuidance,
   latestRunBrief,
   latestFinalSynthesis,
   latestHandoff,
   latestReview,
   latestValidationPlan,
   latestValidationResult,
+  latestDeploymentCheck,
+  repoMemory,
   recentEvents,
   recentClaimHistory,
   archiveCounts
@@ -171,11 +205,16 @@ function buildMemoryBuckets({
       openApprovals,
       sprint,
       workflow,
+      repoGuidance: {
+        deployment: latestDeploymentGuidance
+      },
+      repoMemory,
       latestArtifacts: {
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
         handoff: latestHandoff,
-        validationPlan: latestValidationPlan
+        validationPlan: latestValidationPlan,
+        deploymentCheck: latestDeploymentCheck
       }
     },
     warm: {
@@ -202,24 +241,28 @@ export async function buildWakeUpBrief(repoPath) {
     claims,
     sprint,
     workflowState,
+    latestDeploymentGuidance,
     latestRunBrief,
     latestFinalSynthesis,
     latestHandoff,
     latestReview,
     latestValidationPlan,
-    latestValidationResult
+    latestValidationResult,
+    latestDeploymentCheck
   ] =
     await Promise.all([
       listApprovals(repoPath, { status: "open" }),
       listClaims(repoPath),
       readJson(path.join(repoPath, ...SPRINT_PATH)),
       loadWorkflowState(repoPath),
+      readDeploymentGuidanceSummary(repoPath),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
       latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
       latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
       latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result"),
       latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-plan"),
-      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result")
+      latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result"),
+      latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-check")
     ]);
 
   const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
@@ -227,6 +270,7 @@ export async function buildWakeUpBrief(repoPath) {
     readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
     countArchive(repoPath)
   ]);
+  const repoMemory = await listRepoGuidance(repoPath);
 
   const recentEvents = recentEventsRaw.map((event) => ({
     timestamp: event.timestamp,
@@ -240,7 +284,8 @@ export async function buildWakeUpBrief(repoPath) {
     handoff: latestHandoff,
     review: latestReview,
     validationPlan: latestValidationPlan,
-    validationResult: latestValidationResult
+    validationResult: latestValidationResult,
+    deploymentCheck: latestDeploymentCheck
   };
 
   const workflow = summarizeWorkflowState(workflowState);
@@ -250,12 +295,15 @@ export async function buildWakeUpBrief(repoPath) {
     openApprovals,
     sprint,
     workflow,
+    latestDeploymentGuidance,
     latestRunBrief,
     latestFinalSynthesis,
     latestHandoff,
     latestReview,
     latestValidationPlan,
     latestValidationResult,
+    latestDeploymentCheck,
+    repoMemory,
     recentEvents,
     recentClaimHistory,
     archiveCounts
@@ -268,6 +316,10 @@ export async function buildWakeUpBrief(repoPath) {
     claims,
     openApprovals,
     workflow,
+    repoGuidance: {
+      deployment: latestDeploymentGuidance
+    },
+    repoMemory,
     recentClaimHistory,
     recentEvents,
     latestArtifacts,
@@ -279,13 +331,16 @@ export async function buildWakeUpBrief(repoPath) {
       openApprovals: openApprovals.length,
       hasActiveWorkflow: workflow.hasActiveRun,
       pendingWorkflowBadges: workflow.pendingBadges,
+      hasDeploymentGuidance: Boolean(latestDeploymentGuidance),
+      repoMemoryFiles: repoMemory.length,
       hasRecentRunMemory: Boolean(
         latestRunBrief ||
         latestFinalSynthesis ||
         latestHandoff ||
         latestReview ||
         latestValidationPlan ||
-        latestValidationResult
+        latestValidationResult ||
+        latestDeploymentCheck
       ),
       latestArtifact: summarizeLatestArtifact(
         newestOf(
@@ -294,7 +349,8 @@ export async function buildWakeUpBrief(repoPath) {
           latestHandoff,
           latestReview,
           latestValidationPlan,
-          latestValidationResult
+          latestValidationResult,
+          latestDeploymentCheck
         )
       ),
       archiveCounts

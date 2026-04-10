@@ -163,6 +163,32 @@ function resolveArtifactConfig(kind) {
     };
   }
 
+  if (kind === "deployment-check") {
+    return {
+      directory: "deployments",
+      prefix: "deployment-check",
+      render(fields) {
+        return [
+          `# Deployment Check: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Deployer", fields.deployer || fields.owner || "deployer"),
+          renderField("Environment", fields.environment),
+          renderField("Resource", fields.resource),
+          renderField("Service URL", fields.url),
+          renderField("Revision", fields.revision),
+          renderField("Decision", fields.decision || "passed_with_notes"),
+          renderField("Action", fields.goal || fields.summary),
+          renderListField("Evidence Collected", fields.evidence),
+          renderListField("Files / Surfaces Checked", fields.files),
+          renderField("Risks", fields.risks),
+          renderField("Required Follow-up", fields.next),
+          ""
+        ].join("\n");
+      }
+    };
+  }
+
   if (kind === "final-synthesis") {
     return {
       directory: "runs",

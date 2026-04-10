@@ -1,0 +1,221 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
+const DEPLOYMENT_GUIDANCE_PATH = [".claude", "engineering-os", "deployment.md"];
+const MAX_CLUES = 30;
+const MAX_DEPTH = 3;
+const IGNORED_DIRS = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "build",
+  "coverage",
+  ".next",
+  ".turbo",
+  ".idea",
+  ".vscode"
+]);
+const ALWAYS_INCLUDE_FILES = [
+  /^Dockerfile(?:\..+)?$/,
+  /^docker-compose(?:\..+)?\.ya?ml$/,
+  /^compose(?:\..+)?\.ya?ml$/,
+  /^cloudbuild(?:\..+)?\.ya?ml$/,
+  /^skaffold(?:\..+)?\.ya?ml$/,
+  /^render\.ya?ml$/,
+  /^fly\.toml$/,
+  /^railway\.json$/,
+  /^Procfile$/,
+  /^vercel\.json$/,
+  /^netlify\.toml$/,
+  /^wrangler\.toml$/
+];
+const DEPLOYMENT_DIR_HINTS = new Set([
+  ".github",
+  ".circleci",
+  ".gitlab",
+  "deploy",
+  "deployment",
+  "infra",
+  "ops",
+  "k8s",
+  "helm",
+  "charts",
+  "terraform",
+  "manifests"
+]);
+const DEPLOYMENT_EXTENSIONS = new Set([
+  ".yaml",
+  ".yml",
+  ".json",
+  ".toml",
+  ".tf",
+  ".tfvars",
+  ".sh"
+]);
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function toList(value) {
+  if (!value) {
+    return [];
+  }
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function uniq(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function renderField(label, value) {
+  return `- ${label}: ${value || "-"}`;
+}
+
+function renderListField(label, value) {
+  const items = Array.isArray(value) ? value : toList(value);
+  if (items.length === 0) {
+    return `- ${label}: -`;
+  }
+  return [
+    `- ${label}:`,
+    ...items.map((item) => `  - ${item}`)
+  ].join("\n");
+}
+
+function fileLooksLikeDeploymentClue(relativePath) {
+  const baseName = path.basename(relativePath);
+  if (ALWAYS_INCLUDE_FILES.some((pattern) => pattern.test(baseName))) {
+    return true;
+  }
+
+  if (relativePath.startsWith(".github/workflows/")) {
+    return baseName.endsWith(".yml") || baseName.endsWith(".yaml");
+  }
+
+  if (relativePath.startsWith(".circleci/")) {
+    return true;
+  }
+
+  const segments = relativePath.split(path.sep);
+  const underDeploymentDir = segments.some((segment) => DEPLOYMENT_DIR_HINTS.has(segment));
+  if (!underDeploymentDir) {
+    return false;
+  }
+
+  return DEPLOYMENT_EXTENSIONS.has(path.extname(baseName));
+}
+
+async function collectDeploymentClues(repoPath, relativeDir, depth, out) {
+  if (depth < 0 || out.size >= MAX_CLUES) {
+    return;
+  }
+
+  const absoluteDir = path.join(repoPath, relativeDir);
+  if (!(await pathExists(absoluteDir))) {
+    return;
+  }
+
+  const entries = await fs.readdir(absoluteDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (out.size >= MAX_CLUES) {
+      return;
+    }
+
+    const relativePath = relativeDir ? path.join(relativeDir, entry.name) : entry.name;
+    if (entry.isDirectory()) {
+      if (IGNORED_DIRS.has(entry.name)) {
+        continue;
+      }
+      await collectDeploymentClues(repoPath, relativePath, depth - 1, out);
+      continue;
+    }
+
+    if (entry.isFile() && fileLooksLikeDeploymentClue(relativePath)) {
+      out.add(relativePath);
+    }
+  }
+}
+
+function guidancePath(repoPath) {
+  return path.join(repoPath, ...DEPLOYMENT_GUIDANCE_PATH);
+}
+
+function extractField(body, label) {
+  const match = body.match(new RegExp(`^- ${label}:\\s*(.+)$`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+export async function discoverDeploymentClues(repoPath) {
+  const clues = new Set();
+  await collectDeploymentClues(repoPath, "", MAX_DEPTH, clues);
+
+  return {
+    repoPath,
+    clues: [...clues].sort(),
+    guidancePath: guidancePath(repoPath)
+  };
+}
+
+export async function readDeploymentGuidanceSummary(repoPath) {
+  const filePath = guidancePath(repoPath);
+  if (!(await pathExists(filePath))) {
+    return null;
+  }
+
+  const stat = await fs.stat(filePath);
+  const body = await fs.readFile(filePath, "utf8");
+  const [heading = ""] = body.split("\n");
+  return {
+    path: filePath,
+    title: heading.replace(/^#\s+/, "").trim(),
+    summary: extractField(body, "Summary"),
+    updatedAt: stat.mtime.toISOString()
+  };
+}
+
+export async function writeDeploymentGuidance(repoPath, fields = {}) {
+  const filePath = guidancePath(repoPath);
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+  const discovered = await discoverDeploymentClues(repoPath);
+  const mergedClues = uniq([...discovered.clues, ...toList(fields.clues)]);
+  const contents = [
+    `# Deployment Guidance: ${fields.title || "Repo Deployment Model"}`,
+    "",
+    renderField("Updated", nowIso()),
+    renderField("Owner", fields.owner || "lead-session"),
+    renderField("Summary", fields.summary),
+    renderField("Build Path", fields.build),
+    renderField("Deploy Path", fields.deploy),
+    renderListField("Environments", fields.environments),
+    renderField("Logs", fields.logs),
+    renderField("Metrics", fields.metrics),
+    renderField("Alerts / Incidents", fields.alerts),
+    renderField("Telemetry / Events", fields.telemetry),
+    renderListField("Source Clues", mergedClues),
+    renderField("Refresh When", fields.refreshWhen || fields.next),
+    ""
+  ].join("\n");
+
+  await fs.writeFile(filePath, `${contents}\n`);
+
+  return {
+    kind: "deployment-guidance",
+    path: filePath,
+    title: fields.title || "Repo Deployment Model",
+    clues: mergedClues
+  };
+}
