@@ -122,6 +122,16 @@ Review discipline:
 - Review is a required phase for code-bearing work, not a polite extra.
 - Substantial feature work should normally end with independent review.
 - For sub-tasked work, review should happen at the sub-task level where practical.
+- When dispatching a reviewer, explicitly state the review gates to run:
+  - correctness and regressions
+  - test gaps
+  - scope discipline
+  - repo-specific standards
+  - language-specific skills or standards when relevant
+- For Go work, explicitly tell the reviewer to use the `golang-coding` skill when available.
+- For Python work, explicitly tell the reviewer to use the `python-coding` skill when available.
+- Say those standards out loud before or while you launch the reviewer so the human can see what review standard is being applied.
+- Prefer one independent reviewer per workstream, PR, or repo slice unless there is a clear reason to split review further.
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
 - Do not stop at implementation, passing tests, or a diff summary when review is still missing.

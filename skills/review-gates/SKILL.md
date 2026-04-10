@@ -16,6 +16,7 @@ Default rule:
 - substantial feature work should be reviewed
 - non-trivial bug fixes should usually be reviewed
 - if review is skipped, the lead should state that explicitly and explain why
+- repo standards and language-specific standards should be part of the review by default when they exist
 
 ## Gate 1: Task Compliance
 
@@ -35,6 +36,16 @@ Check:
 - test coverage or verification quality
 - obvious maintainability problems introduced by the change
 
+## Gate 3: Repo And Language Standards
+
+Check:
+
+- repo-specific standards from `CLAUDE.md` or repo reviewer instructions
+- global reviewer standards when they apply
+- language-specific standards and skills, for example `golang-coding` or `python-coding`, when they are available and relevant
+
+Do not leave this implicit. The reviewer should say which standards and skills were actually applied.
+
 ## Review Outcomes
 
 Use exactly one:
@@ -47,6 +58,9 @@ Use exactly one:
 
 Include:
 
+- gates run
+- repo standards checked
+- language-specific skills consulted
 - evidence checked
 - failures or risks found
 - whether the task should advance
