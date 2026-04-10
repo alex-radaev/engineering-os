@@ -34,6 +34,12 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 - production promotion -> explicit user approval required
 - skipped gates -> explicit reason plus workflow-state record
 
+Enforcement strategy:
+
+- start with stronger prompts and workflow-state nudges
+- add hook reminders if dogfooding shows the model still drifts past required gates
+- use hard blocks sparingly and only for transitions that repeatedly fail in practice
+
 ## Modes
 
 ### Single-session

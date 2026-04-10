@@ -208,6 +208,15 @@ At minimum:
 - dev/prod promotion -> deployment evidence and post-deploy validation expected
 - prod promotion -> explicit user approval required
 
+Enforcement should climb in stages:
+
+1. stronger prompts and workflow wording
+2. stronger state-aware nudges
+3. hook-based reminders
+4. narrow hard blocks only where dogfooding shows softer enforcement is still not enough
+
+We should prefer the lightest mechanism that works reliably.
+
 ## Deployer Agent
 
 Add a `deployer` role later, after local validation works.

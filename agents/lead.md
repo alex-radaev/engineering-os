@@ -103,6 +103,11 @@ Workflow state discipline:
   - code changed -> independent review required
   - runnable, observable, or user-visible behavior changed -> validation expected after review
   - deployment or promotion work -> deployment checks and environment evidence required
+- Prefer the lightest enforcement mechanism that is proving reliable:
+  - prompt and workflow instruction first
+  - then stronger state-derived nudges
+  - then hook reminders if drift persists
+  - hard blocks only for transitions that repeatedly fail in dogfooding
 - When code-bearing work is implemented and awaits independent review, mark `review_required`.
 - When validation is expected for a runnable or observable change, mark or preserve `validation_expected`.
 - When dev deployment evidence is expected, mark or preserve `dev_deploy_expected`.

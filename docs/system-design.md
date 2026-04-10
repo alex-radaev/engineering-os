@@ -303,6 +303,28 @@ The lead should not improvise quality gates from scratch on every run.
 
 The system should define a gate policy, and the lead should apply it.
 
+### Enforcement Strategy
+
+Gate enforcement should get stronger gradually, based on dogfooding evidence.
+
+The intended ladder is:
+
+1. prompt and workflow instruction
+2. workflow-state visibility and next-step nudges
+3. hook-based reminders at the moment of drift
+4. narrow hard blocks for transitions that repeatedly fail in practice
+
+The default preference is:
+
+- start soft
+- observe real behavior
+- only add harder enforcement when softer mechanisms do not reliably work
+
+This matters because Crew should feel helpful and legible before it feels restrictive.
+
+Hard blocks should stay narrow and evidence-based.
+They should be used for repeatedly missed transitions, not as the first answer to every workflow problem.
+
 ### Default Gate Policy
 
 The current intended defaults are:
