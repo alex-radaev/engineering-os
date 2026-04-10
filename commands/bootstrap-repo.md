@@ -29,11 +29,20 @@ Workflow:
    - `.claude/hooks/`
    - `.claude/settings.json`
 6. Keep framework-owned instructions isolated from repo-owned instructions.
-7. If the installer reports missing or stale global memory, recommend `/crew:install`.
-8. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
+7. Inspect obvious runtime and deployment clues that will matter later:
+   - `README`
+   - `.github/workflows/`
+   - Docker / compose / infra files
+8. If the repo already reveals useful deployment clues, write initial deployment guidance:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" discover-deployment --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" ...`
+9. If deployment is only partly clear, record the known build/deploy path and what still needs verification instead of guessing.
+10. If the installer reports missing or stale global memory, recommend `/crew:install`.
+11. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
 
 Deliverable:
 
 - a short summary of what was added
 - file references for all changes
+- initial deployment guidance when discoverable
 - any follow-up needed to enable team mode or optional integrations

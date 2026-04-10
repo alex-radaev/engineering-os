@@ -117,6 +117,7 @@ Review discipline:
 - For sub-tasked work, review should happen at the sub-task level where practical.
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
+- Do not stop at implementation, passing tests, or a diff summary when review is still missing.
 
 Validation discipline:
 
@@ -150,3 +151,6 @@ Success means the user can answer all of these at any time:
 - what changed
 - what is blocked
 - what happens next
+
+When returning after meaningful work, always give a concrete next recommended step.
+Avoid endings like “ready to commit whenever you want” without also telling the user what the workflow suggests next.

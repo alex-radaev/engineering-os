@@ -10,11 +10,18 @@ Use it when implementation work is complete and needs independent review.
 
 Expected shape:
 
-1. verify the repo and read bounded wake-up context
-2. identify the completed work or artifact set under review
-3. run the relevant review gates for the task and repo
-4. record the review result and update workflow state
-5. return findings, risks, and the next recommended step
+1. verify the current workspace path with `pwd`
+2. read the repo wake-up brief:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
+3. explicitly confirm the returned `repoPath` matches the current working directory before trusting the brief
+4. read the most relevant run and handoff context for the work under review:
+   - latest run brief
+   - latest relevant handoff
+   - latest relevant review if one already exists
+5. identify the completed work or artifact set under review
+6. run the relevant review gates for the task and repo
+7. record the review result and update workflow state
+8. return findings, risks, and the next recommended step
 
 Review should be treated as a phase, not a courtesy:
 

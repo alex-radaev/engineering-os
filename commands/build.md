@@ -8,17 +8,29 @@ This is the preferred short entry point for feature work.
 
 Use the same lead-owned workflow as `build-feature`:
 
-1. verify the repo and read bounded wake-up context
-2. frame the task clearly
-3. choose the execution shape that fits the work:
+1. verify the current workspace path with `pwd`
+2. read the repo wake-up brief:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
+3. explicitly confirm the returned `repoPath` matches the current working directory before trusting the brief
+4. frame the task clearly:
+   - what the user wants
+   - what is in scope
+   - what is out of scope
+   - what repo or external context matters
+   - what the first bounded work chunk is
+5. choose the execution shape that fits the work:
    - `single-session`
    - `assisted single-session`
    - `team run`
-4. write a run brief for substantial work
-5. implement directly or through bounded sub-tasks
-6. if code changed, independent review is required unless explicitly skipped with a reason
-7. if behavior can be exercised meaningfully, validation is expected unless explicitly skipped with a reason
-8. write the matching artifacts and workflow badges as the run progresses
-9. end with a clear synthesis and next recommended step
+6. write a run brief for substantial work
+7. implement directly or through bounded sub-tasks
+8. if code changed, do not stop at implementation or tests:
+   - mark `review_required`
+   - run independent review unless an unusual skip is explicitly justified and recorded
+   - write the review result artifact when review completes
+9. if behavior can be exercised meaningfully, validation is expected after review unless explicitly skipped with a reason
+10. write the matching artifacts and workflow badges as the run progresses
+11. do not end with only “tests pass” or “ready to commit”
+12. end with a clear synthesis and a concrete next recommended step
 
 Follow the detailed workflow and command examples from `build-feature`.
