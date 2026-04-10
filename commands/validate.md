@@ -14,7 +14,7 @@ Expected shape:
 2. identify the scenario, flow, or environment to validate
 3. if the validation scenario is substantial, write a validation plan
 4. run the validation checks and collect evidence
-5. write the validation result and update workflow state
+5. write the validation result and update workflow state immediately when validation materially completes
 6. return pass/fail evidence, residual risk, and the next recommended step
 
 Validation should focus on behavior, not code style:

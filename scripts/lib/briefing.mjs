@@ -327,6 +327,7 @@ function buildCurrentObjective(wakeUpBrief, artifacts) {
 function buildBlockedOrMissing(wakeUpBrief, deploymentClues, gitActivity) {
   const blocked = [];
   const pending = new Set(wakeUpBrief.workflow?.pendingBadges || []);
+  const missingWrites = new Set(wakeUpBrief.workflow?.missingArtifactWrites || []);
   const gates = wakeUpBrief.workflow?.currentRun?.gates || {};
 
   if (pending.has("review_required")) {
@@ -353,6 +354,18 @@ function buildBlockedOrMissing(wakeUpBrief, deploymentClues, gitActivity) {
   if (gates.deployment?.prod?.status === "failed") {
     blocked.push(`Production deployment checks failed${gates.deployment.prod.note ? `: ${gates.deployment.prod.note}` : "."}`);
   }
+  if (missingWrites.has("review_result_missing")) {
+    blocked.push("Independent review appears complete, but the review artifact write-back is still missing.");
+  }
+  if (missingWrites.has("validation_result_missing")) {
+    blocked.push("Validation appears complete, but the validation-result artifact write-back is still missing.");
+  }
+  if (missingWrites.has("dev_deployment_check_missing")) {
+    blocked.push("Dev deployment evidence exists in workflow state, but the deployment-check artifact is still missing.");
+  }
+  if (missingWrites.has("prod_deployment_check_missing")) {
+    blocked.push("Production deployment evidence exists in workflow state, but the deployment-check artifact is still missing.");
+  }
   if (wakeUpBrief.openApprovals.length > 0) {
     blocked.push(`${wakeUpBrief.openApprovals.length} open approval(s) still need a decision.`);
   }
@@ -371,6 +384,7 @@ function buildBlockedOrMissing(wakeUpBrief, deploymentClues, gitActivity) {
 
 function buildImportantReminders(wakeUpBrief, deploymentClues, gitActivity) {
   const reminders = [];
+  const missingWrites = new Set(wakeUpBrief.workflow?.missingArtifactWrites || []);
 
   if (gitActivity.isGitRepo && gitActivity.workingTree.hasChanges) {
     reminders.push(
@@ -391,12 +405,16 @@ function buildImportantReminders(wakeUpBrief, deploymentClues, gitActivity) {
   if (wakeUpBrief.repoMemory.length <= 1) {
     reminders.push("Repo-specific memory is still thin; keep durable guidance and lessons learned up to date.");
   }
+  if (missingWrites.size > 0) {
+    reminders.push("A workflow phase appears complete, but the matching artifact write-back is still missing.");
+  }
 
   return reminders;
 }
 
 function recommendedNextStep(wakeUpBrief, deploymentClues, gitActivity) {
   const pending = new Set(wakeUpBrief.workflow?.pendingBadges || []);
+  const missingWrites = new Set(wakeUpBrief.workflow?.missingArtifactWrites || []);
   const currentRun = wakeUpBrief.workflow?.currentRun || null;
   const gates = currentRun?.gates || {};
 
@@ -426,6 +444,18 @@ function recommendedNextStep(wakeUpBrief, deploymentClues, gitActivity) {
   }
   if (gates.deployment?.prod?.status === "failed") {
     return "Investigate the failed production checks immediately before any further promotion work.";
+  }
+  if (missingWrites.has("review_result_missing")) {
+    return "Write the review-result artifact now so the run has an inspectable review gate record.";
+  }
+  if (missingWrites.has("validation_result_missing")) {
+    return "Write the validation-result artifact now so the run keeps the evidence it already collected.";
+  }
+  if (missingWrites.has("dev_deployment_check_missing")) {
+    return "Write the dev deployment-check artifact now so the environment evidence is recoverable next time.";
+  }
+  if (missingWrites.has("prod_deployment_check_missing")) {
+    return "Write the production deployment-check artifact now so the rollout evidence is preserved.";
   }
   if (wakeUpBrief.openApprovals.length > 0) {
     return "Resolve the open approval queue before pushing the workflow forward.";

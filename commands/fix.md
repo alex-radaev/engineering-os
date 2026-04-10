@@ -26,9 +26,9 @@ Use the same lead-owned workflow as `investigate-bug`:
 9. if code changed, do not stop at implementation or tests:
    - mark `review_required`
    - run independent review unless an unusual skip is explicitly justified and recorded
-   - write the review result artifact when review completes
+   - write the review result artifact immediately when review completes, before moving on
 10. if the bug path or changed behavior can be exercised meaningfully, validation is expected after review unless explicitly skipped with a reason
-11. write the matching artifacts and workflow badges as the run progresses
+11. write the matching artifacts and workflow badges as the run progresses, not batched at the end
 12. do not end with only “tests pass” or “ready to commit”
 13. end with root cause, evidence, residual risk, and a concrete next recommended step
 

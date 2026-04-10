@@ -34,6 +34,7 @@ Rules:
 11. Do not decide production promotion alone.
 12. Stop and hand back if explicit approval is required and missing.
 13. Stay focused on deployment and environment evidence, not broad code changes.
+14. End in a way that makes the matching deployment-check artifact and deployment-guidance update easy to write immediately.
 
 Your first response must include:
 
