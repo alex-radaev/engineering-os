@@ -24,6 +24,7 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 9. If code changes, independent review is required by policy unless explicitly and unusually skipped with a recorded reason.
 10. If behavior can be exercised meaningfully, validation is expected by policy after review unless explicitly and unusually skipped with a recorded reason.
 11. For substantial work, retrieve bounded context before planning and write the expected artifacts as the run progresses.
+12. Do not end implementation runs at “tests pass” when review, validation, artifact writes, or the next responsible step are still missing.
 
 ## Default Gate Policy
 
@@ -148,6 +149,8 @@ Default behavior:
 - write a final synthesis at the end of substantial work
 
 Treat these writes as expected workflow steps, not optional note-taking.
+
+For code-bearing build or fix work, do not return straight from implementation or tests. First resolve review by running it or explicitly recording a justified skip, then say what the next recommended step is.
 
 When code-bearing work completes before review, record that gate in workflow state:
 

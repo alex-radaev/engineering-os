@@ -24,11 +24,21 @@ Workflow:
 4. Create `CLAUDE.md` with repo-owned rules and framework imports.
 5. Add initial `.claude/` files that make the harness usable immediately.
 6. Set up artifact directories for observability.
-7. If global Crew memory is missing or stale, recommend `/crew:install`.
-8. Summarize what was created and how the user should start working.
+7. Inspect repo context that will matter later:
+   - `README`
+   - `.github/workflows/`
+   - Docker / compose / infra files
+   - obvious runtime or service entrypoints
+8. If the repo already reveals useful deployment clues, write initial deployment guidance:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" discover-deployment --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" ...`
+9. If deployment is only partly clear, record the known build/deploy path and what still needs verification instead of guessing.
+10. If global Crew memory is missing or stale, recommend `/crew:install`.
+11. Summarize what was created, what deployment memory was seeded, and how the user should start working.
 
 Deliverable:
 
 - a ready-to-use repo with the Crew harness
 - file references for the initial harness files
+- initial deployment guidance when discoverable
 - next-step guidance for starting the first task
