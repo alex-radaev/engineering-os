@@ -703,6 +703,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   let workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.review.status, "required");
   assert.deepEqual(workflowResult.summary.pendingBadges, ["review_required"]);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
 
   await execFile("node", [
     cliPath,
@@ -736,6 +737,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   assert.equal(workflowResult.summary.currentRun.gates.review.status, "passed");
   assert.equal(workflowResult.summary.currentRun.gates.validation.status, "expected");
   assert.deepEqual(workflowResult.summary.pendingBadges, ["validation_expected"]);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
 
   await execFile("node", [
     cliPath,
@@ -757,6 +759,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.validation.status, "passed");
   assert.deepEqual(workflowResult.summary.pendingBadges, []);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
 
   await execFile("node", [
     cliPath,
@@ -776,6 +779,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.deployment.dev.status, "expected");
   assert.deepEqual(workflowResult.summary.pendingBadges, ["dev_deploy_expected"]);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
 
   await execFile("node", [
     cliPath,
@@ -805,6 +809,62 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.deployment.dev.status, "passed");
   assert.deepEqual(workflowResult.summary.pendingBadges, []);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
+});
+
+test("CLI workflow state and brief-me surface missing artifact write-backs after a completed phase", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-missing-artifact-writeback-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("node", [
+    cliPath,
+    "write-run-brief",
+    "--repo",
+    repoPath,
+    "--title",
+    "Artifact write-back gap",
+    "--goal",
+    "Surface a missing review artifact",
+    "--mode",
+    "single-session"
+  ]);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_passed",
+    "--note",
+    "Reviewer approved, but artifact was not written yet"
+  ]);
+
+  const workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  const workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.deepEqual(workflowResult.summary.pendingBadges, []);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, ["review_result_missing"]);
+
+  const briefOutput = await execFile("node", [
+    cliPath,
+    "brief-me",
+    "--repo",
+    repoPath
+  ]);
+  const briefResult = JSON.parse(briefOutput.stdout);
+  assert.match(
+    briefResult.sections.blockedOrMissing.join("\n"),
+    /review artifact write-back is still missing/
+  );
+  assert.match(
+    briefResult.sections.recommendedNextStep,
+    /Write the review-result artifact now/
+  );
 });
 
 test("CLI blocks final synthesis when workflow badges are still pending", async () => {

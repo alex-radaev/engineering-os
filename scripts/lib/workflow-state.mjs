@@ -112,6 +112,33 @@ function createRun(fields = {}) {
   };
 }
 
+function summarizeMissingArtifactWritesForRun(run) {
+  if (!run) {
+    return [];
+  }
+
+  const missing = [];
+  const reviewStatus = run.gates?.review?.status || null;
+  const validationStatus = run.gates?.validation?.status || null;
+  const devDeployStatus = run.gates?.deployment?.dev?.status || null;
+  const prodDeployStatus = run.gates?.deployment?.prod?.status || null;
+
+  if ((reviewStatus === "passed" || reviewStatus === "failed") && !run.artifacts?.reviewResult) {
+    missing.push("review_result_missing");
+  }
+  if ((validationStatus === "passed" || validationStatus === "failed") && !run.artifacts?.validationResult) {
+    missing.push("validation_result_missing");
+  }
+  if ((devDeployStatus === "passed" || devDeployStatus === "failed") && !run.artifacts?.deploymentChecks?.dev) {
+    missing.push("dev_deployment_check_missing");
+  }
+  if ((prodDeployStatus === "passed" || prodDeployStatus === "failed") && !run.artifacts?.deploymentChecks?.prod) {
+    missing.push("prod_deployment_check_missing");
+  }
+
+  return missing;
+}
+
 export async function startWorkflowRun(repoPath, fields = {}) {
   const state = await loadWorkflowState(repoPath);
   if (state.currentRun) {
@@ -299,6 +326,7 @@ export function summarizeWorkflowState(state) {
     return {
       hasActiveRun: false,
       pendingBadges: [],
+      missingArtifactWrites: [],
       currentRun: null
     };
   }
@@ -316,10 +344,12 @@ export function summarizeWorkflowState(state) {
   if (currentRun.gates?.deployment?.prod?.status === "expected") {
     pendingBadges.push("prod_deploy_expected");
   }
+  const missingArtifactWrites = summarizeMissingArtifactWritesForRun(currentRun);
 
   return {
     hasActiveRun: currentRun.status !== "completed",
     pendingBadges,
+    missingArtifactWrites,
     currentRun: {
       title: currentRun.title,
       goal: currentRun.goal,
@@ -327,6 +357,7 @@ export function summarizeWorkflowState(state) {
       status: currentRun.status,
       next: currentRun.next,
       gates: currentRun.gates,
+      artifacts: currentRun.artifacts,
       updatedAt: currentRun.updatedAt
     }
   };

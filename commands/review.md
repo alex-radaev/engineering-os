@@ -24,7 +24,7 @@ Expected shape:
    - repo `CLAUDE.md` expectations
    - any repo-configured or globally configured review skills and standards that apply
 7. run the relevant review gates for the task and repo
-8. record the review result and update workflow state
+8. record the review result and update workflow state immediately when review completes
 9. return findings, risks, standards checked, configured review skills used, and the next recommended step
 
 Review should be treated as a phase, not a courtesy:

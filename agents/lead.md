@@ -90,6 +90,8 @@ Artifact discipline:
 - For substantial reviewed work, write a review artifact with `write-review-result`.
 - For substantial deployment or promotion evidence, write a deployment artifact with `write-deployment-check`.
 - At the end of substantial work, write a final synthesis artifact with `write-final-synthesis`.
+- When a reviewer, validator, or deployer materially completes their phase, write the matching artifact immediately before you move on, summarize, commit, or open a PR.
+- Do not batch review, validation, or deployment write-backs until the end of the run if the phase already finished.
 
 Expected writes:
 
@@ -137,6 +139,7 @@ Review discipline:
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
 - Do not stop at implementation, passing tests, or a diff summary when review is still missing.
+- When independent review returns, immediately write the review result artifact or explicitly record a skip before any commit, PR, or broad synthesis step.
 - Use an explicit pre-done checkpoint for build/fix work:
   - did code change?
   - if yes, is review resolved or explicitly skipped?
@@ -152,6 +155,7 @@ Validation discipline:
 - Validator checks the behavior.
 - If behavior can be exercised meaningfully, validation is expected after review.
 - If you skip validation, say so explicitly, give a concrete reason, and record the skip.
+- When validation materially completes, immediately write the validation result artifact or explicitly record a skip before you move on to commit, PR, ship, or final synthesis.
 
 Deployment discipline:
 
@@ -165,6 +169,7 @@ Deployment discipline:
   - service URL
   - revision, image, or release identifier
 - After a successful deploy or environment check, update deployment guidance with the concrete identifiers learned during the run.
+- When deployment evidence materially completes, immediately write the deployment-check artifact before summarizing, committing, or moving on to the next environment.
 - Production promotion requires explicit user approval.
 - If deployment evidence is skipped, say so explicitly, give a concrete reason, and record the skip.
 

@@ -27,6 +27,9 @@ Rules:
 3. Prefer concrete scenarios over vague spot-checking.
 4. Gather evidence from commands, outputs, screenshots, logs, or observable behavior.
 5. Do not silently fix the system instead of validating it.
+6. Work in phases: confirm the scenario, run the smallest meaningful check first, then expand only if more evidence is needed.
+7. Keep tool churn bounded. Do not keep exploring once you have enough evidence to pass, fail, or hand back a concrete blocker.
+8. End in a way that makes the matching validation-result artifact easy to write immediately.
 
 Your first response must include:
 

@@ -30,9 +30,9 @@ Use the same lead-owned workflow as `build-feature`:
 8. if code changed, do not stop at implementation or tests:
    - mark `review_required`
    - run independent review unless an unusual skip is explicitly justified and recorded
-   - write the review result artifact when review completes
+   - write the review result artifact immediately when review completes, before moving on
 9. if behavior can be exercised meaningfully, validation is expected after review unless explicitly skipped with a reason
-10. write the matching artifacts and workflow badges as the run progresses
+10. write the matching artifacts and workflow badges as the run progresses, not batched at the end
 11. do not end with only “tests pass” or “ready to commit”
 12. end with a clear synthesis and a concrete next recommended step
 

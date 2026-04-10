@@ -36,6 +36,7 @@ Rules:
 7. Apply any repo-configured or globally configured review skills and standards that are relevant.
 8. If reviewer instructions specify extra skills or review programs, use them without waiting for the lead to remind you.
 9. Be specific about evidence, risk, and required follow-up.
+10. End in a way that makes the matching review-result artifact easy to write immediately.
 
 Your first response must include:
 

@@ -91,9 +91,9 @@ const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
 
 - substantial run start -> run brief
 - ownership change -> handoff
-- review completion -> review result
-- validation completion -> validation result
-- meaningful deployment evidence -> deployment check
+- review completion -> review result immediately
+- validation completion -> validation result immediately
+- meaningful deployment evidence -> deployment check immediately
 - substantial completion -> final synthesis
 
 ## Handoff Format
@@ -204,6 +204,23 @@ function pendingBadges(run) {
   return pending;
 }
 
+function missingArtifactWrites(run) {
+  const missing = [];
+  if ((run?.gates?.review?.status === "passed" || run?.gates?.review?.status === "failed") && !run?.artifacts?.reviewResult) {
+    missing.push("review-result artifact");
+  }
+  if ((run?.gates?.validation?.status === "passed" || run?.gates?.validation?.status === "failed") && !run?.artifacts?.validationResult) {
+    missing.push("validation-result artifact");
+  }
+  if ((run?.gates?.deployment?.dev?.status === "passed" || run?.gates?.deployment?.dev?.status === "failed") && !run?.artifacts?.deploymentChecks?.dev) {
+    missing.push("dev deployment-check artifact");
+  }
+  if ((run?.gates?.deployment?.prod?.status === "passed" || run?.gates?.deployment?.prod?.status === "failed") && !run?.artifacts?.deploymentChecks?.prod) {
+    missing.push("prod deployment-check artifact");
+  }
+  return missing;
+}
+
 const input = JSON.parse(process.env.HOOK_PAYLOAD || "{}");
 if (input.hook_event_name !== "PreToolUse" || input.tool_name !== "Bash") {
   process.exit(0);
@@ -229,16 +246,21 @@ if (!currentRun) {
 }
 
 const pending = pendingBadges(currentRun);
-if (pending.length === 0) {
+const missingWrites = missingArtifactWrites(currentRun);
+if (pending.length === 0 && missingWrites.length === 0) {
   process.exit(0);
 }
 
 const action = isCommit ? "git commit" : "gh pr";
-const message = [
-  "Crew reminder:",
-  \`pending workflow gates before \${action}: \${pending.join(", ")}\`,
-  "Recommended next step: resolve review/validation/deployment gates or record an explicit skip before moving on."
-].join(" ");
+const messageParts = ["Crew reminder:"];
+if (pending.length > 0) {
+  messageParts.push(\`pending workflow gates before \${action}: \${pending.join(", ")}\`);
+}
+if (missingWrites.length > 0) {
+  messageParts.push(\`phase-complete write-backs still missing before \${action}: \${missingWrites.join(", ")}\`);
+}
+messageParts.push("Recommended next step: write the matching review/validation/deployment artifact now, or record an explicit skip before moving on.");
+const message = messageParts.join(" ");
 
 process.stdout.write(JSON.stringify({
   continue: true,

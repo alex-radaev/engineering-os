@@ -29,7 +29,7 @@ Expected shape:
    - dev or prod target?
 6. identify what evidence already exists and what gate is still missing
 7. use the deployer when environment transition or deployment confirmation is needed
-8. write deployment checks as environment evidence is gathered
+8. write deployment checks immediately as environment evidence is gathered
 9. after a successful deploy or live environment check, update deployment guidance with the concrete identifiers you discovered
 10. require post-deploy validation when behavior can be exercised meaningfully
 11. require explicit user approval before risky production promotion

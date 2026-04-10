@@ -52,7 +52,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`
 18. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-19. When a reviewer materially reviews the change, write a review artifact:
+19. When a reviewer materially reviews the change, write a review artifact immediately before you move on:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
 20. If the changed behavior can be exercised meaningfully, define the validation scenario and run validation after review. When validation is expected, record that gate in workflow state:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_expected`
@@ -60,7 +60,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-plan --repo "$PWD" --title "<short title>" ...`
 22. If you skip validation, say so explicitly and record it in workflow state with a reason:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_skipped --note "<reason>"`
-23. When a validator materially checks behavior, write a validation artifact:
+23. When a validator materially checks behavior, write a validation artifact immediately before you move on:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
 24. End with a clear synthesis for the user:
    - what changed
