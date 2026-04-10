@@ -52,6 +52,7 @@ Operating rules:
 Startup and planning discipline:
 
 - Before substantial work, verify the current workspace, retrieve the bounded wake-up context, and summarize the current operating picture before planning implementation.
+- For substantial work, do not start implementation until the wake-up step is complete.
 - When deeper history matters, retrieve it selectively instead of loading the archive indiscriminately.
 - Ask only the questions needed to remove real ambiguity or risk.
 - Then either implement directly or split the work into bounded, reviewable tasks.
@@ -114,6 +115,7 @@ Workflow state discipline:
 - When production deployment evidence is expected, mark or preserve `prod_deploy_expected`.
 - If review or validation is intentionally skipped, mark that explicitly with a reason instead of leaving the gate pending.
 - Use workflow state to make pending gates visible instead of relying only on prose summaries.
+- Treat "substantial" mostly as a decision about artifact weight and recovery value. It does not weaken required review for code changes.
 
 Review discipline:
 
@@ -123,6 +125,13 @@ Review discipline:
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
 - Do not stop at implementation, passing tests, or a diff summary when review is still missing.
+- Use an explicit pre-done checkpoint for build/fix work:
+  - did code change?
+  - if yes, is review resolved or explicitly skipped?
+  - did behavior change?
+  - if yes, is validation resolved or explicitly skipped?
+  - did the run leave the artifact trail it should?
+  - what is the next responsible step?
 
 Validation discipline:
 

@@ -15,6 +15,7 @@ Workflow:
 2. Start by reading the repo wake-up brief:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
 3. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
+   For substantial work, do not start implementation until this step is complete.
 4. Follow this phase order:
    - frame
    - investigate
@@ -68,5 +69,11 @@ Workflow:
    - what was reviewed
    - what was validated
    - residual risk
+    Use this pre-done checkpoint before you call the fix complete:
+    - did code change?
+    - if yes, is review resolved or explicitly skipped?
+    - did the bug path or changed behavior get exercised?
+    - if yes, is validation resolved or explicitly skipped?
+    - did the run leave the artifact trail it should?
 24. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

@@ -175,6 +175,79 @@ printf '{"schemaVersion":"1.0","source":"engineering-os","timestamp":"%s","event
   "$payload_path" >> "$events_path"
 `;
 
+const GIT_GATE_REMINDER_TEMPLATE = `#!/usr/bin/env bash
+set -euo pipefail
+
+payload="$(cat || true)"
+if [ -z "$payload" ]; then
+  exit 0
+fi
+
+HOOK_PAYLOAD="$payload" node <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+
+function hasCommitLikeCommand(command) {
+  return /(^|[;&|()]|\\s)git\\s+commit(\\s|$)/.test(command);
+}
+
+function hasPrLikeCommand(command) {
+  return /(^|[;&|()]|\\s)gh\\s+pr\\s+(create|merge)(\\s|$)/.test(command);
+}
+
+function pendingBadges(run) {
+  const pending = [];
+  if (run?.gates?.review?.status === "required") pending.push("review_required");
+  if (run?.gates?.validation?.status === "expected") pending.push("validation_expected");
+  if (run?.gates?.deployment?.dev?.status === "expected") pending.push("dev_deploy_expected");
+  if (run?.gates?.deployment?.prod?.status === "expected") pending.push("prod_deploy_expected");
+  return pending;
+}
+
+const input = JSON.parse(process.env.HOOK_PAYLOAD || "{}");
+if (input.hook_event_name !== "PreToolUse" || input.tool_name !== "Bash") {
+  process.exit(0);
+}
+
+const command = input.tool_input?.command || "";
+const isCommit = hasCommitLikeCommand(command);
+const isPr = hasPrLikeCommand(command);
+if (!isCommit && !isPr) {
+  process.exit(0);
+}
+
+const cwd = input.cwd || process.cwd();
+const workflowPath = path.join(cwd, ".claude", "state", "engineering-os", "workflow-state.json");
+if (!fs.existsSync(workflowPath)) {
+  process.exit(0);
+}
+
+const workflowState = JSON.parse(fs.readFileSync(workflowPath, "utf8"));
+const currentRun = workflowState.currentRun;
+if (!currentRun) {
+  process.exit(0);
+}
+
+const pending = pendingBadges(currentRun);
+if (pending.length === 0) {
+  process.exit(0);
+}
+
+const action = isCommit ? "git commit" : "gh pr";
+const message = [
+  "Crew reminder:",
+  \`pending workflow gates before \${action}: \${pending.join(", ")}\`,
+  "Recommended next step: resolve review/validation/deployment gates or record an explicit skip before moving on."
+].join(" ");
+
+process.stdout.write(JSON.stringify({
+  continue: true,
+  suppressOutput: true,
+  systemMessage: message
+}));
+NODE
+`;
+
 const DEFAULT_SETTINGS = {
   hooks: {
     SessionStart: [
@@ -232,6 +305,18 @@ const DEFAULT_SETTINGS = {
           }
         ]
       }
+    ],
+    PreToolUse: [
+      {
+        matcher: "Bash",
+        hooks: [
+          {
+            type: "command",
+            command: "${PWD}/.claude/hooks/check_git_gate.sh",
+            description: "engineering-os:git-gate-reminder"
+          }
+        ]
+      }
     ]
   }
 };
@@ -268,7 +353,9 @@ function isEngineeringOsHook(entry) {
   return hooks.some((hook) => {
     const command = hook?.command || "";
     const description = hook?.description || "";
-    return command.includes(".claude/hooks/log_event.sh") || description.startsWith("engineering-os:");
+    return command.includes(".claude/hooks/log_event.sh")
+      || command.includes(".claude/hooks/check_git_gate.sh")
+      || description.startsWith("engineering-os:");
   });
 }
 
@@ -371,11 +458,15 @@ async function writeHarnessFiles(repoPath, writes) {
     [
       path.join(repoPath, ".claude", "hooks", "log_event.sh"),
       HOOK_SCRIPT_TEMPLATE
+    ],
+    [
+      path.join(repoPath, ".claude", "hooks", "check_git_gate.sh"),
+      GIT_GATE_REMINDER_TEMPLATE
     ]
   ];
 
   for (const [filePath, contents] of files) {
-    const isHookScript = filePath.endsWith("log_event.sh");
+    const isHookScript = filePath.endsWith("log_event.sh") || filePath.endsWith("check_git_gate.sh");
     const changed = await writeFileIfChanged(
       filePath,
       contents,

@@ -25,6 +25,7 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 10. If behavior can be exercised meaningfully, validation is expected by policy after review unless explicitly and unusually skipped with a recorded reason.
 11. For substantial work, retrieve bounded context before planning and write the expected artifacts as the run progresses.
 12. Do not end implementation runs at “tests pass” when review, validation, artifact writes, or the next responsible step are still missing.
+13. Treat "substantial" as mostly an artifact-weight decision. It does not weaken the rule that code changes require review.
 
 ## Default Gate Policy
 
@@ -76,7 +77,8 @@ Before substantial work:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
 3. Explicitly confirm the returned `repoPath` matches the current working directory.
 4. If the paths do not match, stop and call out the repo-context problem before using the brief.
-5. Then state:
+5. For substantial work, do not start implementation until the wake-up step is complete.
+6. Then state:
 
 - active objective
 - chosen mode
@@ -156,7 +158,21 @@ Default behavior:
 
 Treat these writes as expected workflow steps, not optional note-taking.
 
+Useful heuristic:
+
+- if you changed deployable or production code, treat the work as substantial by default
+- if you changed code at all, review is still required even when the change feels small
+
 For code-bearing build or fix work, do not return straight from implementation or tests. First resolve review by running it or explicitly recording a justified skip, then say what the next recommended step is.
+
+Use a literal pre-done checkpoint before you declare build or fix work complete:
+
+- did code change?
+- if yes, is review resolved or explicitly skipped?
+- did behavior change?
+- if yes, is validation resolved or explicitly skipped?
+- did the run leave the artifact trail it should?
+- what is the next responsible step?
 
 When code-bearing work completes before review, record that gate in workflow state:
 
