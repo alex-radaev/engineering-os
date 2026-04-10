@@ -36,6 +36,7 @@ The public surface should stay small.
 
 Preferred entry points:
 
+- `/crew:brief-me` — get a fixed-structure briefing on current objective, recent activity, blockers, reminders, and next step
 - `/crew:build` — build or extend capability
 - `/crew:fix` — investigate and fix broken behavior
 - `/crew:review` — run the review phase on completed work
@@ -63,6 +64,7 @@ Everything else should be treated as internal, advanced, or debugging-oriented w
 
 The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and `ship` from normal conversation when the intent is clear.
 The lead should also notice when work is ready to move into shipping stages and recommend `ship` without waiting for the user to remember the command.
+`/crew:brief-me` should be the normal first command when the user wants a crisp situational report before continuing.
 
 ## Install
 

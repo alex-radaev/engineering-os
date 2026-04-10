@@ -61,7 +61,19 @@ export async function ensureStateScaffold(repoPath) {
   await ensureFile(path.join(repoPath, ...HISTORY_PATH), "");
 }
 
-export async function loadClaimsState(repoPath) {
+async function claimsStateExists(repoPath) {
+  try {
+    await fs.access(path.join(repoPath, ...CLAIMS_PATH));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadClaimsState(repoPath, options = {}) {
+  if (options.createIfMissing === false && !(await claimsStateExists(repoPath))) {
+    return defaultClaimsState();
+  }
   await ensureStateScaffold(repoPath);
   const claimsPath = path.join(repoPath, ...CLAIMS_PATH);
   return JSON.parse(await fs.readFile(claimsPath, "utf8"));
@@ -143,8 +155,8 @@ export async function releaseFiles(repoPath, filePaths = [], options = {}) {
   return { owner, released, skipped };
 }
 
-export async function listClaims(repoPath) {
-  const state = await loadClaimsState(repoPath);
+export async function listClaims(repoPath, options = {}) {
+  const state = await loadClaimsState(repoPath, { createIfMissing: options.createIfMissing });
   return Object.entries(state.claims)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([filePath, claim]) => ({

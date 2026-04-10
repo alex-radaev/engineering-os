@@ -82,6 +82,7 @@ Public commands should be a small set of entry points and shortcuts, not the who
 
 Likely future public surface:
 
+- `/crew:brief-me`
 - `/crew:build`
 - `/crew:fix`
 - `/crew:review`
@@ -93,6 +94,8 @@ Likely future public surface:
 
 What they mean:
 
+- `/crew:brief-me`
+  Give the user a fixed-structure situational briefing: current objective, recent git/artifact activity, in-progress gates, blockers, reminders, and the next recommended step.
 - `/crew:build`
   Build or extend a feature. The lead frames the task, implements directly or delegates bounded work, then runs review and validation where appropriate.
 - `/crew:fix`

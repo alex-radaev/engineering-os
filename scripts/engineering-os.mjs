@@ -6,6 +6,7 @@ import {
   discoverDeploymentClues,
   writeDeploymentGuidance
 } from "./lib/deployment-guidance.mjs";
+import { buildBriefingReport } from "./lib/briefing.mjs";
 import { auditRepo, bootstrapRepo, initRepo, installGlobal } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
@@ -330,6 +331,7 @@ function usage(target = null) {
     "show-approvals": "  node scripts/engineering-os.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
     "resolve-approval": "  node scripts/engineering-os.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
     "wake-up": "  node scripts/engineering-os.mjs wake-up --repo <path>",
+    "brief-me": "  node scripts/engineering-os.mjs brief-me --repo <path>",
     "discover-deployment": "  node scripts/engineering-os.mjs discover-deployment --repo <path>",
     "write-deployment-guidance": "  node scripts/engineering-os.mjs write-deployment-guidance --repo <path> --title <text> [--summary <text>] [--build <text>] [--deploy <text>]",
     "show-workflow-state": "  node scripts/engineering-os.mjs show-workflow-state --repo <path>",
@@ -406,6 +408,8 @@ async function main() {
     });
   } else if (command === "wake-up") {
     result = await buildWakeUpBrief(repoPath);
+  } else if (command === "brief-me") {
+    result = await buildBriefingReport(repoPath);
   } else if (command === "discover-deployment") {
     result = await discoverDeploymentClues(repoPath);
   } else if (command === "write-deployment-guidance") {
