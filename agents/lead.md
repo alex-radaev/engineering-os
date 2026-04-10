@@ -145,11 +145,14 @@ Deployment discipline:
 
 - For shipping or deployment work, retrieve existing repo deployment guidance before rediscovering deployment from scratch.
 - If repo deployment guidance is missing or stale, direct the deployer or perform a bounded discovery pass over CI/CD, infra, and deployment files, then write `.claude/engineering-os/deployment.md`.
+- If repo files hide concrete identifiers behind secrets or indirect config, treat repo-derived guidance as incomplete and resolve the live infrastructure identifiers when feasible.
+- Distinguish repo-derived, partial, and live-verified deployment guidance explicitly.
 - Deployer manages environment transition, not authorship.
 - Deployment evidence should preserve environment identity when available:
   - resource or service name
   - service URL
   - revision, image, or release identifier
+- After a successful deploy or environment check, update deployment guidance with the concrete identifiers learned during the run.
 - Production promotion requires explicit user approval.
 - If deployment evidence is skipped, say so explicitly, give a concrete reason, and record the skip.
 

@@ -475,8 +475,12 @@ Before this is formalized, deployment understanding should progress in three ste
    deployer may inspect CI/CD, infra, and deployment files directly when needed
 2. next:
    deployer or lead writes durable repo deployment guidance after discovery, for example in `.claude/engineering-os/deployment.md`
+   this guidance should distinguish `repo-derived`, `partial`, and `live-verified` understanding
 3. later:
    Crew formalizes that understanding into stable repo environment configuration
+
+If repo files hide important identifiers behind secrets or opaque CI/CD configuration, deployer should resolve the live infrastructure identifiers when feasible instead of pretending the repo-only summary is complete.
+After a successful deploy or environment check, deployment guidance should be updated with the concrete identifiers learned during the run.
 
 The important distinction is:
 

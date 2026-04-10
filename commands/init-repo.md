@@ -31,8 +31,8 @@ Workflow:
    - obvious runtime or service entrypoints
 8. If the repo already reveals useful deployment clues, write initial deployment guidance:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" discover-deployment --repo "$PWD"`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" ...`
-9. If deployment is only partly clear, record the known build/deploy path and what still needs verification instead of guessing.
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" --discovery-status repo-derived ...`
+9. If deployment is only partly clear, record the known build/deploy path and what still needs live verification instead of guessing.
 10. If global Crew memory is missing or stale, recommend `/crew:install`.
 11. Summarize what was created, what deployment memory was seeded, and how the user should start working.
 
