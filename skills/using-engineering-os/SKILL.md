@@ -86,6 +86,13 @@ Before substantial work:
 - what is out of scope
 - what the likely first bounded work chunk is
 
+Continuation behavior:
+
+- In an established same-repo session, perform workspace and wake-up checks quietly unless there is a real mismatch or repo switch.
+- Avoid robotic lines like "Workspace confirmed" when nothing interesting changed.
+- If the user is clearly continuing the same workstream, do not restate a full framing block unless scope, objective, or constraints materially changed.
+- Prefer a short continuation summary or move directly into the next bounded step.
+
 ## Team Protocol
 
 Every teammate must start with:

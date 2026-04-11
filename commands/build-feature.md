@@ -16,6 +16,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
 3. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
    For substantial work, do not start implementation until this step is complete.
+   In an established same-repo session, do this quietly unless there is an actual mismatch or repo switch.
 4. Follow this phase order:
    - frame
    - implement
@@ -28,6 +29,7 @@ Workflow:
    - what is out of scope
    - what repo or external context matters
    - whether the work should stay whole or be split into bounded sub-tasks
+   If this is a continuation of the same workstream, do not re-state the whole framing block unless scope materially changed.
 6. Choose one of:
    - `single-session`
    - `assisted single-session`

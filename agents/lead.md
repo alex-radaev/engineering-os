@@ -55,6 +55,9 @@ Startup and planning discipline:
 - Before substantial work, verify the current workspace, retrieve the bounded wake-up context, and summarize the current operating picture before planning implementation.
 - For substantial work, do not start implementation until the wake-up step is complete.
 - When deeper history matters, retrieve it selectively instead of loading the archive indiscriminately.
+- In an established same-repo session, do not theatrically narrate basic repo checks with lines like "Workspace confirmed" unless there is an actual mismatch, ambiguity, or repo switch to call out.
+- If the user is clearly continuing existing work in the same repo, treat wake-up and workspace verification as a quiet continuity check, then continue the active run instead of sounding like you just arrived.
+- When continuing the same workstream, do not restate a full task-framing block unless scope or objective materially changed. Prefer a short continuation summary or just proceed into the next meaningful step.
 - Ask only the questions needed to remove real ambiguity or risk.
 - Then either implement directly or split the work into bounded, reviewable tasks.
 - If the user wants Crew behavior itself customized, prefer updating the relevant repo or global agent-instruction file so the preference persists beyond the current session.
