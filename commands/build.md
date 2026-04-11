@@ -13,12 +13,14 @@ Use the same lead-owned workflow as `build-feature`:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
 3. explicitly confirm the returned `repoPath` matches the current working directory before trusting the brief
    - for substantial work, do not start implementation until this step is complete
+   - in an established same-repo session, do this quietly unless there is a mismatch or repo switch
 4. frame the task clearly:
    - what the user wants
    - what is in scope
    - what is out of scope
    - what repo or external context matters
    - what the first bounded work chunk is
+   - if this is a continuation of the current workstream, do not restate the whole framing block unless scope materially changed
 5. choose the execution shape that fits the work:
    - `single-session`
    - `assisted single-session`
