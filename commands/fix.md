@@ -23,19 +23,22 @@ Use the same lead-owned workflow as `investigate-bug`:
    - treat deployable or production-code fixes as substantial by default
    - use "substantial" mainly to decide run-brief and fuller artifact weight, not whether review is required
 8. investigate and implement the smallest credible fix
-9. if code changed, do not stop at implementation or tests:
+9. if the work produced a substantial non-code deliverable, do not stop at implementation or a draft:
+   - substantial non-code deliverables should normally be reviewed before being treated as done
+10. if code changed, do not stop at implementation or tests:
    - mark `review_required`
    - run independent review unless an unusual skip is explicitly justified and recorded
    - write the review result artifact immediately when review completes, before moving on
-10. if the bug path or changed behavior can be exercised meaningfully, validation is expected after review unless explicitly skipped with a reason
-11. write the matching artifacts and workflow badges as the run progresses, not batched at the end
-12. do not end with only “tests pass” or “ready to commit”
-13. end with root cause, evidence, residual risk, and a concrete next recommended step
+11. if the bug path or changed behavior can be exercised meaningfully, validation is expected after review unless explicitly skipped with a reason
+12. write the matching artifacts and workflow badges as the run progresses, not batched at the end
+13. do not end with only “tests pass” or “ready to commit”
+14. end with root cause, evidence, residual risk, and a concrete next recommended step
 
 Before you declare the fix done, explicitly check:
 
 - did code change?
 - if yes, is review resolved or explicitly skipped?
+- if no, did a substantial non-code deliverable still get an appropriate review or explicit skip?
 - did the bug path or changed behavior get exercised?
 - if yes, is validation resolved or explicitly skipped?
 - did the run leave the artifact trail it should?

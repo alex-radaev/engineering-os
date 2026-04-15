@@ -48,23 +48,24 @@ Workflow:
 13. Keep ownership explicit and avoid same-file parallel editing.
 14. Require structured acknowledgements and completion reports from every teammate or helper.
 15. If the implementation is split into code-bearing sub-tasks, make those sub-tasks independently reviewable and review them where practical before treating them as complete.
-16. For implementation work that changes code, independent review is the default. When code work is complete and waiting for review, record that gate in workflow state:
+16. Substantial non-code deliverables should normally be reviewed before being treated as done.
+17. For implementation work that changes code, independent review is the default. When code work is complete and waiting for review, record that gate in workflow state:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_required`
-17. If you skip review, say so explicitly and record it in workflow state with a reason:
+18. If you skip review, say so explicitly and record it in workflow state with a reason:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge review_skipped --note "<reason>"`
-18. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
+19. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-19. When a reviewer materially reviews the change, write a review artifact immediately before you move on:
+20. When a reviewer materially reviews the change, write a review artifact immediately before you move on:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-20. If the changed behavior can be exercised meaningfully, define the validation scenario and run validation after review. When validation is expected, record that gate in workflow state:
+21. If the changed behavior can be exercised meaningfully, define the validation scenario and run validation after review. When validation is expected, record that gate in workflow state:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_expected`
-21. When the scenario is substantial enough to preserve, write a validation plan:
+22. When the scenario is substantial enough to preserve, write a validation plan:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-plan --repo "$PWD" --title "<short title>" ...`
-22. If you skip validation, say so explicitly and record it in workflow state with a reason:
+23. If you skip validation, say so explicitly and record it in workflow state with a reason:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge validation_skipped --note "<reason>"`
-23. When a validator materially checks behavior, write a validation artifact immediately before you move on:
+24. When a validator materially checks behavior, write a validation artifact immediately before you move on:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-24. End with a clear synthesis for the user:
+25. End with a clear synthesis for the user:
    - what changed
    - what was reviewed
    - what was validated
@@ -73,8 +74,9 @@ Workflow:
     Use this pre-done checkpoint before you call the work complete:
     - did code change?
     - if yes, is review resolved or explicitly skipped?
+    - if no, did a substantial non-code deliverable still get an appropriate review or explicit skip?
     - did behavior change?
     - if yes, is validation resolved or explicitly skipped?
     - did the run leave the artifact trail it should?
-25. For substantial work, write a final synthesis artifact:
+26. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

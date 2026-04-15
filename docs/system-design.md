@@ -101,7 +101,7 @@ What they mean:
 - `/crew:fix`
   Investigate and fix a bug or broken behavior. The lead should investigate, implement the smallest correct fix, then review and validate the result.
 - `/crew:review`
-  Run the review phase on completed work. Review should be mandatory for substantial changes and may include multiple configurable gates such as correctness, regressions, scope drift, test gaps, internal coding standards, language-specific checks, or security review. The lead should explicitly state which repo-configured standards and review skills the reviewer is expected to apply.
+  Run the review phase on completed work. Review is deterministic for code changes, and substantial non-code deliverables should also normally enter review before being treated as done. Review may include multiple configurable gates such as correctness, regressions, scope drift, test gaps, internal coding standards, language-specific checks, or security review. The lead should explicitly state which repo-configured standards and review skills the reviewer is expected to apply.
 - `/crew:validate`
   Run a behavior/evidence gate. The lead should write or follow a validation scenario, run checks in the target environment, and return pass/fail evidence.
 - `/crew:ship`
@@ -333,6 +333,7 @@ They should be used for repeatedly missed transitions, not as the first answer t
 The current intended defaults are:
 
 - if code changed -> review required
+- if a substantial non-code deliverable was produced -> review normally expected before done
 - if user-visible, system-visible, or externally observable behavior can be exercised meaningfully -> validation expected
 - if work moves into dev or prod -> deployment checks and post-deploy validation expected
 - if production is affected -> explicit user approval required before promotion
@@ -433,7 +434,7 @@ The important rule is:
 
 implementation alone is not completion.
 
-Substantial code work should require the appropriate badges before the lead treats it as done.
+Substantial work should require the appropriate badges before the lead treats it as done.
 
 The same principle should apply to memory:
 
@@ -443,6 +444,7 @@ The same principle should apply to memory:
 More strictly:
 
 if any agent changed code, including the lead, the work should enter review.
+If a substantial non-code deliverable was produced, the work should normally enter review before being treated as done.
 
 ### 6. Repo And Global Configuration Layer
 
@@ -590,6 +592,7 @@ The default expectation is:
 
 - if code changed, review should happen unless explicitly and unusually skipped
 - substantial code changes should always enter review
+- substantial non-code deliverables should normally enter review before being treated as done
 - repos can customize which review gates apply
 - the lead applies the configured review policy and repo-specific review gates to the task
 - the user should not need to assemble the review pipeline manually
@@ -699,7 +702,7 @@ Expected shape:
 - identify correctness, regression, standards, or security risk
 - return approval / approval_with_notes / rejected
 
-For substantial implementation work, the result should also update workflow state:
+For substantial implementation work, and for substantial non-code deliverables that go through the same workflow, the result should also update workflow state:
 
 - implementation complete -> review required
 - review passed -> eligible for validation or final synthesis
@@ -710,12 +713,14 @@ Execution mode does not change this:
 - single-session code change -> review required
 - assisted single-session code change -> review required
 - team-run code change -> review required
+- substantial non-code deliverable in any mode -> review normally expected before done
 
 For sub-tasked work, review should happen at the sub-task level where practical.
 
 That means:
 
 - a completed code-bearing sub-task should enter review before being treated as done
+- a substantial non-code sub-task or deliverable should normally enter review before being treated as done
 - the lead can then integrate reviewed sub-task outputs into the larger run
 - the final run may still need a higher-level synthesis or additional review pass
 
@@ -968,6 +973,7 @@ Build the main thing first:
 - lead chunks work into bounded sub-tasks
 - lead uses predefined base agents as internal tools
 - code-bearing work enters independent review by default
+- substantial non-code deliverables also normally enter review before done
 - meaningful workflow steps write the right artifacts by default
 - lead returns with evidence, risks, and the next recommended decision
 

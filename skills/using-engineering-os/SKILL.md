@@ -22,14 +22,16 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 7. Use predefined base agents as internal tools: builder, researcher, reviewer, validator, and deployer when available. Do not invent new role definitions casually.
 8. Require explicit deliverables and completion reports.
 9. If code changes, independent review is required by policy unless explicitly and unusually skipped with a recorded reason.
-10. If behavior can be exercised meaningfully, validation is expected by policy after review unless explicitly and unusually skipped with a recorded reason.
-11. For substantial work, retrieve bounded context before planning and write the expected artifacts as the run progresses.
-12. Do not end implementation runs at “tests pass” when review, validation, artifact writes, or the next responsible step are still missing.
-13. Treat "substantial" as mostly an artifact-weight decision. It does not weaken the rule that code changes require review.
+10. Substantial non-code deliverables should normally pass through review before being treated as done.
+11. If behavior can be exercised meaningfully, validation is expected by policy after review unless explicitly and unusually skipped with a recorded reason.
+12. For substantial work, retrieve bounded context before planning and write the expected artifacts as the run progresses.
+13. Do not end implementation runs at “tests pass” when review, validation, artifact writes, or the next responsible step are still missing.
+14. Treat "substantial" as mostly an artifact-weight decision. It does not weaken the rule that code changes require review.
 
 ## Default Gate Policy
 
 - code changed -> independent review required
+- substantial non-code deliverable -> review normally expected before done
 - runnable, observable, or user-visible behavior changed -> validation expected after review
 - deployment or promotion work -> deployment checks and environment evidence required
 - production promotion -> explicit user approval required
@@ -162,6 +164,8 @@ Default behavior:
 - write or update repo deployment guidance when shipping depends on CI/CD or infra discovery
 - write a deployment check when deployer evidence materially confirms a dev or prod transition
 - write a final synthesis at the end of substantial work
+- if a run already has meaningful progress and still lacks a run brief, write it before pushing the workflow much further
+- if review, validation, or deployment phases already completed, do not move into the next workstream without a final synthesis unless you explicitly explain why
 
 Treat these writes as expected workflow steps, not optional note-taking.
 
@@ -171,6 +175,13 @@ Useful heuristic:
 - if you changed code at all, review is still required even when the change feels small
 
 For code-bearing build or fix work, do not return straight from implementation or tests. First resolve review by running it or explicitly recording a justified skip, then say what the next recommended step is.
+
+For code-bearing work and substantial non-code deliverables, treat implementation and review as separate states:
+
+- implemented
+- review_required
+- review_passed or review_failed
+- done
 
 Use a literal pre-done checkpoint before you declare build or fix work complete:
 

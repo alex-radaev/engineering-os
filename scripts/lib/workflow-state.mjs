@@ -112,6 +112,90 @@ function createRun(fields = {}) {
   };
 }
 
+function hasAnyWorkflowGate(run) {
+  return Boolean(
+    run?.gates?.review ||
+    run?.gates?.validation ||
+    run?.gates?.deployment?.dev ||
+    run?.gates?.deployment?.prod
+  );
+}
+
+function hasPendingGates(run) {
+  return Boolean(
+    run?.gates?.review?.status === "required" ||
+    run?.gates?.validation?.status === "expected" ||
+    run?.gates?.deployment?.dev?.status === "expected" ||
+    run?.gates?.deployment?.prod?.status === "expected"
+  );
+}
+
+function hasMeaningfulProgress(run) {
+  if (!run) {
+    return false;
+  }
+
+  return Boolean(
+    hasAnyWorkflowGate(run) ||
+    run?.artifacts?.handoffs?.length ||
+    run?.artifacts?.reviewResult ||
+    run?.artifacts?.validationPlan ||
+    run?.artifacts?.validationResult ||
+    run?.artifacts?.deploymentChecks?.dev ||
+    run?.artifacts?.deploymentChecks?.prod ||
+    run?.next
+  );
+}
+
+function isSubstantialRunHint(run) {
+  if (!run) {
+    return false;
+  }
+
+  return Boolean(
+    run.mode === "assisted single-session" ||
+    run.mode === "team run" ||
+    run.artifacts?.handoffs?.length ||
+    run.artifacts?.validationPlan ||
+    run.artifacts?.validationResult ||
+    run.artifacts?.deploymentChecks?.dev ||
+    run.artifacts?.deploymentChecks?.prod ||
+    run.gates?.validation ||
+    run.gates?.deployment?.dev ||
+    run.gates?.deployment?.prod
+  );
+}
+
+function hasCompletedPhaseEvidence(run) {
+  if (!run) {
+    return false;
+  }
+
+  const reviewStatus = run.gates?.review?.status || null;
+  const validationStatus = run.gates?.validation?.status || null;
+  const devDeployStatus = run.gates?.deployment?.dev?.status || null;
+  const prodDeployStatus = run.gates?.deployment?.prod?.status || null;
+
+  return Boolean(
+    reviewStatus === "passed" ||
+    reviewStatus === "failed" ||
+    reviewStatus === "skipped" ||
+    validationStatus === "passed" ||
+    validationStatus === "failed" ||
+    validationStatus === "skipped" ||
+    devDeployStatus === "passed" ||
+    devDeployStatus === "failed" ||
+    devDeployStatus === "skipped" ||
+    prodDeployStatus === "passed" ||
+    prodDeployStatus === "failed" ||
+    prodDeployStatus === "skipped" ||
+    run.artifacts?.reviewResult ||
+    run.artifacts?.validationResult ||
+    run.artifacts?.deploymentChecks?.dev ||
+    run.artifacts?.deploymentChecks?.prod
+  );
+}
+
 function summarizeMissingArtifactWritesForRun(run) {
   if (!run) {
     return [];
@@ -122,6 +206,8 @@ function summarizeMissingArtifactWritesForRun(run) {
   const validationStatus = run.gates?.validation?.status || null;
   const devDeployStatus = run.gates?.deployment?.dev?.status || null;
   const prodDeployStatus = run.gates?.deployment?.prod?.status || null;
+  const hasProgress = hasMeaningfulProgress(run);
+  const substantialRun = isSubstantialRunHint(run);
 
   if ((reviewStatus === "passed" || reviewStatus === "failed") && !run.artifacts?.reviewResult) {
     missing.push("review_result_missing");
@@ -134,6 +220,12 @@ function summarizeMissingArtifactWritesForRun(run) {
   }
   if ((prodDeployStatus === "passed" || prodDeployStatus === "failed") && !run.artifacts?.deploymentChecks?.prod) {
     missing.push("prod_deployment_check_missing");
+  }
+  if (substantialRun && hasProgress && !run.artifacts?.runBrief) {
+    missing.push("run_brief_missing");
+  }
+  if (substantialRun && hasCompletedPhaseEvidence(run) && !hasPendingGates(run) && !run.artifacts?.finalSynthesis) {
+    missing.push("final_synthesis_missing");
   }
 
   return missing;
