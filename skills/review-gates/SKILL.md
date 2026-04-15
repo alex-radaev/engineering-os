@@ -7,14 +7,14 @@ description: Use before declaring implementation work done to separate task-comp
 
 ## Overview
 
-Implementation work should not go straight from "code changed" to "done".
+Code-bearing work and substantial non-code design or planning work should not go straight from "deliverable produced" to "done".
 
-Apply two gates whenever the task is substantial.
+Apply review gates before a code-bearing or substantial non-code deliverable is treated as complete.
 
 Default rule:
 
-- substantial feature work should be reviewed
-- non-trivial bug fixes should usually be reviewed
+- code-bearing deliverables require independent review
+- substantial design, planning, or documentation deliverables should normally be reviewed before being called done
 - if review is skipped, the lead should state that explicitly and explain why
 - repo standards and language-specific standards should be part of the review by default when they exist
 
@@ -66,7 +66,7 @@ Include:
 - whether the task should advance
 - required follow-up if rejected
 
-When the review is substantial, persist it with:
+When review materially completes, persist it with:
 
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
 

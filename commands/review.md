@@ -6,7 +6,7 @@ description: Preferred short entry point for running the review phase on complet
 
 This is the preferred short entry point for the review phase.
 
-Use it when implementation work is complete and needs independent review.
+Use it when code-bearing work or a substantial non-code deliverable is complete and needs independent review.
 
 Expected shape:
 
@@ -29,7 +29,8 @@ Expected shape:
 
 Review should be treated as a phase, not a courtesy:
 
-- if code changed, review is expected unless explicitly skipped with a reason
+- substantial non-code deliverables should normally be reviewed before they are treated as done
+- if code changed, independent review is required unless explicitly skipped with a reason
 - the reviewer should be independent from the implementing agent
 - the review may include correctness, regressions, scope discipline, test gaps, repo standards, language-specific checks, or security review
 - do not leave repo standards or language standards implicit in the review summary

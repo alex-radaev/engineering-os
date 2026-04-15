@@ -366,6 +366,12 @@ function buildBlockedOrMissing(wakeUpBrief, deploymentClues, gitActivity) {
   if (missingWrites.has("prod_deployment_check_missing")) {
     blocked.push("Production deployment evidence exists in workflow state, but the deployment-check artifact is still missing.");
   }
+  if (missingWrites.has("run_brief_missing")) {
+    blocked.push("This run has meaningful progress, but the run-brief artifact is still missing.");
+  }
+  if (missingWrites.has("final_synthesis_missing")) {
+    blocked.push("Meaningful workflow phases completed, but the final synthesis artifact is still missing.");
+  }
   if (wakeUpBrief.openApprovals.length > 0) {
     blocked.push(`${wakeUpBrief.openApprovals.length} open approval(s) still need a decision.`);
   }
@@ -456,6 +462,12 @@ function recommendedNextStep(wakeUpBrief, deploymentClues, gitActivity) {
   }
   if (missingWrites.has("prod_deployment_check_missing")) {
     return "Write the production deployment-check artifact now so the rollout evidence is preserved.";
+  }
+  if (missingWrites.has("run_brief_missing")) {
+    return "Write the run-brief artifact now so this workstream has a bounded starting point for recovery.";
+  }
+  if (missingWrites.has("final_synthesis_missing")) {
+    return "Write the final synthesis now so the completed work and next step are preserved before you move on.";
   }
   if (wakeUpBrief.openApprovals.length > 0) {
     return "Resolve the open approval queue before pushing the workflow forward.";

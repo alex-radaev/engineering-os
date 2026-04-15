@@ -206,6 +206,59 @@ function pendingBadges(run) {
 
 function missingArtifactWrites(run) {
   const missing = [];
+  const hasPendingGates = Boolean(
+    run?.gates?.review?.status === "required" ||
+    run?.gates?.validation?.status === "expected" ||
+    run?.gates?.deployment?.dev?.status === "expected" ||
+    run?.gates?.deployment?.prod?.status === "expected"
+  );
+  const hasAnyGate = Boolean(
+    run?.gates?.review ||
+    run?.gates?.validation ||
+    run?.gates?.deployment?.dev ||
+    run?.gates?.deployment?.prod
+  );
+  const hasMeaningfulProgress = Boolean(
+    hasAnyGate ||
+    run?.artifacts?.handoffs?.length ||
+    run?.artifacts?.reviewResult ||
+    run?.artifacts?.validationPlan ||
+    run?.artifacts?.validationResult ||
+    run?.artifacts?.deploymentChecks?.dev ||
+    run?.artifacts?.deploymentChecks?.prod ||
+    run?.next
+  );
+  const hasCompletedPhaseEvidence = Boolean(
+    run?.gates?.review?.status === "passed" ||
+    run?.gates?.review?.status === "failed" ||
+    run?.gates?.review?.status === "skipped" ||
+    run?.gates?.validation?.status === "passed" ||
+    run?.gates?.validation?.status === "failed" ||
+    run?.gates?.validation?.status === "skipped" ||
+    run?.gates?.deployment?.dev?.status === "passed" ||
+    run?.gates?.deployment?.dev?.status === "failed" ||
+    run?.gates?.deployment?.dev?.status === "skipped" ||
+    run?.gates?.deployment?.prod?.status === "passed" ||
+    run?.gates?.deployment?.prod?.status === "failed" ||
+    run?.gates?.deployment?.prod?.status === "skipped" ||
+    run?.artifacts?.reviewResult ||
+    run?.artifacts?.validationResult ||
+    run?.artifacts?.deploymentChecks?.dev ||
+    run?.artifacts?.deploymentChecks?.prod
+  );
+  const substantialRun = Boolean(
+    run?.mode === "assisted single-session" ||
+    run?.mode === "team run" ||
+    run?.artifacts?.handoffs?.length ||
+    run?.artifacts?.validationPlan ||
+    run?.artifacts?.validationResult ||
+    run?.artifacts?.deploymentChecks?.dev ||
+    run?.artifacts?.deploymentChecks?.prod ||
+    run?.gates?.validation ||
+    run?.gates?.deployment?.dev ||
+    run?.gates?.deployment?.prod
+  );
+
   if ((run?.gates?.review?.status === "passed" || run?.gates?.review?.status === "failed") && !run?.artifacts?.reviewResult) {
     missing.push("review-result artifact");
   }
@@ -217,6 +270,12 @@ function missingArtifactWrites(run) {
   }
   if ((run?.gates?.deployment?.prod?.status === "passed" || run?.gates?.deployment?.prod?.status === "failed") && !run?.artifacts?.deploymentChecks?.prod) {
     missing.push("prod deployment-check artifact");
+  }
+  if (substantialRun && hasMeaningfulProgress && !run?.artifacts?.runBrief) {
+    missing.push("run-brief artifact");
+  }
+  if (substantialRun && hasCompletedPhaseEvidence && !hasPendingGates && !run?.artifacts?.finalSynthesis) {
+    missing.push("final-synthesis artifact");
   }
   return missing;
 }

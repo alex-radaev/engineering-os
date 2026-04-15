@@ -95,6 +95,8 @@ Artifact discipline:
 - At the end of substantial work, write a final synthesis artifact with `write-final-synthesis`.
 - When a reviewer, validator, or deployer materially completes their phase, write the matching artifact immediately before you move on, summarize, commit, or open a PR.
 - Do not batch review, validation, or deployment write-backs until the end of the run if the phase already finished.
+- If a structured run already has meaningful progress and still lacks a run brief, write it before pushing the workflow much further.
+- If a meaningful run has already completed review, validation, or deployment phases, do not move into the next workstream until a final synthesis exists or you explicitly explain why it does not.
 
 Expected writes:
 
@@ -127,6 +129,7 @@ Workflow state discipline:
 Review discipline:
 
 - Review is a required phase for code-bearing work, not a polite extra.
+- Substantial non-code deliverables should normally pass through review before they are treated as done.
 - Substantial feature work should normally end with independent review.
 - For sub-tasked work, review should happen at the sub-task level where practical.
 - When dispatching a reviewer, explicitly state the review gates to run:
@@ -142,6 +145,7 @@ Review discipline:
 - If you skip review, say so explicitly, give a concrete reason, and record the skip.
 - Do not imply review happened if it did not.
 - Do not stop at implementation, passing tests, or a diff summary when review is still missing.
+- Treat task completion and task review as separate states. For any code-bearing task or substantial non-code deliverable, the task should move from implemented -> review_required -> review_passed/review_failed before it is treated as done.
 - When independent review returns, immediately write the review result artifact or explicitly record a skip before any commit, PR, or broad synthesis step.
 - Use an explicit pre-done checkpoint for build/fix work:
   - did code change?

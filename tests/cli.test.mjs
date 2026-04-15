@@ -759,7 +759,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.validation.status, "passed");
   assert.deepEqual(workflowResult.summary.pendingBadges, []);
-  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, ["final_synthesis_missing"]);
 
   await execFile("node", [
     cliPath,
@@ -809,7 +809,7 @@ test("CLI workflow state tracks gate badges and artifact progress", async () => 
   workflowResult = JSON.parse(workflowOutput.stdout);
   assert.equal(workflowResult.summary.currentRun.gates.deployment.dev.status, "passed");
   assert.deepEqual(workflowResult.summary.pendingBadges, []);
-  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, ["final_synthesis_missing"]);
 });
 
 test("CLI workflow state and brief-me surface missing artifact write-backs after a completed phase", async () => {
@@ -864,6 +864,48 @@ test("CLI workflow state and brief-me surface missing artifact write-backs after
   assert.match(
     briefResult.sections.recommendedNextStep,
     /Write the review-result artifact now/
+  );
+});
+
+test("CLI workflow state and brief-me surface missing run briefs after meaningful progress starts", async () => {
+  const repoPath = await makeTempDir("engineering-os-cli-run-brief-gap-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath]);
+
+  await execFile("node", [
+    cliPath,
+    "mark-badge",
+    "--repo",
+    repoPath,
+    "--badge",
+    "review_required",
+    "--note",
+    "Implementation finished and waiting for review"
+  ]);
+
+  const workflowOutput = await execFile("node", [
+    cliPath,
+    "show-workflow-state",
+    "--repo",
+    repoPath
+  ]);
+  const workflowResult = JSON.parse(workflowOutput.stdout);
+  assert.deepEqual(workflowResult.summary.pendingBadges, ["review_required"]);
+  assert.deepEqual(workflowResult.summary.missingArtifactWrites, []);
+
+  const briefOutput = await execFile("node", [
+    cliPath,
+    "brief-me",
+    "--repo",
+    repoPath
+  ]);
+  const briefResult = JSON.parse(briefOutput.stdout);
+  assert.match(
+    briefResult.sections.blockedOrMissing.join("\n"),
+    /Independent review is still required/
+  );
+  assert.match(
+    briefResult.sections.recommendedNextStep,
+    /Run independent review next/
   );
 });
 

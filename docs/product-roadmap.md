@@ -14,7 +14,7 @@ In live use, the system has not often used full agent teams. The common successf
 
 - lead works directly
 - lead uses bounded subagents when useful
-- reviewer checks substantial changes
+- reviewer checks substantial changes, including substantial non-code deliverables
 - wake-up memory restores context
 - artifacts leave a durable trail
 
@@ -185,7 +185,7 @@ For the detailed validation model, see [validation-loop.md](/Users/aradaev/Deskt
 
 ## Review Phase
 
-Review should be a required phase for substantial code changes.
+Review should be a required phase for code changes and a normal phase for substantial non-code deliverables.
 
 It should not be limited to one fixed correctness pass.
 
@@ -204,6 +204,7 @@ We also need an explicit gate policy, not just a reviewer role.
 At minimum:
 
 - code change -> review required
+- substantial non-code deliverable -> review normally expected before done
 - behavior change with a runnable or observable path -> validation expected
 - dev/prod promotion -> deployment evidence and post-deploy validation expected
 - prod promotion -> explicit user approval required
@@ -419,7 +420,7 @@ Memory details:
 6. Add validation artifact kinds:
    - validation-plan
    - validation-result
-7. Update build/fix workflow prompts so substantial work includes review and validation when behavior can be checked.
+7. Update build/fix workflow prompts so substantial work includes review, and validation when behavior can be checked.
 8. Dogfood local validation on a real app/API task.
 9. Add `deployer` agent after local validation is proven.
 10. Add dev/prod `ship` loop with logs and metrics.
