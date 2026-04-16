@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { registerWorkflowArtifact } from "./workflow-state.mjs";
 
-const ARTIFACT_ROOT = [".claude", "artifacts", "engineering-os"];
+const ARTIFACT_ROOT = [".claude", "artifacts", "crew"];
 
 function nowIso() {
   return new Date().toISOString();
@@ -110,6 +110,7 @@ function resolveArtifactConfig(kind) {
           renderField("Summary", fields.summary),
           renderListField("Evidence Checked", fields.evidence),
           renderListField("Files Reviewed", fields.files),
+          renderField("Test Adequacy", fields.testSummary),
           renderField("Risks", fields.risks),
           renderField("Required Follow-up", fields.next),
           ""
@@ -202,8 +203,56 @@ function resolveArtifactConfig(kind) {
           renderField("Outcome", fields.status || "completed"),
           renderField("Summary", fields.summary),
           renderListField("Changed Files / Evidence", fields.files || fields.evidence),
+          renderListField("Run / Test Steps", fields.runSteps),
           renderField("Risks", fields.risks),
           renderField("Next Step", fields.next),
+          ""
+        ].join("\n");
+      }
+    };
+  }
+
+  if (kind === "validation-result") {
+    return {
+      directory: "validations",
+      prefix: "validation-result",
+      render(fields) {
+        return [
+          `# Validation Result: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Validator", fields.validator || fields.owner),
+          renderField("Environment", fields.environment),
+          renderField("Scenario", fields.scenario),
+          renderField("Decision", fields.decision || "passed"),
+          renderField("Summary", fields.summary),
+          renderListField("Executed Evidence", fields.executedEvidence),
+          renderField("Inferred Confidence", fields.inferredConfidence),
+          renderField("Risks Or Blockers", fields.risks),
+          renderField("Recommended Next Step", fields.next),
+          ""
+        ].join("\n");
+      }
+    };
+  }
+
+  if (kind === "deployment-result") {
+    return {
+      directory: "deployments",
+      prefix: "deployment-result",
+      render(fields) {
+        return [
+          `# Deployment Result: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Deployer", fields.deployer || fields.owner),
+          renderField("Environment", fields.environment),
+          renderField("Target", fields.target || fields.to),
+          renderField("Outcome", fields.decision || "verified"),
+          renderField("Summary", fields.summary),
+          renderListField("Evidence Checked", fields.evidence),
+          renderField("Risks Or Blockers", fields.risks),
+          renderField("Recommended Next Step", fields.next),
           ""
         ].join("\n");
       }

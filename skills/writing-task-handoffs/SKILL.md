@@ -47,8 +47,8 @@ Avoid:
 
 When persisting a handoff, prefer:
 
-- `.claude/artifacts/engineering-os/handoffs/`
+- `.claude/artifacts/crew/handoffs/`
 
 Preferred command:
 
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`

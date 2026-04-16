@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const STATE_DIR = [".claude", "state", "engineering-os"];
+const STATE_DIR = [".claude", "state", "crew"];
 const CLAIMS_PATH = [...STATE_DIR, "claims.json"];
 const HISTORY_PATH = [...STATE_DIR, "history.jsonl"];
 
