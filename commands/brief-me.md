@@ -11,7 +11,9 @@ Use it when the user wants a fast, structured briefing before continuing work.
 Workflow:
 
 1. verify the current workspace path with `pwd`
-2. run:
+2. sync remote state so the briefing reflects reality, not stale local refs:
+   - `git fetch --prune`
+3. run:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" brief-me --repo "$PWD"`
 3. explicitly compare the returned `repoPath` with the current working directory
 4. if they do not match, stop and treat the brief as invalid for this run
