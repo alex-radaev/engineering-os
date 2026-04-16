@@ -10,7 +10,7 @@ Use the same lead-owned workflow as `investigate-bug`:
 
 1. verify the current workspace path with `pwd`
 2. read the repo wake-up brief:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" wake-up --repo "$PWD"`
 3. explicitly confirm the returned `repoPath` matches the current working directory before trusting the brief
    - for substantial work, do not start implementation until this step is complete
 4. frame the bug, expected behavior, and likely repro path

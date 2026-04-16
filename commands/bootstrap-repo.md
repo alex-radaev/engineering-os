@@ -19,7 +19,7 @@ Goals:
 Workflow:
 
 1. Run the installer:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" bootstrap --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" bootstrap --repo "$PWD"`
 2. Inspect `CLAUDE.md`, `.claude/`, `.mcp.json`, and other repo guidance before making additional changes.
 3. If `CLAUDE.md` does not exist, create it.
 4. If `CLAUDE.md` already exists, improve it conservatively and prefer `@path` imports instead of rewriting large sections.
@@ -34,8 +34,8 @@ Workflow:
    - `.github/workflows/`
    - Docker / compose / infra files
 8. If the repo already reveals useful deployment clues, write initial deployment guidance:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" discover-deployment --repo "$PWD"`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" --discovery-status repo-derived ...`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" discover-deployment --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" --discovery-status repo-derived ...`
 9. If deployment is only partly clear, record the known build/deploy path and what still needs live verification instead of guessing.
 10. If the installer reports missing or stale global memory, recommend `/crew:install`.
 11. Explain any assumptions before editing if the repo shape makes the bootstrap risky.

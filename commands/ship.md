@@ -9,7 +9,7 @@ This is the preferred short entry point for moving reviewed work through dev and
 Before substantial shipping work:
 
 - `pwd`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" wake-up --repo "$PWD"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" wake-up --repo "$PWD"`
 - explicitly verify the returned `repoPath` matches the current working directory before trusting the brief
 
 Expected shape:
@@ -37,13 +37,13 @@ Expected shape:
 
 Use deployment checks and workflow state to keep the shipping path legible:
 
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge dev_deploy_expected`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge prod_deploy_expected`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" discover-deployment --repo "$PWD"`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" ...`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-deployment-check --repo "$PWD" --title "<short title>" ...`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge dev_skipped --note "<reason>"`
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" mark-badge --repo "$PWD" --badge prod_skipped --note "<reason>"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" mark-badge --repo "$PWD" --badge dev_deploy_expected`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" mark-badge --repo "$PWD" --badge prod_deploy_expected`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" discover-deployment --repo "$PWD"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-deployment-guidance --repo "$PWD" --title "<short title>" ...`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-deployment-check --repo "$PWD" --title "<short title>" ...`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" mark-badge --repo "$PWD" --badge dev_skipped --note "<reason>"`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" mark-badge --repo "$PWD" --badge prod_skipped --note "<reason>"`
 
 Repo deployment guidance should preserve what the repo itself teaches us about shipping:
 

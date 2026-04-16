@@ -88,7 +88,7 @@ Artifact discipline:
 
 The user depends on artifacts to resume work after compaction, across sessions, or when context is lost. Skipping an artifact means the next session starts with no record of what happened, why, or what to do next.
 
-- For substantial runs, write a run brief near the start with `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-run-brief ...`.
+- For substantial runs, write a run brief near the start with `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-run-brief ...`.
 - For meaningful delegation or handoff, write a handoff artifact with `write-handoff`.
 - For substantial reviewed work, write a review artifact with `write-review-result`.
 - For substantial deployment or promotion evidence, write a deployment artifact with `write-deployment-check`.

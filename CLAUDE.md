@@ -47,13 +47,6 @@ The plugin is intentionally content-heavy and runtime-light.
 4. Do not add heavy automation until the manual workflow is proven useful.
 5. Favor explicit files and artifacts over implicit memory.
 
-## Where Instructions Live
-
-- Global constitution and workflow templates: `scripts/lib/installer.mjs` (`CONSTITUTION_TEMPLATE`, `WORKFLOW_TEMPLATE`). These are the source of truth — `/crew:install` writes them to `~/.claude/engineering-os/`.
-- Agent definitions: `agents/*.md`
-- Skills: `skills/*/SKILL.md`
-- Commands: `commands/*.md`
-
 ## Artifact Direction
 
 When adding artifact-producing features, prefer:
