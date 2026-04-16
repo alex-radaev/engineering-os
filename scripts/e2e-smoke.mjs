@@ -23,6 +23,8 @@ async function main() {
   const settingsPath = path.join(repoPath, ".claude", "settings.json");
   const workflowPath = path.join(repoPath, ".claude", "crew", "workflow.md");
   const protocolPath = path.join(repoPath, ".claude", "crew", "protocol.md");
+  const validationsPath = path.join(repoPath, ".claude", "artifacts", "crew", "validations");
+  const deploymentsPath = path.join(repoPath, ".claude", "artifacts", "crew", "deployments");
   const claudeMd = await fs.readFile(claudePath, "utf8");
   const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
   const workflowMd = await fs.readFile(workflowPath, "utf8");
@@ -34,6 +36,8 @@ async function main() {
   console.log(`- Workflow stays command-loaded: ${!claudeMd.includes("@.claude/crew/workflow.md")}`);
   console.log(`- Workflow file exists: ${workflowMd.length > 0}`);
   console.log(`- Protocol file exists: ${protocolMd.length > 0}`);
+  console.log(`- Validation artifacts dir exists: ${await fs.access(validationsPath).then(() => true).catch(() => false)}`);
+  console.log(`- Deployment artifacts dir exists: ${await fs.access(deploymentsPath).then(() => true).catch(() => false)}`);
   console.log(`- Hook events configured: ${Object.keys(settings.hooks).join(", ")}`);
   console.log(`- Repo path: ${repoPath}`);
 }
