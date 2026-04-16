@@ -110,6 +110,7 @@ function resolveArtifactConfig(kind) {
           renderField("Summary", fields.summary),
           renderListField("Evidence Checked", fields.evidence),
           renderListField("Files Reviewed", fields.files),
+          renderField("Test Adequacy", fields.testSummary),
           renderField("Risks", fields.risks),
           renderField("Required Follow-up", fields.next),
           ""
@@ -202,6 +203,7 @@ function resolveArtifactConfig(kind) {
           renderField("Outcome", fields.status || "completed"),
           renderField("Summary", fields.summary),
           renderListField("Changed Files / Evidence", fields.files || fields.evidence),
+          renderListField("Run / Test Steps", fields.runSteps),
           renderField("Risks", fields.risks),
           renderField("Next Step", fields.next),
           ""
@@ -224,7 +226,8 @@ function resolveArtifactConfig(kind) {
           renderField("Scenario", fields.scenario),
           renderField("Decision", fields.decision || "passed"),
           renderField("Summary", fields.summary),
-          renderListField("Evidence Checked", fields.evidence),
+          renderListField("Executed Evidence", fields.executedEvidence),
+          renderField("Inferred Confidence", fields.inferredConfidence),
           renderField("Risks Or Blockers", fields.risks),
           renderField("Recommended Next Step", fields.next),
           ""
