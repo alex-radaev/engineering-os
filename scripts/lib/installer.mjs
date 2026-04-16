@@ -92,7 +92,8 @@ This file is command-loaded run guidance for the lead. It is not always-on start
   - allowed scope
   - forbidden scope
   - a concrete deliverable
-- Builder owns code-bearing tasks, including tests for changed behavior when practical.
+- Builder owns code-bearing tasks, including automated tests for changed behavior.
+- If the repo lacks suitable test setup and the task is substantial, adding the smallest suitable test harness is part of builder scope unless explicitly out of scope.
 - Reviewer gates completed implementation tasks before they are considered done.
 - Validator checks integrated behavior periodically or at the end once the system can be exercised meaningfully.
 - The lead closes tasks, updates run memory, and decides the next handoff.
@@ -148,7 +149,7 @@ Every specialist completion should include:
 
 - what changed or what was found
 - changed files or evidence checked
-- whether tests were added or updated, and why not if they were skipped
+- whether tests were added or updated, or the exact deferral reason plus the missing coverage if they were skipped
 - confidence level
 - risks or open questions
 - suggested next handoff
@@ -166,6 +167,7 @@ And include:
 - evidence checked
 - risk or failure summary
 - test adequacy summary
+- whether missing automated coverage blocks approval
 - required follow-up, if rejected
 
 ## Validation Result

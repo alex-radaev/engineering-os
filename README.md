@@ -149,7 +149,7 @@ Suggested shared-repo `.gitignore` block:
 - Workflow commands assign lead identity at runtime and load shared workflow/protocol guidance on demand.
 - Specialist agents are reusable tools with optional global and repo overlays.
 - `/crew:install` now creates managed global overlay stubs under `~/.claude/crew/` instead of leaving that path completely manual.
-- Builder now owns code-bearing tasks plus tests for changed behavior when practical; reviewer gates completed tasks before they count as done; validator is expected at milestones or the end for runnable behavior.
+- Builder now owns code-bearing tasks plus automated tests for changed behavior; if a substantial task lacks suitable test setup, the smallest suitable harness is part of the task unless explicitly scoped out. Reviewer gates completed tasks before they count as done, and validator is expected at milestones or the end for runnable behavior.
 - Review, validation, and shipping now exist as first-class lead entry points, but the validator/deployer prompts and evidence loops are intentionally minimal v1 contracts that should be iterated through dogfooding.
 - The installer already has automated tests plus a sample-repo smoke run.
 - Live Claude Code validation has now succeeded for install, audit, bootstrap, hooks, a feature flow, and a bug-fix flow.
