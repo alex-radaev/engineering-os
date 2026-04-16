@@ -33,6 +33,7 @@ The MVP should shine through a very small user-facing surface:
 
 - `/crew:init-repo`
 - `/crew:bootstrap-repo`
+- `/crew:install`
 - `/crew:wake-up-brief`
 - `/crew:build-feature`
 - `/crew:investigate-bug`
@@ -50,11 +51,11 @@ The repo currently contains:
 - a local development marketplace manifest
 - command-driven lead workflows plus durable builder, reviewer, researcher, validator, and deployer specialist agents
 - reusable skills for operating mode, handoffs, and review gates
-- lead entry commands for repo setup, wake-up, feature work, and bug fixing
+- lead entry commands for repo setup, user-asset install, wake-up, feature work, and bug fixing
 - CLI coordination helpers for claims and approvals
 - internal artifact-writing support for run briefs, handoffs, reviews, and final syntheses
 - hook wiring for basic lifecycle logging
-- a real installer CLI for repo adoption and repo initialization
+- a real installer CLI for repo adoption, repo initialization, and user-asset installation
 - automated tests and an end-to-end filesystem smoke test
 
 ## What Has Been Done
@@ -86,6 +87,7 @@ Supported commands:
 - `audit`
 - `bootstrap`
 - `init`
+- `install-user-assets`
 - `wake-up`
 - `claim`
 - `release`
@@ -104,12 +106,14 @@ Supported commands:
 Behavior:
 
 - creates or extends `CLAUDE.md`
+- manages a canonical Crew `.gitignore` block
 - writes `.claude/crew/constitution.md`
 - writes `.claude/crew/workflow.md`
 - writes `.claude/crew/protocol.md`
 - writes `.claude/hooks/log_event.sh`
 - creates `.claude/artifacts/crew/`
 - merges `.claude/settings.json` hook config conservatively
+- creates optional managed overlay stubs under `~/.claude/crew/`
 
 ### Tests
 
@@ -204,6 +208,7 @@ What is working today:
 - workflow prompts now start from a repo wake-up brief built from durable state
 - review, validation, and shipping entry-point commands with minimal validator/deployer role contracts
 - task-driven prompt updates so substantial code work is expected to go through builder-owned tasks, review gates, and explicit test accountability
+- managed user-global overlay stubs for `~/.claude/crew/` plus canonical `.gitignore` ownership in the installer
 - wake-up now follows an explicit bounded-v1 memory shape with hot, warm, and cold buckets
 - CI for tests and version consistency
 

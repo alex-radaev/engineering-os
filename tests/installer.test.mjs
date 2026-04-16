@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { auditRepo, bootstrapRepo, initRepo } from "../scripts/lib/installer.mjs";
+import { auditRepo, bootstrapRepo, initRepo, installUserAssets } from "../scripts/lib/installer.mjs";
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -16,6 +16,7 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
     path.join(repoPath, "CLAUDE.md"),
     "# Existing Repo Rules\n\nKeep tests fast.\n"
   );
+  await fs.writeFile(path.join(repoPath, ".gitignore"), "node_modules/\n");
 
   const result = await bootstrapRepo(repoPath);
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
@@ -30,6 +31,7 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   const settings = JSON.parse(
     await fs.readFile(path.join(repoPath, ".claude", "settings.json"), "utf8")
   );
+  const gitignore = await fs.readFile(path.join(repoPath, ".gitignore"), "utf8");
   const claimsState = JSON.parse(
     await fs.readFile(
       path.join(repoPath, ".claude", "state", "crew", "claims.json"),
@@ -48,6 +50,8 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   assert.match(protocolMd, /whether tests were added or updated/);
   assert.ok(settings.hooks.SessionStart);
   assert.ok(settings.hooks.TaskCreated);
+  assert.match(gitignore, /node_modules\//);
+  assert.match(gitignore, /# crew:start/);
   assert.deepEqual(claimsState.claims, {});
 });
 
@@ -132,4 +136,20 @@ test("init rejects a non-empty existing directory without opt-in", async () => {
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n");
 
   await assert.rejects(() => initRepo(repoPath), /already exists and is not empty/);
+});
+
+test("installUserAssets creates overlay files without overwriting existing custom files", async () => {
+  const homePath = await makeTempDir("crew-user-assets-");
+  const customLeadPath = path.join(homePath, ".claude", "crew", "lead.md");
+  await fs.mkdir(path.dirname(customLeadPath), { recursive: true });
+  await fs.writeFile(customLeadPath, "# My Lead Overlay\n");
+
+  const result = await installUserAssets({ homePath });
+  const lead = await fs.readFile(customLeadPath, "utf8");
+  const reviewer = await fs.readFile(path.join(homePath, ".claude", "crew", "reviewer.md"), "utf8");
+
+  assert.equal(result.mode, "install-user-assets");
+  assert.equal(result.legacyPathDetected, false);
+  assert.equal(lead, "# My Lead Overlay\n");
+  assert.match(reviewer, /Reviewer Overlay/);
 });

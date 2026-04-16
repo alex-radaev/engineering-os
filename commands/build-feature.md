@@ -65,4 +65,4 @@ Workflow:
    - what happens next
    - exact local run and test instructions if the result is runnable
 28. For substantial work, write a final synthesis artifact:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<step one,step two>"`

@@ -18,17 +18,15 @@ Workflow:
 1. Determine whether the repository already exists or needs to be created.
 2. Run the installer:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" init --repo "$PWD" --allow-existing`
-3. Create the repository structure if needed.
-4. Create `CLAUDE.md` with repo-owned rules and framework imports.
-5. Add initial `.claude/` files that make the harness usable immediately.
-   - `.claude/crew/constitution.md`
-   - `.claude/crew/workflow.md`
-   - `.claude/crew/protocol.md`
-6. Set up artifact directories for observability.
-7. Summarize what was created and how the user should start working.
+3. Treat the installer output as canonical for the Crew harness. Do not manually add extra Crew imports to `CLAUDE.md`.
+4. Do not manually rewrite generated harness files unless the installer clearly failed or the user asked for a repo-specific change.
+5. If repo-specific guidance is needed, add only repo-owned instructions and keep them separate from Crew-owned files.
+6. Summarize exactly what the installer created or refreshed, including the canonical `.gitignore` Crew block if it was added.
+7. Explain how the user should start working with the new repo.
 
 Deliverable:
 
 - a ready-to-use repo with the Crew harness
 - file references for the initial harness files
 - next-step guidance for starting the first task
+- no extra freehand Crew harness edits beyond the installer output unless clearly necessary

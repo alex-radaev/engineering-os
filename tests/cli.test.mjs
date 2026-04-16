@@ -23,9 +23,12 @@ test("CLI init creates a harnessed repo", async () => {
   assert.equal(result.audit.hasHarnessLayer, true);
 
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
+  const gitignore = await fs.readFile(path.join(repoPath, ".gitignore"), "utf8");
   assert.match(claudeMd, /crew:start/);
   assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
   assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
+  assert.match(gitignore, /# crew:start/);
+  assert.match(gitignore, /\.claude\/artifacts\/crew\//);
 });
 
 test("CLI bootstrap preserves existing CLAUDE.md content", async () => {
@@ -211,11 +214,14 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--title",
     "Platform guidance alias review",
     "--verdict",
-    "approved_with_notes"
+    "approved_with_notes",
+    "--test-summary",
+    "No automated tests yet; manual validation only"
   ]);
   const reviewAliasResult = JSON.parse(reviewAliasOutput.stdout);
   const reviewAliasBody = await fs.readFile(reviewAliasResult.path, "utf8");
   assert.match(reviewAliasBody, /approved_with_notes/);
+  assert.match(reviewAliasBody, /Test Adequacy: No automated tests yet; manual validation only/);
 
   const validationOutput = await execFile("node", [
     cliPath,
@@ -231,12 +237,18 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--scenario",
     "Open the create page and confirm platform guidance renders",
     "--decision",
-    "passed"
+    "passed",
+    "--executed-evidence",
+    "ran dev server,opened browser,submitted form",
+    "--inferred-confidence",
+    "Persistence path is still inferred from code inspection"
   ]);
   const validationResult = JSON.parse(validationOutput.stdout);
   const validationBody = await fs.readFile(validationResult.path, "utf8");
   assert.match(validationBody, /# Validation Result: Platform guidance validation/);
   assert.match(validationBody, /Environment: local/);
+  assert.match(validationBody, /Executed Evidence/);
+  assert.match(validationBody, /Inferred Confidence: Persistence path is still inferred from code inspection/);
 
   const deploymentOutput = await execFile("node", [
     cliPath,
@@ -258,6 +270,44 @@ test("CLI artifact writers create markdown artifacts", async () => {
   const deploymentBody = await fs.readFile(deploymentResult.path, "utf8");
   assert.match(deploymentBody, /# Deployment Result: Dev deploy/);
   assert.match(deploymentBody, /Outcome: verified/);
+
+  const synthesisOutput = await execFile("node", [
+    cliPath,
+    "write-final-synthesis",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance final synthesis",
+    "--summary",
+    "Ready for handoff",
+    "--run-steps",
+    "npm install,npm run dev,open http://localhost:5173"
+  ]);
+  const synthesisResult = JSON.parse(synthesisOutput.stdout);
+  const synthesisBody = await fs.readFile(synthesisResult.path, "utf8");
+  assert.match(synthesisBody, /Run \/ Test Steps/);
+  assert.match(synthesisBody, /http:\/\/localhost:5173/);
+});
+
+test("CLI install-user-assets creates managed global overlay stubs", async () => {
+  const homePath = await makeTempDir("crew-cli-home-");
+  const output = await execFile("node", [
+    cliPath,
+    "install-user-assets",
+    "--home",
+    homePath
+  ]);
+  const result = JSON.parse(output.stdout);
+
+  assert.equal(result.mode, "install-user-assets");
+  assert.equal(result.legacyPathDetected, false);
+
+  const readme = await fs.readFile(path.join(homePath, ".claude", "crew", "README.md"), "utf8");
+  const lead = await fs.readFile(path.join(homePath, ".claude", "crew", "lead.md"), "utf8");
+  const workflow = await fs.readFile(path.join(homePath, ".claude", "crew", "workflow.md"), "utf8");
+  assert.match(readme, /Crew User Assets/);
+  assert.match(lead, /Lead Overlay/);
+  assert.match(workflow, /Workflow Overlay/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
@@ -328,10 +378,10 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
 test("CLI subcommand help works without error", async () => {
   const helpOutput = await execFile("node", [
     cliPath,
-    "write-validation-result",
+    "install-user-assets",
     "--help"
   ]);
 
-  assert.match(helpOutput.stdout, /write-validation-result/);
-  assert.match(helpOutput.stdout, /--scenario/);
+  assert.match(helpOutput.stdout, /install-user-assets/);
+  assert.match(helpOutput.stdout, /--home/);
 });

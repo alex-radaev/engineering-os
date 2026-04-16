@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 const CLAUDE_IMPORT_BLOCK = [
@@ -8,6 +9,17 @@ const CLAUDE_IMPORT_BLOCK = [
 ].join("\n");
 
 const LEGACY_IMPORT_BLOCK_RE = /<!--\s*engineering-os:start\s*-->[\s\S]*?<!--\s*engineering-os:end\s*-->/;
+const GITIGNORE_BLOCK_RE = /#\s*crew:start[\s\S]*?#\s*crew:end\s*/;
+
+const GITIGNORE_BLOCK = [
+  "# crew:start",
+  ".claude/logs/",
+  ".claude/artifacts/crew/",
+  ".claude/state/crew/claims.json",
+  ".claude/state/crew/*.jsonl",
+  ".claude/settings.local.json",
+  "# crew:end"
+].join("\n");
 
 const CONSTITUTION_TEMPLATE = `# Crew Constitution
 
@@ -102,6 +114,10 @@ For substantial work, prefer:
 - If behavior can be exercised meaningfully, validation is expected by default.
 - If work crosses an environment boundary, deployment evidence plus post-deploy validation are expected by default.
 - If a gate is skipped, say so explicitly and give a concrete reason.
+
+## Runnable Deliverables
+
+- If the result is runnable or directly testable, the final synthesis must include exact local run and test steps.
 `;
 
 const PROTOCOL_TEMPLATE = `# Crew Protocol
@@ -210,6 +226,86 @@ This directory stores lightweight repo-local coordination state.
 - \`approvals.jsonl\` stores approval requests and resolutions
 - \`sprint.json\` is an optional sprint or focus configuration
 `;
+
+const USER_ASSET_README_TEMPLATE = `# Crew User Assets
+
+This directory stores optional personal Crew overlays used across repositories.
+
+Keep these files:
+
+- short
+- repo-agnostic
+- additive
+
+Do not restate the base Crew workflow or role contracts here. Use these files only for your personal defaults and preferences.
+`;
+
+const USER_OVERLAY_TEMPLATES = {
+  "lead.md": `# Lead Overlay
+
+Optional personal lead guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Prefer refinements, not restatements of the base workflow.
+- Add only defaults you want the lead to apply everywhere.
+`,
+  "builder.md": `# Builder Overlay
+
+Optional personal builder guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Focus on implementation habits you want everywhere.
+- Do not redefine builder ownership or lead authority.
+`,
+  "reviewer.md": `# Reviewer Overlay
+
+Optional personal reviewer guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Focus on review priorities and review style preferences.
+- Do not redefine the review verdict model.
+`,
+  "researcher.md": `# Researcher Overlay
+
+Optional personal researcher guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Focus on evidence style and output shape preferences.
+- Do not expand researcher into implementation ownership.
+`,
+  "validator.md": `# Validator Overlay
+
+Optional personal validator guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Focus on scenario and evidence habits you want everywhere.
+- Do not redefine deployment or promotion authority.
+`,
+  "deployer.md": `# Deployer Overlay
+
+Optional personal deployer guidance used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Focus on deployment evidence and safety habits.
+- Do not remove approval boundaries.
+`,
+  "workflow.md": `# Workflow Overlay
+
+Optional personal Crew workflow additions used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Add only lightweight preferences or reminders.
+- Do not restate or fork the base Crew workflow.
+`,
+  "protocol.md": `# Protocol Overlay
+
+Optional personal Crew protocol additions used across repositories.
+
+- Keep additions short and repo-agnostic.
+- Add only small reporting preferences or formatting habits.
+- Do not fork the shared protocol shapes.
+`
+};
 
 const CLAIMS_TEMPLATE = {
   version: "1.0",
@@ -417,6 +513,26 @@ async function updateClaudeMd(repoPath, writes) {
   writes.push(path.relative(repoPath, claudePath));
 }
 
+async function updateGitignore(repoPath, writes) {
+  const gitignorePath = path.join(repoPath, ".gitignore");
+  const existing = await fs.readFile(gitignorePath, "utf8").catch(() => null);
+
+  if (existing === null) {
+    await writeFileIfChanged(gitignorePath, `${GITIGNORE_BLOCK}\n`);
+    writes.push(path.relative(repoPath, gitignorePath));
+    return;
+  }
+
+  const next = GITIGNORE_BLOCK_RE.test(existing)
+    ? existing.replace(GITIGNORE_BLOCK_RE, `${GITIGNORE_BLOCK}\n`)
+    : `${existing.trimEnd()}\n\n${GITIGNORE_BLOCK}\n`;
+
+  const changed = await writeFileIfChanged(gitignorePath, next);
+  if (changed) {
+    writes.push(path.relative(repoPath, gitignorePath));
+  }
+}
+
 async function renamePathIfNeeded(repoPath, fromParts, toParts, writes) {
   const fromPath = path.join(repoPath, ...fromParts);
   const toPath = path.join(repoPath, ...toParts);
@@ -564,6 +680,7 @@ export async function bootstrapRepo(repoPath) {
   await updateClaudeMd(repoPath, writes);
   await writeHarnessFiles(repoPath, writes);
   await updateSettings(repoPath, writes);
+  await updateGitignore(repoPath, writes);
 
   return {
     mode: "bootstrap",
@@ -598,5 +715,34 @@ export async function initRepo(repoPath, options = {}) {
     repoPath,
     writes: [...writes, ...result.writes],
     audit: result.audit
+  };
+}
+
+export async function installUserAssets(options = {}) {
+  const homePath = path.resolve(options.homePath || os.homedir());
+  const crewPath = path.join(homePath, ".claude", "crew");
+  const legacyPath = path.join(homePath, ".claude", "engineering-os");
+  const writes = [];
+
+  await ensureDir(crewPath);
+
+  const readmePath = path.join(crewPath, "README.md");
+  if (await writeFileIfChanged(readmePath, `${USER_ASSET_README_TEMPLATE}\n`)) {
+    writes.push(readmePath);
+  }
+
+  for (const [fileName, contents] of Object.entries(USER_OVERLAY_TEMPLATES)) {
+    const filePath = path.join(crewPath, fileName);
+    if (await writeFileIfMissing(filePath, `${contents}\n`)) {
+      writes.push(filePath);
+    }
+  }
+
+  return {
+    mode: "install-user-assets",
+    homePath,
+    crewPath,
+    writes,
+    legacyPathDetected: await pathExists(legacyPath)
   };
 }

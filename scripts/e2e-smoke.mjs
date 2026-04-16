@@ -20,18 +20,21 @@ async function main() {
   console.log(initResult.stdout.trim());
 
   const claudePath = path.join(repoPath, "CLAUDE.md");
+  const gitignorePath = path.join(repoPath, ".gitignore");
   const settingsPath = path.join(repoPath, ".claude", "settings.json");
   const workflowPath = path.join(repoPath, ".claude", "crew", "workflow.md");
   const protocolPath = path.join(repoPath, ".claude", "crew", "protocol.md");
   const validationsPath = path.join(repoPath, ".claude", "artifacts", "crew", "validations");
   const deploymentsPath = path.join(repoPath, ".claude", "artifacts", "crew", "deployments");
   const claudeMd = await fs.readFile(claudePath, "utf8");
+  const gitignore = await fs.readFile(gitignorePath, "utf8");
   const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
   const workflowMd = await fs.readFile(workflowPath, "utf8");
   const protocolMd = await fs.readFile(protocolPath, "utf8");
 
   console.log("\nSmoke check:");
   console.log(`- CLAUDE.md exists: ${claudeMd.length > 0}`);
+  console.log(`- .gitignore has Crew block: ${gitignore.includes("# crew:start")}`);
   console.log(`- Harness import present: ${claudeMd.includes("crew:start")}`);
   console.log(`- Workflow stays command-loaded: ${!claudeMd.includes("@.claude/crew/workflow.md")}`);
   console.log(`- Workflow file exists: ${workflowMd.length > 0}`);

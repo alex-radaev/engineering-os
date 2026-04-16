@@ -16,6 +16,7 @@ The intended user-facing surface is deliberately small:
 
 - `/crew:init-repo`
 - `/crew:bootstrap-repo`
+- `/crew:install`
 - `/crew:wake-up-brief`
 - `/crew:build-feature`
 - `/crew:investigate-bug`
@@ -60,9 +61,10 @@ Claude Code plugins are installed through the `/plugin` flow.
 Recommended first use:
 
 1. Install this plugin at `user` scope for your personal default setup.
-2. For an existing repo, open it and run `/crew:bootstrap-repo`.
-3. For a brand-new repo, run `/crew:init-repo`.
-4. Use `/crew:wake-up-brief`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
+2. Optionally run `/crew:install` once to create managed personal overlays under `~/.claude/crew/`.
+3. For an existing repo, open it and run `/crew:bootstrap-repo`.
+4. For a brand-new repo, run `/crew:init-repo`.
+5. Use `/crew:wake-up-brief`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
 
 For local development, you can also add the included dev marketplace and install from it:
 
@@ -78,6 +80,7 @@ Normal development mainly needs:
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs audit --repo <path>`
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs bootstrap --repo <path>`
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs init --repo <path> [--allow-existing]`
+- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs install-user-assets`
 
 Internal or advanced coordination/testing helpers:
 
@@ -142,8 +145,10 @@ Suggested shared-repo `.gitignore` block:
 - `bootstrap-repo` and `init-repo` should eventually share the same conservative installer core with different entry behavior.
 - Hook logging is intentionally minimal and appends JSONL metadata to `.claude/logs/events.jsonl` in the working repo.
 - Startup context should stay small: `CLAUDE.md` imports only the neutral constitution layer.
+- The installer now owns the canonical Crew `.gitignore` block so repo setup stays consistent.
 - Workflow commands assign lead identity at runtime and load shared workflow/protocol guidance on demand.
 - Specialist agents are reusable tools with optional global and repo overlays.
+- `/crew:install` now creates managed global overlay stubs under `~/.claude/crew/` instead of leaving that path completely manual.
 - Builder now owns code-bearing tasks plus tests for changed behavior when practical; reviewer gates completed tasks before they count as done; validator is expected at milestones or the end for runnable behavior.
 - Review, validation, and shipping now exist as first-class lead entry points, but the validator/deployer prompts and evidence loops are intentionally minimal v1 contracts that should be iterated through dogfooding.
 - The installer already has automated tests plus a sample-repo smoke run.

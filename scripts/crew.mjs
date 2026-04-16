@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import { writeArtifact } from "./lib/artifacts.mjs";
-import { auditRepo, bootstrapRepo, initRepo } from "./lib/installer.mjs";
+import { auditRepo, bootstrapRepo, initRepo, installUserAssets } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
 import { buildWakeUpBrief } from "./lib/wakeup.mjs";
@@ -44,7 +44,12 @@ function parseArgs(argv) {
     deployer: null,
     environment: null,
     scenario: null,
-    target: null
+    target: null,
+    testSummary: null,
+    executedEvidence: null,
+    inferredConfidence: null,
+    runSteps: null,
+    home: null
   };
   const positionals = [];
 
@@ -228,6 +233,31 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--test-summary") {
+      flags.testSummary = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--executed-evidence") {
+      flags.executedEvidence = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--inferred-confidence") {
+      flags.inferredConfidence = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--run-steps") {
+      flags.runSteps = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--home") {
+      flags.home = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value === "--outcome") {
       flags.decision = rest[index + 1];
       index += 1;
@@ -255,6 +285,7 @@ function usage(target = null) {
     audit: "  node scripts/crew.mjs audit --repo <path>",
     bootstrap: "  node scripts/crew.mjs bootstrap --repo <path>",
     init: "  node scripts/crew.mjs init --repo <path> [--allow-existing]",
+    "install-user-assets": "  node scripts/crew.mjs install-user-assets [--home <path>]",
     claim: "  node scripts/crew.mjs claim --repo <path> [--owner <name>] <files...>",
     release: "  node scripts/crew.mjs release --repo <path> [--owner <name>] [files...]",
     "show-claims": "  node scripts/crew.mjs show-claims --repo <path>",
@@ -265,10 +296,10 @@ function usage(target = null) {
     "wake-up": "  node scripts/crew.mjs wake-up --repo <path>",
     "write-run-brief": "  node scripts/crew.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
     "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
-    "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>]",
-    "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>]",
+    "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>] [--test-summary <text>]",
+    "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]"
   };
 
   if (target && subcommands[target]) {
@@ -304,6 +335,8 @@ async function main() {
     result = await bootstrapRepo(repoPath);
   } else if (command === "init") {
     result = await initRepo(repoPath, { allowExisting: flags.allowExisting });
+  } else if (command === "install-user-assets") {
+    result = await installUserAssets({ homePath: flags.home });
   } else if (command === "claim") {
     result = await claimFiles(repoPath, positionals, { owner: flags.owner || "lead-session" });
   } else if (command === "release") {
@@ -369,6 +402,7 @@ async function main() {
       summary: flags.summary,
       evidence: flags.evidence,
       files: flags.files,
+      testSummary: flags.testSummary,
       risks: flags.risks,
       next: flags.next
     });
@@ -380,7 +414,8 @@ async function main() {
       scenario: flags.scenario,
       decision: flags.decision,
       summary: flags.summary,
-      evidence: flags.evidence,
+      executedEvidence: flags.executedEvidence || flags.evidence,
+      inferredConfidence: flags.inferredConfidence,
       risks: flags.risks,
       next: flags.next
     });
@@ -405,6 +440,7 @@ async function main() {
       summary: flags.summary,
       files: flags.files,
       evidence: flags.evidence,
+      runSteps: flags.runSteps,
       risks: flags.risks,
       next: flags.next
     });
