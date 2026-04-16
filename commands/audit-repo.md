@@ -9,7 +9,7 @@ Use this workflow before bootstrapping when you want to understand the current r
 Workflow:
 
 1. Run the installer audit command:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" audit --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" audit --repo "$PWD"`
 2. Report whether the repo already has:
    - `CLAUDE.md`
    - `.claude/`

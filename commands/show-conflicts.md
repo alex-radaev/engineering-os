@@ -10,7 +10,7 @@ Use this before assigning new work to confirm whether target files are already c
 Workflow:
 
 1. Run:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" show-conflicts --repo "$PWD" $ARGUMENTS`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" show-conflicts --repo "$PWD" $ARGUMENTS`
 2. Treat results in three buckets:
    - `owned`: already claimed by the current session, safe to keep editing
    - `conflicts`: claimed by someone else, needs reassignment or release

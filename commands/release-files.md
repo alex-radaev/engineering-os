@@ -10,7 +10,7 @@ Use this when a task is complete or when ownership should be handed off.
 Workflow:
 
 1. Run:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" release --repo "$PWD" $ARGUMENTS`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" release --repo "$PWD" $ARGUMENTS`
 2. If no paths are provided, release all current claims.
 3. Summarize:
    - released files

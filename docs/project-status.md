@@ -79,7 +79,7 @@ Validated:
 
 Implemented:
 
-- `scripts/engineering-os.mjs`
+- `scripts/crew.mjs`
 - `scripts/lib/installer.mjs`
 
 Supported commands:

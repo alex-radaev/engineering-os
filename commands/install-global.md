@@ -21,7 +21,7 @@ It also ensures global `~/.claude/CLAUDE.md` imports the constitution and workfl
 Run:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" install-global
+node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" install-global
 ```
 
 Then report:

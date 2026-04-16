@@ -11,7 +11,7 @@ Install or update the managed global Crew memory files directly.
 1. install or update the one managed global framework memory copy under `~/.claude/engineering-os/`
 2. ensure global `~/.claude/CLAUDE.md` imports that managed memory
 3. run:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" install-global`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" install-global`
 4. report:
    - which files changed
    - whether global memory is installed

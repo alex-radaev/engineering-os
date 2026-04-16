@@ -10,7 +10,7 @@ Use this when you want to reserve specific files for the current run before edit
 Workflow:
 
 1. Run:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" claim --repo "$PWD" $ARGUMENTS`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" claim --repo "$PWD" $ARGUMENTS`
 2. Treat successful claims as the current owned scope.
 3. If a conflict is reported, do not edit those files until ownership is clarified.
 4. Summarize:

@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "installer:install-global": "node ./scripts/engineering-os.mjs install-global",
-    "installer:bootstrap": "node ./scripts/engineering-os.mjs bootstrap",
-    "installer:init": "node ./scripts/engineering-os.mjs init",
-    "installer:audit": "node ./scripts/engineering-os.mjs audit",
+    "installer:install-global": "node ./scripts/crew.mjs install-global",
+    "installer:bootstrap": "node ./scripts/crew.mjs bootstrap",
+    "installer:init": "node ./scripts/crew.mjs init",
+    "installer:audit": "node ./scripts/crew.mjs audit",
     "e2e:smoke": "node ./scripts/e2e-smoke.mjs"
   }
 }
