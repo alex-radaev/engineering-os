@@ -2,8 +2,6 @@
 
 A Claude Code plugin for lead-guided engineering work with bounded subagents, quality gates, and inspectable handoffs.
 
-The main design document is [system-design.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/system-design.md).
-
 ## What it does
 
 Crew gives Claude Code a lead-centered workflow model:
@@ -26,9 +24,9 @@ In practice, the highest-value default mode is:
 
 The user should mostly talk to the lead, not manage a menu of agents or remember a command graph.
 
-The next product direction is an evidence-gated validation loop: local validation, review, PR, dev deploy validation, dev logs/metrics, production promotion, and production monitoring. See [validation-loop.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/validation-loop.md).
+The next product direction is an evidence-gated validation loop: local validation, review, PR, dev deploy validation, dev logs/metrics, production promotion, and production monitoring. See [docs/validation-loop.md](docs/validation-loop.md).
 
-For the broader implementation order and rename plan, see [product-roadmap.md](/Users/aradaev/Desktop/projects/engineering-os-plugin/docs/product-roadmap.md).
+For the broader implementation order and rename plan, see [docs/product-roadmap.md](docs/product-roadmap.md).
 
 ## Commands
 
@@ -129,7 +127,7 @@ To adopt an existing repo into the workflow, use:
 The raw CLI bootstrap command still exists for debugging and scripting:
 
 ```bash
-node "<plugin-path>/scripts/engineering-os.mjs" bootstrap --repo .
+node "<plugin-path>/scripts/crew.mjs" bootstrap --repo .
 ```
 
 ## Customizing agents
