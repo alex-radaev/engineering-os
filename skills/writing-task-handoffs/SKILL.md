@@ -9,7 +9,7 @@ description: Use when delegating or concluding substantial work so tasks, owners
 
 Use this skill whenever work passes between lead, builder, reviewer, researcher, or the user.
 
-The handoff should be good enough that a new teammate can continue without guessing.
+Without a clean handoff, the next agent (or the user) starts blind — they waste time rediscovering context that was already known. The handoff should be good enough that a new teammate can continue without guessing.
 
 ## Handoff Template
 
@@ -36,7 +36,7 @@ A good handoff is:
 
 ## Bad Handoffs
 
-Avoid:
+These waste the user's time by forcing the next agent to re-discover what should have been recorded:
 
 - vague claims like "done" or "fixed"
 - missing file or module boundaries

@@ -7,15 +7,15 @@ description: Use before declaring implementation work done to separate task-comp
 
 ## Overview
 
-Code-bearing work and substantial non-code design or planning work should not go straight from "deliverable produced" to "done".
+The user trusts the "done" signal to mean work has been independently checked. Skipping from "deliverable produced" to "done" without review means the user inherits unchecked risk.
 
 Apply review gates before a code-bearing or substantial non-code deliverable is treated as complete.
 
 Default rule:
 
-- code-bearing deliverables require independent review
+- code-bearing deliverables require independent review — unreviewed code is a quality risk the user cannot easily undo
 - substantial design, planning, or documentation deliverables should normally be reviewed before being called done
-- if review is skipped, the lead should state that explicitly and explain why
+- if review is skipped, the lead should state that explicitly and explain why — silent skips erode the user's trust in the workflow
 - repo standards and language-specific standards should be part of the review by default when they exist
 
 ## Gate 1: Task Compliance
@@ -44,7 +44,7 @@ Check:
 - global reviewer standards when they apply
 - any configured review skills or language-specific standards named in repo or global reviewer instructions when they are available and relevant
 
-Do not leave this implicit. The reviewer should say which standards and skills were actually applied.
+The user relies on the review result to know what was actually checked. Leaving standards checking implicit means the user cannot tell whether their configured review program was applied. The reviewer should say which standards and skills were actually applied.
 
 ## Review Outcomes
 
