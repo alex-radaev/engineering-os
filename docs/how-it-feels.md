@@ -1,4 +1,4 @@
-# How Engineering OS Is Meant To Feel
+# How Crew Is Meant To Feel
 
 This document is not a spec.
 
@@ -8,7 +8,7 @@ It is a user-story description of the product we are trying to build, so we can 
 
 You open your laptop in the morning and decide that today you want to start a new project.
 
-You already have Claude Code installed. You already have the `engineering-os` plugin installed at user scope, so it is part of your normal environment.
+You already have Claude Code installed. You already have the `crew` plugin installed at user scope, so it is part of your normal environment.
 
 You make a new directory for the project and open it in Claude Code.
 
@@ -16,10 +16,10 @@ Inside Claude Code, you do not need to remember a giant setup checklist. You run
 
 `/init-repo`
 
-Claude Code, through Engineering OS, lays down a small harness for the project:
+Claude Code, through Crew, lays down a small harness for the project:
 
 - a `CLAUDE.md` file
-- a small `.claude/engineering-os/` layer
+- a small `.claude/crew/` layer
 - repo-local settings and hooks
 - artifact folders
 - state folders
@@ -32,7 +32,7 @@ Not cluttered. Not overbuilt. Ready.
 
 ## What The User Literally Sees
 
-Engineering OS is meant to stay terminal-first.
+Crew is meant to stay terminal-first.
 
 The default visual model is Claude Code in a small number of intentional terminal surfaces, not a custom UI taking over the whole experience.
 
@@ -111,9 +111,9 @@ It should tell the user, in plain language:
 
 For durable truth, the repo should contain:
 
-- `.claude/state/engineering-os/claims.json`
-- `.claude/state/engineering-os/history.jsonl`
-- `.claude/artifacts/engineering-os/runs/`
+- `.claude/state/crew/claims.json`
+- `.claude/state/crew/history.jsonl`
+- `.claude/artifacts/crew/runs/`
 
 #### 3. In event logs
 
@@ -133,7 +133,7 @@ You tell Claude Code:
 
 “I want to build the first version of this app. Start with auth, a simple dashboard, and a minimal API.”
 
-Engineering OS does not immediately explode into a swarm.
+Crew does not immediately explode into a swarm.
 
 First, the lead stays with you.
 
@@ -164,10 +164,10 @@ Not fuzzy AI memory. Working memory.
 That memory lives in places like:
 
 - `CLAUDE.md`
-- `.claude/engineering-os/constitution.md`
-- `.claude/engineering-os/workflow.md`
-- `.claude/artifacts/engineering-os/`
-- `.claude/state/engineering-os/`
+- `.claude/crew/constitution.md`
+- `.claude/crew/workflow.md`
+- `.claude/artifacts/crew/`
+- `.claude/state/crew/`
 
 If you come back tomorrow, or compact the thread, the repo itself still explains the operating context.
 
@@ -177,7 +177,7 @@ progress should persist in inspectable form.
 
 ## What Memory Each Agent Uses
 
-Engineering OS should be explicit about memory boundaries.
+Crew should be explicit about memory boundaries.
 
 ### Lead Memory
 
@@ -185,8 +185,8 @@ The lead should have access to:
 
 - the current user conversation
 - `CLAUDE.md`
-- `.claude/engineering-os/constitution.md`
-- `.claude/engineering-os/workflow.md`
+- `.claude/crew/constitution.md`
+- `.claude/crew/workflow.md`
 - current run artifacts
 - repo-local state and claims
 
@@ -280,7 +280,7 @@ That is different from assisted single-session.
 
 In assisted single-session, the lead stays primary and may use one bounded helper, but the helper is not treated as an independent teammate with its own coordination role.
 
-If that split happens, Engineering OS makes it legible.
+If that split happens, Crew makes it legible.
 
 It should be obvious:
 
@@ -378,7 +378,7 @@ That way intent does not disappear into scrollback.
 
 Suppose two things might touch the same file.
 
-Engineering OS should catch this before it becomes a merge mess.
+Crew should catch this before it becomes a merge mess.
 
 The repo-local state layer keeps track of claims and ownership.
 
@@ -396,7 +396,7 @@ The user should feel:
 
 ## Observability Is Quiet But Present
 
-While all this is happening, Engineering OS is writing an event trail.
+While all this is happening, Crew is writing an event trail.
 
 Not for surveillance.
 For legibility.
@@ -411,9 +411,9 @@ You do not have to watch every moment, but if something weird happens, you can i
 
 - `.claude/logs/events.jsonl`
 - `.claude/logs/payloads/`
-- `.claude/artifacts/engineering-os/runs/`
-- `.claude/artifacts/engineering-os/handoffs/`
-- `.claude/artifacts/engineering-os/reviews/`
+- `.claude/artifacts/crew/runs/`
+- `.claude/artifacts/crew/handoffs/`
+- `.claude/artifacts/crew/reviews/`
 
 The experience we want is:
 
@@ -423,7 +423,7 @@ you can trust the system more because it leaves tracks.
 
 The builder finishes a change.
 
-Engineering OS should not let that silently turn into “done.”
+Crew should not let that silently turn into “done.”
 
 Instead, the reviewer checks:
 
@@ -447,7 +447,7 @@ Safer because the right boundary exists.
 
 Some days the user will want more autonomy.
 
-Engineering OS should support that too.
+Crew should support that too.
 
 The lead can shift pace:
 
@@ -483,7 +483,7 @@ You open that repo and run:
 
 `/bootstrap-repo`
 
-Engineering OS should behave conservatively.
+Crew should behave conservatively.
 
 It should inspect before writing.
 It should avoid trampling repo-owned guidance.
@@ -508,7 +508,7 @@ The state shows who owns what right now.
 
 You are no longer starting from improvisation every day.
 
-That is the real emotional target of Engineering OS:
+That is the real emotional target of Crew:
 
 less babysitting
 less re-explaining

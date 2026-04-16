@@ -1,8 +1,8 @@
-# Engineering OS Event Schema
+# Crew Event Schema
 
 ## Purpose
 
-Engineering OS writes append-only JSONL events so runs are inspectable and future tooling can replay them.
+Crew writes append-only JSONL events so runs are inspectable and future tooling can replay them.
 
 Current primary log:
 
@@ -19,7 +19,7 @@ Each line in `events.jsonl` is a JSON object with this shape:
 ```json
 {
   "schemaVersion": "1.0",
-  "source": "engineering-os",
+  "source": "crew",
   "timestamp": "2026-04-04T20:08:10Z",
   "event": "session_start",
   "repoPath": "/absolute/path/to/repo",
@@ -59,7 +59,7 @@ These payloads are:
 
 ## Planned Optional Fields
 
-As Engineering OS evolves, later schema versions may add:
+As Crew evolves, later schema versions may add:
 
 - `sessionId`
 - `runId`

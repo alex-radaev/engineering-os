@@ -52,7 +52,7 @@ The plugin is intentionally content-heavy and runtime-light.
 When adding artifact-producing features, prefer:
 
 - `.claude/logs/events.jsonl` for append-only event logs
-- `.claude/artifacts/engineering-os/` for task handoffs, reviews, and run summaries
+- `.claude/artifacts/crew/` for task handoffs, reviews, and run summaries
 
 ## Current Focus
 

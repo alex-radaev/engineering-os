@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { registerWorkflowArtifact } from "./workflow-state.mjs";
 
-const ARTIFACT_ROOT = [".claude", "artifacts", "engineering-os"];
+const ARTIFACT_ROOT = [".claude", "artifacts", "crew"];
 
 function nowIso() {
   return new Date().toISOString();
