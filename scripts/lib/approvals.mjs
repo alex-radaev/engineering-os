@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
-const STATE_DIR = [".claude", "state", "engineering-os"];
+const STATE_DIR = [".claude", "state", "crew"];
 const APPROVALS_PATH = [...STATE_DIR, "approvals.jsonl"];
 
 const USER_APPROVAL_KINDS = new Set([

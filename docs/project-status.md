@@ -1,4 +1,4 @@
-# Engineering OS Status
+# Crew Status
 
 ## Read This With
 
@@ -13,7 +13,7 @@ For full continuity after compaction, read this alongside:
 
 ## What We Are Building
 
-`engineering-os` is a Claude Code plugin for structured, legible multi-agent software work.
+`crew` is a Claude Code plugin for structured, legible multi-agent software work.
 
 The goal is not a high-autonomy swarm. The goal is a personal engineering operating system that makes team-style work easier to follow, safer to steer, and easier to inspect.
 
@@ -30,11 +30,11 @@ Core ideas:
 
 The MVP should shine through a very small user-facing surface:
 
-- `/engineering-os:init-repo`
-- `/engineering-os:bootstrap-repo`
-- `/engineering-os:build-feature`
-- `/engineering-os:investigate-bug`
-- `/engineering-os:parallel-review`
+- `/crew:init-repo`
+- `/crew:bootstrap-repo`
+- `/crew:wake-up-brief`
+- `/crew:build-feature`
+- `/crew:investigate-bug`
 
 Claims, approvals, and artifact writers matter, but they are support machinery. They should increasingly be things the lead uses automatically or sparingly, not a growing list of commands the user must learn.
 
@@ -44,10 +44,10 @@ The repo currently contains:
 
 - a valid Claude Code plugin
 - a local development marketplace manifest
-- durable lead, builder, reviewer, and researcher agents
+- command-driven lead workflows plus durable builder, reviewer, and researcher specialist agents
 - reusable skills for operating mode, handoffs, and review gates
-- workflow commands for `audit-repo`, `bootstrap-repo`, `init-repo`, and task modes
-- coordination commands for claims and approvals
+- lead entry commands for repo setup, wake-up, feature work, and bug fixing
+- CLI coordination helpers for claims and approvals
 - internal artifact-writing support for run briefs, handoffs, reviews, and final syntheses
 - hook wiring for basic lifecycle logging
 - a real installer CLI for repo adoption and repo initialization
@@ -74,7 +74,7 @@ Validated:
 
 Implemented:
 
-- `scripts/engineering-os.mjs`
+- `scripts/crew.mjs`
 - `scripts/lib/installer.mjs`
 
 Supported commands:
@@ -98,10 +98,11 @@ Supported commands:
 Behavior:
 
 - creates or extends `CLAUDE.md`
-- writes `.claude/engineering-os/constitution.md`
-- writes `.claude/engineering-os/workflow.md`
+- writes `.claude/crew/constitution.md`
+- writes `.claude/crew/workflow.md`
+- writes `.claude/crew/protocol.md`
 - writes `.claude/hooks/log_event.sh`
-- creates `.claude/artifacts/engineering-os/`
+- creates `.claude/artifacts/crew/`
 - merges `.claude/settings.json` hook config conservatively
 
 ### Tests
@@ -136,8 +137,8 @@ Current release guidance:
 Completed in this thread:
 
 - added a temporary local marketplace from a copied plugin path under `/tmp`
-- moved the dev install to a stable path at `~/Desktop/Projects/engineering-os-plugin`
-- reinstalled `engineering-os@engineering-os-dev` at user scope from the stable marketplace
+- moved the dev install to a stable path at `~/Desktop/Projects/crew-plugin`
+- reinstalled `crew@crew-dev` at user scope from the stable marketplace
 
 Important note:
 
@@ -148,14 +149,13 @@ Important note:
 
 Validated in a real Claude Code session:
 
-- `/engineering-os:audit-repo` on an existing repo before bootstrap
-- `/engineering-os:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
-- `/engineering-os:audit-repo` after bootstrap to confirm harness presence
+- `/crew:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
+- CLI audit on an existing repo before and after bootstrap to confirm harness presence
 - hook output written to `.claude/logs/events.jsonl`
 - a bounded feature workflow in `makeadz`
 - a clean single-session bug investigation and fix in `makeadz`
-- repo-local claims round-trip in `makeadz` via `show-claims`, `claim-files`, `show-conflicts`, and `release-files`
-- repo-local approval queue round-trip in `makeadz`
+- repo-local claims round-trip in `makeadz` through the CLI helpers
+- repo-local approval queue round-trip in `makeadz` through the CLI helpers
 - an assisted single-session CI/versioning task that added PR test automation and a version-consistency gate
 - a substantial `terminal-art-club` feature run that used wake-up, run brief, reviewer, review artifact, and final synthesis in one flow
 
@@ -290,7 +290,7 @@ Candidate repos worth deeper local inspection:
 
 Move the local plugin development copy out of `/tmp` and into a stable path such as:
 
-- `~/Desktop/Projects/engineering-os-plugin`
+- `~/Desktop/Projects/crew-plugin`
 
 Then:
 

@@ -54,7 +54,7 @@ Include:
 
 When the review is substantial, persist it with:
 
-- `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
 
 ## Escalation Rule
 

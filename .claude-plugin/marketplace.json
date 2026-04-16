@@ -1,14 +1,14 @@
 {
-  "name": "engineering-os-dev",
+  "name": "crew-dev",
   "metadata": {
-    "description": "Development marketplace for the Engineering OS Claude Code plugin"
+    "description": "Development marketplace for the Crew Claude Code plugin"
   },
   "owner": {
     "name": "Aradaev"
   },
   "plugins": [
     {
-      "name": "engineering-os",
+      "name": "crew",
       "description": "Structured multi-agent workflow plugin for Claude Code with explicit ownership and observability",
       "version": "0.1.0",
       "source": "./",

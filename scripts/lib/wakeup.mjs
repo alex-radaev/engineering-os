@@ -4,12 +4,12 @@ import path from "node:path";
 import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
 
-const RUNS_DIR = [".claude", "artifacts", "engineering-os", "runs"];
-const HANDOFFS_DIR = [".claude", "artifacts", "engineering-os", "handoffs"];
-const REVIEWS_DIR = [".claude", "artifacts", "engineering-os", "reviews"];
+const RUNS_DIR = [".claude", "artifacts", "crew", "runs"];
+const HANDOFFS_DIR = [".claude", "artifacts", "crew", "handoffs"];
+const REVIEWS_DIR = [".claude", "artifacts", "crew", "reviews"];
 const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
-const HISTORY_PATH = [".claude", "state", "engineering-os", "history.jsonl"];
-const SPRINT_PATH = [".claude", "state", "engineering-os", "sprint.json"];
+const HISTORY_PATH = [".claude", "state", "crew", "history.jsonl"];
+const SPRINT_PATH = [".claude", "state", "crew", "sprint.json"];
 
 const RECENT_EVENTS_LIMIT = 3;
 const RECENT_HISTORY_LIMIT = 3;

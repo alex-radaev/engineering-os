@@ -2,85 +2,148 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const CLAUDE_IMPORT_BLOCK = [
-  "<!-- engineering-os:start -->",
-  "@.claude/engineering-os/constitution.md",
-  "@.claude/engineering-os/workflow.md",
-  "<!-- engineering-os:end -->"
+  "<!-- crew:start -->",
+  "@.claude/crew/constitution.md",
+  "<!-- crew:end -->"
 ].join("\n");
 
-const CONSTITUTION_TEMPLATE = `# Engineering OS Constitution
+const LEGACY_IMPORT_BLOCK_RE = /<!--\s*engineering-os:start\s*-->[\s\S]*?<!--\s*engineering-os:end\s*-->/;
 
-This repository uses the Engineering OS harness for structured software work inside Claude Code.
+const CONSTITUTION_TEMPLATE = `# Crew Constitution
+
+This repository uses the Crew harness for structured software work inside Claude Code.
+
+## Activation
+
+- Crew runs have one lead and optional specialists.
+- Do not assume the current session is the lead just because these files are present.
+- The session explicitly running a Crew workflow command is the lead for that run.
+- Spawned agents are specialists and must follow their role definition plus their assigned mission.
+- If role-specific instructions conflict with general Crew guidance, role-specific instructions win.
 
 ## Core Rules
 
-1. Keep one owner per task.
-2. Keep task scope explicit.
-3. Prefer a single session unless parallelism clearly helps.
-4. Require structured handoffs for substantial work.
-5. Treat review as a gate, not a courtesy.
+1. Prefer single-session unless delegation clearly helps.
+2. Spawn only specialist agents: builder, reviewer, researcher, or another explicitly named specialist.
+3. Keep one owner per task.
+4. Keep task scope explicit and bounded.
+5. Avoid same-file parallel editing.
+6. Use explicit handoff and review reporting for substantial work.
+7. Escalate destructive, wide-scope, policy, or architecture decisions instead of improvising them.
+`;
 
-## Team Roles
+const WORKFLOW_TEMPLATE = `# Crew Workflow
 
-- lead: planning, delegation, synthesis
-- builder: bounded implementation
-- reviewer: validation and regression detection
-- researcher: read-only investigation
+This file is command-loaded run guidance for the lead. It is not always-on startup context.
+
+## Lead Identity
+
+- If a workflow command invoked this file, you are the lead for the current run.
+- No separate lead subagent is required.
+- Before substantial work, check for custom lead guidance in this order, if present:
+  1. \`~/.claude/crew/lead.md\`
+  2. \`.claude/crew/lead.md\`
+
+## Run Sequence
+
+1. Verify the current workspace path.
+2. Read the repo wake-up brief.
+3. Confirm the returned \`repoPath\` matches the current working directory.
+4. Restate the active objective plus in-scope and out-of-scope boundaries.
+5. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
+6. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
+7. Spawn specialists only if they reduce uncertainty or split clean ownership.
+8. Use claims only when parallel work might collide.
+9. Use approvals when scope, ownership, policy, or destructive actions need an explicit decision.
+10. Leave inspectable artifacts for substantial work.
+
+## Mode Guidance
+
+- \`single-session\`: do the work directly; do not spawn specialists.
+- \`assisted single-session\`: stay primary and use bounded specialist help without turning it into a coordinating team.
+- \`team run\`: assign explicit ownership to multiple specialists only when the split is clean.
 
 ## Artifact Habit
 
-Substantial work should leave inspectable artifacts under:
+For substantial work, prefer:
 
-- \`.claude/artifacts/engineering-os/runs/\`
-- \`.claude/artifacts/engineering-os/handoffs/\`
-- \`.claude/artifacts/engineering-os/reviews/\`
+- \`write-run-brief\` near the start
+- \`write-handoff\` when ownership changes or a specialist completes bounded work
+- \`write-review-result\` when review materially validates implementation
+- \`write-final-synthesis\` when the run ends
 
-## Scope Discipline
+## Review Default
 
-Stop and re-scope if:
-
-- two agents need the same file
-- the assignment boundary is unclear
-- the work needs a broader refactor than assigned
+- Substantial implementation work should normally end with reviewer validation.
+- If review is skipped, say so explicitly and give a concrete reason.
 `;
 
-const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
+const PROTOCOL_TEMPLATE = `# Crew Protocol
 
-## Preferred Sequence
+This file defines the shared reporting shapes used by the lead and specialists.
 
-1. clarify the objective
-2. choose mode: single-session or team run
-3. choose pace: slow, medium, or fast
-4. define task ownership and scope
-5. implement or investigate
-6. review before calling work done
-7. leave a final synthesis
+## Start Acknowledgement
 
-## Handoff Format
+Every specialist should begin with:
 
-Every substantial handoff should include:
+- what I own
+- what I will not change
+- what I need from others, if anything
+- what I will deliver
 
-- objective
-- owner
-- allowed scope
-- forbidden scope
-- deliverable
-- changed files or evidence
+## Progress Update
+
+Use when reporting mid-task:
+
+- current status
+- whether scope is still valid
+- blocker, if any
+- next expected handoff
+
+## Completion Report
+
+Every specialist completion should include:
+
+- what changed or what was found
+- changed files or evidence checked
 - confidence level
 - risks or open questions
 - suggested next handoff
+
+## Review Result
+
+Every review result must be one of:
+
+- \`approved\`
+- \`approved_with_notes\`
+- \`rejected\`
+
+And include:
+
+- evidence checked
+- risk or failure summary
+- required follow-up, if rejected
+
+## Handoff Quality Bar
+
+Good handoffs are:
+
+- bounded
+- specific
+- inspectable
+- honest about uncertainty
 `;
 
-const ARTIFACT_README_TEMPLATE = `# Engineering OS Artifacts
+const ARTIFACT_README_TEMPLATE = `# Crew Artifacts
 
-This directory stores inspectable run artifacts for the Engineering OS harness.
+This directory stores inspectable run artifacts for the Crew harness.
 
 - \`runs/\` for run briefs and final syntheses
 - \`handoffs/\` for task ownership and completion notes
 - \`reviews/\` for review results and rejection notes
 `;
 
-const STATE_README_TEMPLATE = `# Engineering OS State
+const STATE_README_TEMPLATE = `# Crew State
 
 This directory stores lightweight repo-local coordination state.
 
@@ -101,7 +164,7 @@ const SPRINT_TEMPLATE = {
   focus: "P1",
   notes: [
     "Replace or remove this file if you do not use sprint-style priorities.",
-    "Engineering OS keeps this repo-local so coordination remains inspectable."
+    "Crew keeps this repo-local so coordination remains inspectable."
   ]
 };
 
@@ -125,7 +188,7 @@ else
   cat > "$payload_path"
 fi
 
-printf '{"schemaVersion":"1.0","source":"engineering-os","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\\n' \\
+printf '{"schemaVersion":"1.0","source":"crew","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\\n' \\
   "$timestamp" \\
   "$event_name" \\
   "$project_dir" \\
@@ -141,7 +204,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh session_start",
-            description: "engineering-os:session-start"
+            description: "crew:session-start"
           }
         ]
       }
@@ -152,7 +215,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh task_created",
-            description: "engineering-os:task-created"
+            description: "crew:task-created"
           }
         ]
       }
@@ -163,7 +226,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh task_completed",
-            description: "engineering-os:task-completed"
+            description: "crew:task-completed"
           }
         ]
       }
@@ -174,7 +237,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh subagent_start",
-            description: "engineering-os:subagent-start"
+            description: "crew:subagent-start"
           }
         ]
       }
@@ -185,7 +248,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh subagent_stop",
-            description: "engineering-os:subagent-stop"
+            description: "crew:subagent-stop"
           }
         ]
       }
@@ -220,12 +283,25 @@ async function writeFileIfChanged(filePath, contents, options = {}) {
   return true;
 }
 
-function isEngineeringOsHook(entry) {
+async function writeFileIfMissing(filePath, contents, options = {}) {
+  if (await pathExists(filePath)) {
+    return false;
+  }
+  await ensureDir(path.dirname(filePath));
+  await fs.writeFile(filePath, contents, options);
+  return true;
+}
+
+function isCrewHook(entry) {
   const hooks = Array.isArray(entry?.hooks) ? entry.hooks : [];
   return hooks.some((hook) => {
     const command = hook?.command || "";
     const description = hook?.description || "";
-    return command.includes(".claude/hooks/log_event.sh") || description.startsWith("engineering-os:");
+    return (
+      command.includes(".claude/hooks/log_event.sh") ||
+      description.startsWith("crew:") ||
+      description.startsWith("engineering-os:")
+    );
   });
 }
 
@@ -233,7 +309,7 @@ function mergeHooks(existingHooks = {}, desiredHooks = {}) {
   const result = { ...existingHooks };
   for (const [eventName, hookDefs] of Object.entries(desiredHooks)) {
     const current = Array.isArray(result[eventName]) ? result[eventName] : [];
-    const preserved = current.filter((entry) => !isEngineeringOsHook(entry));
+    const preserved = current.filter((entry) => !isCrewHook(entry));
     const nextEntries = [...preserved];
     const seen = new Set(nextEntries.map((item) => JSON.stringify(item)));
     for (const hookDef of hookDefs) {
@@ -256,7 +332,8 @@ async function updateClaudeMd(repoPath, writes) {
     const contents = [
       "# Repo Instructions",
       "",
-      "This repository uses the Engineering OS harness.",
+      "This repository uses the Crew harness.",
+      "Keep repo-specific guidance here and leave shared workflow rules in the Crew files below.",
       "",
       CLAUDE_IMPORT_BLOCK,
       ""
@@ -266,13 +343,54 @@ async function updateClaudeMd(repoPath, writes) {
     return;
   }
 
-  if (existing.includes("<!-- engineering-os:start -->")) {
+  if (existing.includes("<!-- crew:start -->")) {
+    return;
+  }
+
+  if (LEGACY_IMPORT_BLOCK_RE.test(existing)) {
+    const next = existing.replace(LEGACY_IMPORT_BLOCK_RE, CLAUDE_IMPORT_BLOCK);
+    await writeFileIfChanged(claudePath, `${next.trimEnd()}\n`);
+    writes.push(path.relative(repoPath, claudePath));
     return;
   }
 
   const next = `${existing.trimEnd()}\n\n${CLAUDE_IMPORT_BLOCK}\n`;
   await writeFileIfChanged(claudePath, next);
   writes.push(path.relative(repoPath, claudePath));
+}
+
+async function renamePathIfNeeded(repoPath, fromParts, toParts, writes) {
+  const fromPath = path.join(repoPath, ...fromParts);
+  const toPath = path.join(repoPath, ...toParts);
+
+  if (!(await pathExists(fromPath)) || (await pathExists(toPath))) {
+    return;
+  }
+
+  await ensureDir(path.dirname(toPath));
+  await fs.rename(fromPath, toPath);
+  writes.push(path.relative(repoPath, toPath));
+}
+
+async function migrateLegacyHarness(repoPath, writes) {
+  await renamePathIfNeeded(
+    repoPath,
+    [".claude", "engineering-os"],
+    [".claude", "crew"],
+    writes
+  );
+  await renamePathIfNeeded(
+    repoPath,
+    [".claude", "artifacts", "engineering-os"],
+    [".claude", "artifacts", "crew"],
+    writes
+  );
+  await renamePathIfNeeded(
+    repoPath,
+    [".claude", "state", "engineering-os"],
+    [".claude", "state", "crew"],
+    writes
+  );
 }
 
 async function updateSettings(repoPath, writes) {
@@ -292,62 +410,69 @@ async function updateSettings(repoPath, writes) {
 
 async function writeHarnessFiles(repoPath, writes) {
   const files = [
-    [
-      path.join(repoPath, ".claude", "engineering-os", "constitution.md"),
-      `${CONSTITUTION_TEMPLATE}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "engineering-os", "workflow.md"),
-      `${WORKFLOW_TEMPLATE}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "artifacts", "engineering-os", "README.md"),
-      `${ARTIFACT_README_TEMPLATE}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "state", "engineering-os", "README.md"),
-      `${STATE_README_TEMPLATE}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"),
-      `${JSON.stringify(CLAIMS_TEMPLATE, null, 2)}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "state", "engineering-os", "history.jsonl"),
-      ""
-    ],
-    [
-      path.join(repoPath, ".claude", "state", "engineering-os", "approvals.jsonl"),
-      ""
-    ],
-    [
-      path.join(repoPath, ".claude", "state", "engineering-os", "sprint.json"),
-      `${JSON.stringify(SPRINT_TEMPLATE, null, 2)}\n`
-    ],
-    [
-      path.join(repoPath, ".claude", "hooks", "log_event.sh"),
-      HOOK_SCRIPT_TEMPLATE
-    ]
+    {
+      filePath: path.join(repoPath, ".claude", "crew", "constitution.md"),
+      contents: `${CONSTITUTION_TEMPLATE}\n`
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "crew", "workflow.md"),
+      contents: `${WORKFLOW_TEMPLATE}\n`
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "crew", "protocol.md"),
+      contents: `${PROTOCOL_TEMPLATE}\n`
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "artifacts", "crew", "README.md"),
+      contents: `${ARTIFACT_README_TEMPLATE}\n`,
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "state", "crew", "README.md"),
+      contents: `${STATE_README_TEMPLATE}\n`,
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "state", "crew", "claims.json"),
+      contents: `${JSON.stringify(CLAIMS_TEMPLATE, null, 2)}\n`,
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "state", "crew", "history.jsonl"),
+      contents: "",
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "state", "crew", "approvals.jsonl"),
+      contents: "",
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "state", "crew", "sprint.json"),
+      contents: `${JSON.stringify(SPRINT_TEMPLATE, null, 2)}\n`,
+      preserveExisting: true
+    },
+    {
+      filePath: path.join(repoPath, ".claude", "hooks", "log_event.sh"),
+      contents: HOOK_SCRIPT_TEMPLATE
+    }
   ];
 
-  for (const [filePath, contents] of files) {
+  for (const { filePath, contents, preserveExisting = false } of files) {
     const isHookScript = filePath.endsWith("log_event.sh");
-    const changed = await writeFileIfChanged(
-      filePath,
-      contents,
-      isHookScript ? { mode: 0o755 } : {}
-    );
+    const writer = preserveExisting ? writeFileIfMissing : writeFileIfChanged;
+    const changed = await writer(filePath, contents, isHookScript ? { mode: 0o755 } : {});
     if (changed) {
       writes.push(path.relative(repoPath, filePath));
     }
   }
 
   const directories = [
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "handoffs"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "reviews"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "runs"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "handoffs"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "reviews"),
     path.join(repoPath, ".claude", "logs"),
-    path.join(repoPath, ".claude", "state", "engineering-os")
+    path.join(repoPath, ".claude", "state", "crew")
   ];
   for (const directory of directories) {
     await ensureDir(directory);
@@ -361,8 +486,11 @@ export async function auditRepo(repoPath) {
     hasClaudeMd: await pathExists(path.join(repoPath, "CLAUDE.md")),
     hasDotClaude: await pathExists(path.join(repoPath, ".claude")),
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
-    hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "engineering-os", "constitution.md")),
-    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"))
+    hasHarnessLayer:
+      (await pathExists(path.join(repoPath, ".claude", "crew", "constitution.md"))) &&
+      (await pathExists(path.join(repoPath, ".claude", "crew", "workflow.md"))) &&
+      (await pathExists(path.join(repoPath, ".claude", "crew", "protocol.md"))),
+    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "crew", "claims.json"))
   };
 }
 
@@ -372,6 +500,7 @@ export async function bootstrapRepo(repoPath) {
   }
 
   const writes = [];
+  await migrateLegacyHarness(repoPath, writes);
   await updateClaudeMd(repoPath, writes);
   await writeHarnessFiles(repoPath, writes);
   await updateSettings(repoPath, writes);

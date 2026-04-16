@@ -18,7 +18,7 @@ else
   cat > "$payload_path"
 fi
 
-printf '{"schemaVersion":"1.0","source":"engineering-os","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\n' \
+printf '{"schemaVersion":"1.0","source":"crew","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\n' \
   "$timestamp" \
   "$event_name" \
   "$project_dir" \

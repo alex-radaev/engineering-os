@@ -11,7 +11,7 @@ async function makeTempDir(prefix) {
 }
 
 test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md", async () => {
-  const repoPath = await makeTempDir("engineering-os-bootstrap-");
+  const repoPath = await makeTempDir("crew-bootstrap-");
   await fs.writeFile(
     path.join(repoPath, "CLAUDE.md"),
     "# Existing Repo Rules\n\nKeep tests fast.\n"
@@ -19,38 +19,100 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
 
   const result = await bootstrapRepo(repoPath);
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
+  const workflowMd = await fs.readFile(
+    path.join(repoPath, ".claude", "crew", "workflow.md"),
+    "utf8"
+  );
+  const protocolMd = await fs.readFile(
+    path.join(repoPath, ".claude", "crew", "protocol.md"),
+    "utf8"
+  );
   const settings = JSON.parse(
     await fs.readFile(path.join(repoPath, ".claude", "settings.json"), "utf8")
   );
   const claimsState = JSON.parse(
     await fs.readFile(
-      path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"),
+      path.join(repoPath, ".claude", "state", "crew", "claims.json"),
       "utf8"
     )
   );
 
   assert.equal(result.mode, "bootstrap");
   assert.match(claudeMd, /# Existing Repo Rules/);
-  assert.match(claudeMd, /engineering-os:start/);
+  assert.match(claudeMd, /crew:start/);
+  assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
+  assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
+  assert.match(workflowMd, /If a workflow command invoked this file, you are the lead/);
+  assert.match(protocolMd, /Start Acknowledgement/);
   assert.ok(settings.hooks.SessionStart);
   assert.ok(settings.hooks.TaskCreated);
   assert.deepEqual(claimsState.claims, {});
 });
 
 test("bootstrap is idempotent for CLAUDE.md imports", async () => {
-  const repoPath = await makeTempDir("engineering-os-idempotent-");
+  const repoPath = await makeTempDir("crew-idempotent-");
   await fs.writeFile(path.join(repoPath, "CLAUDE.md"), "# Repo\n");
 
   await bootstrapRepo(repoPath);
   await bootstrapRepo(repoPath);
 
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
-  const occurrences = claudeMd.match(/engineering-os:start/g) ?? [];
+  const occurrences = claudeMd.match(/crew:start/g) ?? [];
   assert.equal(occurrences.length, 1);
 });
 
+test("bootstrap upgrades legacy harness paths and CLAUDE import block", async () => {
+  const repoPath = await makeTempDir("crew-legacy-upgrade-");
+  await fs.mkdir(path.join(repoPath, ".claude", "engineering-os"), { recursive: true });
+  await fs.mkdir(path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"), {
+    recursive: true
+  });
+  await fs.mkdir(path.join(repoPath, ".claude", "state", "engineering-os"), {
+    recursive: true
+  });
+  await fs.writeFile(
+    path.join(repoPath, "CLAUDE.md"),
+    [
+      "# Repo",
+      "",
+      "<!-- engineering-os:start -->",
+      "@.claude/engineering-os/constitution.md",
+      "<!-- engineering-os:end -->",
+      ""
+    ].join("\n")
+  );
+  await fs.writeFile(
+    path.join(repoPath, ".claude", "engineering-os", "constitution.md"),
+    "# Legacy Constitution\n"
+  );
+  await fs.writeFile(
+    path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"),
+    "{\n  \"claims\": {\n    \"src/legacy.ts\": {\n      \"owner\": \"builder\"\n    }\n  }\n}\n"
+  );
+
+  await bootstrapRepo(repoPath);
+
+  const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
+  const claimsState = await fs.readFile(
+    path.join(repoPath, ".claude", "state", "crew", "claims.json"),
+    "utf8"
+  );
+  assert.match(claudeMd, /<!-- crew:start -->/);
+  assert.doesNotMatch(claudeMd, /engineering-os:start/);
+  assert.equal(await fs.access(path.join(repoPath, ".claude", "crew", "constitution.md")).then(() => true).catch(() => false), true);
+  assert.equal(await fs.access(path.join(repoPath, ".claude", "state", "crew", "claims.json")).then(() => true).catch(() => false), true);
+  assert.match(claimsState, /src\/legacy\.ts/);
+  assert.equal(
+    await fs
+      .access(path.join(repoPath, ".claude", "engineering-os"))
+      .then(() => true)
+      .catch(() => false),
+    false
+  );
+});
+
 test("init creates a new repo harness and audit sees it", async () => {
-  const rootPath = await makeTempDir("engineering-os-root-");
+  const rootPath = await makeTempDir("crew-root-");
   const repoPath = path.join(rootPath, "demo-repo");
 
   const result = await initRepo(repoPath);
@@ -64,7 +126,7 @@ test("init creates a new repo harness and audit sees it", async () => {
 });
 
 test("init rejects a non-empty existing directory without opt-in", async () => {
-  const repoPath = await makeTempDir("engineering-os-existing-");
+  const repoPath = await makeTempDir("crew-existing-");
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n");
 
   await assert.rejects(() => initRepo(repoPath), /already exists and is not empty/);

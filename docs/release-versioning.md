@@ -2,7 +2,7 @@
 
 ## Current Policy
 
-Engineering OS currently uses manual versioning.
+Crew currently uses manual versioning.
 
 The important plugin version files are:
 

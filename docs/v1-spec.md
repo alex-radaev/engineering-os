@@ -1,8 +1,8 @@
-# Multi-Agent Engineering OS v1
+# Multi-Agent Crew v1
 
 ## Goal
 
-Build a local-first, inspectable orchestration layer for coding work where a lead agent coordinates a small team of specialists with:
+Build a local-first, inspectable orchestration layer for coding work where a lead session coordinates a small team of specialists with:
 
 - bounded ownership
 - explicit task handoffs
@@ -37,7 +37,7 @@ Core pieces:
 2. `protocol`
    Defines the required message schemas for task start, progress, blockers, completion, and review.
 3. `roles`
-   Stores durable role contracts for lead, builder, reviewer, and researcher.
+   Stores durable role contracts for the lead workflow plus builder, reviewer, and researcher specialists.
 4. `policy`
    Applies constitution rules, pace settings, scope limits, and completion gates.
 5. `observability`

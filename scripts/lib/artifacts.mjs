@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const ARTIFACT_ROOT = [".claude", "artifacts", "engineering-os"];
+const ARTIFACT_ROOT = [".claude", "artifacts", "crew"];
 
 function nowIso() {
   return new Date().toISOString();

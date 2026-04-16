@@ -1,8 +1,8 @@
-# Reference Repo Analysis And Engineering OS Plan
+# Reference Repo Analysis And Crew Plan
 
 ## Purpose
 
-This document captures what we learned from four local reference repos and translates that into concrete changes for `engineering-os`.
+This document captures what we learned from four local reference repos and translates that into concrete changes for `crew`.
 
 Reference repos inspected locally:
 
@@ -17,9 +17,9 @@ Additional reference repos to use as pattern libraries:
 - `aws-samples/sample-claude-code-agent-team`
 - `VoltAgent/awesome-claude-code-subagents`
 
-## Current Engineering OS Position
+## Current Crew Position
 
-Today, `engineering-os` already has:
+Today, `crew` already has:
 
 - a valid Claude Code plugin
 - installable local marketplace
@@ -70,7 +70,7 @@ What not to copy:
 - large prompt bureaucracy as a default experience
 - full task-wave engine for v1
 
-Engineering OS impact:
+Crew impact:
 
 - keep normal sessions light
 - only activate heavier orchestration when the task merits it
@@ -97,9 +97,9 @@ What not to copy directly:
 - user-global `~/.conductor/` state as the only source of truth
 - product-specific north-star alignment behavior
 
-Engineering OS impact:
+Crew impact:
 
-- add `.claude/state/engineering-os/claims.json`
+- add `.claude/state/crew/claims.json`
 - add repo-local coordination commands
 - keep state inspectable and easy to repair by hand
 
@@ -124,7 +124,7 @@ What not to copy now:
 - the relay server stack
 - any heavy visualization work before the event contract is stable
 
-Engineering OS impact:
+Crew impact:
 
 - improve log_event payload shape
 - add event schema docs
@@ -151,7 +151,7 @@ What not to copy now:
 - REST server and SQLite control plane
 - provider abstraction layer
 
-Engineering OS impact:
+Crew impact:
 
 - add a lightweight repo-local approval queue
 - start with simple file-based approvals and audit logs
@@ -167,14 +167,14 @@ Most useful ideas:
 
 What to borrow:
 
-- stronger "developing Engineering OS" guidance inside the plugin repo
+- stronger "developing Crew" guidance inside the plugin repo
 - skills or docs that help future-you extend the plugin consistently
 
 What not to copy:
 
-- any product-specific ceremony that does not strengthen Engineering OS directly
+- any product-specific ceremony that does not strengthen Crew directly
 
-Engineering OS impact:
+Crew impact:
 
 - add a maintenance/dev skill later
 - keep the repo self-explanatory for future sessions and compaction
@@ -196,7 +196,7 @@ What not to copy:
 
 - any sample-specific team topology that is too generic for our needs
 
-Engineering OS impact:
+Crew impact:
 
 - add clearer run brief, handoff, review, and synthesis templates
 - consider a `.claude/specs/` style layout if artifact growth justifies it
@@ -219,12 +219,12 @@ What not to copy:
 - treating a large role catalog as the product itself
 - role explosion before the core workflow is proven
 
-Engineering OS impact:
+Crew impact:
 
 - keep the core team small
 - selectively improve lead, reviewer, researcher, and future specialist prompts
 
-## Recommended Changes To Engineering OS
+## Recommended Changes To Crew
 
 ### Priority 1: Live Integration Validation
 
@@ -248,10 +248,10 @@ Why this comes first:
 
 Add a repo-local state directory:
 
-- `.claude/state/engineering-os/claims.json`
-- `.claude/state/engineering-os/history.jsonl`
-- `.claude/state/engineering-os/sprint.json`
-- `.claude/state/engineering-os/approvals.jsonl`
+- `.claude/state/crew/claims.json`
+- `.claude/state/crew/history.jsonl`
+- `.claude/state/crew/sprint.json`
+- `.claude/state/crew/approvals.jsonl`
 
 Initial claims file shape:
 
@@ -313,8 +313,8 @@ Upgrade installer hook merging to use a marker strategy similar in spirit to Age
 
 Goals:
 
-- recognize hooks owned by Engineering OS
-- replace outdated Engineering OS hooks without duplicating them
+- recognize hooks owned by Crew
+- replace outdated Crew hooks without duplicating them
 - preserve unrelated user or repo hooks
 
 This is a concrete improvement to:
@@ -339,10 +339,10 @@ Why:
 
 Extend installer output with starter templates:
 
-- `.claude/artifacts/engineering-os/runs/run-brief.md`
-- `.claude/artifacts/engineering-os/handoffs/task-handoff.md`
-- `.claude/artifacts/engineering-os/reviews/review-result.md`
-- `.claude/artifacts/engineering-os/runs/final-synthesis.md`
+- `.claude/artifacts/crew/runs/run-brief.md`
+- `.claude/artifacts/crew/handoffs/task-handoff.md`
+- `.claude/artifacts/crew/reviews/review-result.md`
+- `.claude/artifacts/crew/runs/final-synthesis.md`
 
 Why:
 
@@ -372,7 +372,7 @@ Just add:
 - audit log
 - commands to approve or reject
 
-## Concrete Engineering OS Modifications
+## Concrete Crew Modifications
 
 ### Installer Changes
 
@@ -389,12 +389,12 @@ Add:
 
 Likely new generated paths:
 
-- `.claude/state/engineering-os/claims.json`
-- `.claude/state/engineering-os/history.jsonl`
-- `.claude/state/engineering-os/approvals.jsonl`
-- `.claude/artifacts/engineering-os/runs/`
-- `.claude/artifacts/engineering-os/handoffs/`
-- `.claude/artifacts/engineering-os/reviews/`
+- `.claude/state/crew/claims.json`
+- `.claude/state/crew/history.jsonl`
+- `.claude/state/crew/approvals.jsonl`
+- `.claude/artifacts/crew/runs/`
+- `.claude/artifacts/crew/handoffs/`
+- `.claude/artifacts/crew/reviews/`
 
 ### New Commands
 
@@ -440,7 +440,7 @@ Potentially add:
 
 Modify:
 
-- `skills/using-engineering-os/SKILL.md`
+- `skills/using-crew/SKILL.md`
 - `skills/writing-task-handoffs/SKILL.md`
 - `skills/review-gates/SKILL.md`
 
@@ -480,7 +480,7 @@ Shortly after that:
 
 What we learned from live testing:
 
-- `engineering-os` already works as a useful structure layer in Claude Code, not just in local tests
+- `crew` already works as a useful structure layer in Claude Code, not just in local tests
 - audit and bootstrap flows behaved conservatively on a real existing repo
 - hooks and event logging are firing in live sessions
 - small tasks should usually stay single-session instead of forcing a team
@@ -502,7 +502,7 @@ Avoid these until the simpler model proves insufficient:
 
 The best path is:
 
-- keep Engineering OS as a Claude Code plugin
+- keep Crew as a Claude Code plugin
 - keep the runtime small
 - add repo-local state, claims, and stronger logs
 - validate everything in real sessions

@@ -7,14 +7,14 @@ import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFile = promisify(execFileCallback);
-const cliPath = "/Users/aradaev/Documents/Playground/scripts/engineering-os.mjs";
+const cliPath = "/Users/aradaev/Documents/Playground/scripts/crew.mjs";
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
 }
 
 test("CLI init creates a harnessed repo", async () => {
-  const rootPath = await makeTempDir("engineering-os-cli-init-");
+  const rootPath = await makeTempDir("crew-cli-init-");
   const repoPath = path.join(rootPath, "app");
   const { stdout } = await execFile("node", [cliPath, "init", "--repo", repoPath]);
   const result = JSON.parse(stdout);
@@ -23,11 +23,13 @@ test("CLI init creates a harnessed repo", async () => {
   assert.equal(result.audit.hasHarnessLayer, true);
 
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
-  assert.match(claudeMd, /engineering-os:start/);
+  assert.match(claudeMd, /crew:start/);
+  assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
+  assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
 });
 
 test("CLI bootstrap preserves existing CLAUDE.md content", async () => {
-  const repoPath = await makeTempDir("engineering-os-cli-bootstrap-");
+  const repoPath = await makeTempDir("crew-cli-bootstrap-");
   await fs.writeFile(path.join(repoPath, "CLAUDE.md"), "# Existing\n");
 
   const { stdout } = await execFile("node", [cliPath, "bootstrap", "--repo", repoPath]);
@@ -36,11 +38,13 @@ test("CLI bootstrap preserves existing CLAUDE.md content", async () => {
 
   assert.equal(result.mode, "bootstrap");
   assert.match(claudeMd, /# Existing/);
-  assert.match(claudeMd, /engineering-os:start/);
+  assert.match(claudeMd, /crew:start/);
+  assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
+  assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
 });
 
 test("CLI claim and release manage repo-local claims", async () => {
-  const repoPath = await makeTempDir("engineering-os-cli-claims-");
+  const repoPath = await makeTempDir("crew-cli-claims-");
   await execFile("node", [cliPath, "init", "--repo", repoPath]);
 
   const claimOutput = await execFile("node", [
@@ -98,7 +102,7 @@ test("CLI claim and release manage repo-local claims", async () => {
 });
 
 test("CLI approval requests can be listed and resolved", async () => {
-  const repoPath = await makeTempDir("engineering-os-cli-approvals-");
+  const repoPath = await makeTempDir("crew-cli-approvals-");
   await execFile("node", [cliPath, "init", "--repo", repoPath]);
 
   const requestOutput = await execFile("node", [
@@ -156,7 +160,7 @@ test("CLI approval requests can be listed and resolved", async () => {
 });
 
 test("CLI artifact writers create markdown artifacts", async () => {
-  const repoPath = await makeTempDir("engineering-os-cli-artifacts-");
+  const repoPath = await makeTempDir("crew-cli-artifacts-");
   await execFile("node", [cliPath, "init", "--repo", repoPath]);
 
   const runBriefOutput = await execFile("node", [
@@ -215,7 +219,7 @@ test("CLI artifact writers create markdown artifacts", async () => {
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
-  const repoPath = await makeTempDir("engineering-os-cli-wakeup-");
+  const repoPath = await makeTempDir("crew-cli-wakeup-");
   await execFile("node", [cliPath, "init", "--repo", repoPath]);
 
   await execFile("node", [

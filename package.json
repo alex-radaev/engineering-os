@@ -1,13 +1,13 @@
 {
-  "name": "engineering-os-plugin",
+  "name": "crew-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "installer:bootstrap": "node ./scripts/engineering-os.mjs bootstrap",
-    "installer:init": "node ./scripts/engineering-os.mjs init",
-    "installer:audit": "node ./scripts/engineering-os.mjs audit",
+    "installer:bootstrap": "node ./scripts/crew.mjs bootstrap",
+    "installer:init": "node ./scripts/crew.mjs init",
+    "installer:audit": "node ./scripts/crew.mjs audit",
     "e2e:smoke": "node ./scripts/e2e-smoke.mjs"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "engineering-os",
+  "name": "crew",
   "version": "0.1.0",
   "description": "A structured multi-agent workflow plugin for Claude Code with explicit roles, bounded ownership, and observability.",
   "author": {

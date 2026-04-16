@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines how Engineering OS agents should recover context, build new memory, and communicate with each other.
+This document defines how Crew agents should recover context, build new memory, and communicate with each other.
 
 For the smaller product-oriented memory policy and roadmap, see [memory-system.md](/Users/aradaev/Documents/Playground/docs/memory-system.md).
 
@@ -35,8 +35,8 @@ Stable project knowledge that should persist across tasks and sessions.
 Examples:
 
 - `CLAUDE.md`
-- `.claude/engineering-os/constitution.md`
-- `.claude/engineering-os/workflow.md`
+- `.claude/crew/constitution.md`
+- `.claude/crew/workflow.md`
 - repo conventions
 - architecture notes
 - important commands
@@ -58,10 +58,10 @@ Examples:
 
 Suggested locations:
 
-- `.claude/artifacts/engineering-os/runs/`
-- `.claude/artifacts/engineering-os/handoffs/`
-- `.claude/artifacts/engineering-os/reviews/`
-- `.claude/state/engineering-os/`
+- `.claude/artifacts/crew/runs/`
+- `.claude/artifacts/crew/handoffs/`
+- `.claude/artifacts/crew/reviews/`
+- `.claude/state/crew/`
 
 ### 3. Role Memory
 
@@ -77,7 +77,8 @@ Examples:
 This should live in:
 
 - `agents/`
-- `skills/`
+- command-loaded lead guidance
+- shared protocol/workflow guidance
 
 ### 4. Recency Memory
 
@@ -297,7 +298,6 @@ The protocol should live in two places:
 
 For stable role behavior:
 
-- `agents/lead.md`
 - `agents/builder.md`
 - `agents/reviewer.md`
 - `agents/researcher.md`
@@ -316,9 +316,11 @@ This is important: role definition alone is not enough, and task prompt alone is
 
 The system needs both.
 
+For the lead specifically, the lead identity should come from the active workflow command plus shared workflow guidance rather than a spawnable `agents/lead.md` file.
+
 ## Implementation Guidance
 
-Engineering OS should implement this model through:
+Crew should implement this model through:
 
 1. repo memory files
 2. installer-generated artifact directories

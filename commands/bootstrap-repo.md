@@ -1,10 +1,10 @@
 ---
-description: Conservatively prepare the current repository for the Engineering OS workflow.
+description: Conservatively prepare the current repository for the Crew workflow.
 ---
 
-# Bootstrap This Repo For Engineering OS
+# Bootstrap This Repo For Crew
 
-Prepare the current repository for the Engineering OS workflow.
+Prepare the current repository for the Crew workflow.
 
 Goals:
 
@@ -16,13 +16,14 @@ Goals:
 Workflow:
 
 1. Run the installer:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/engineering-os.mjs" bootstrap --repo "$PWD"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" bootstrap --repo "$PWD"`
 2. Inspect `CLAUDE.md`, `.claude/`, `.mcp.json`, and other repo guidance before making additional changes.
 3. If `CLAUDE.md` does not exist, create it.
 4. If `CLAUDE.md` already exists, improve it conservatively and prefer `@path` imports instead of rewriting large sections.
 5. Add repo-local framework files only where useful:
-   - `.claude/agents/`
-   - `.claude/commands/`
+   - `.claude/crew/constitution.md`
+   - `.claude/crew/workflow.md`
+   - `.claude/crew/protocol.md`
    - `.claude/hooks/`
    - `.claude/settings.json`
 6. Keep framework-owned instructions isolated from repo-owned instructions.

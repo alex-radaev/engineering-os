@@ -217,26 +217,26 @@ function parseArgs(argv) {
 
 function usage(target = null) {
   const subcommands = {
-    audit: "  node scripts/engineering-os.mjs audit --repo <path>",
-    bootstrap: "  node scripts/engineering-os.mjs bootstrap --repo <path>",
-    init: "  node scripts/engineering-os.mjs init --repo <path> [--allow-existing]",
-    claim: "  node scripts/engineering-os.mjs claim --repo <path> [--owner <name>] <files...>",
-    release: "  node scripts/engineering-os.mjs release --repo <path> [--owner <name>] [files...]",
-    "show-claims": "  node scripts/engineering-os.mjs show-claims --repo <path>",
-    "show-conflicts": "  node scripts/engineering-os.mjs show-conflicts --repo <path> [--owner <name>] [files...]",
-    "request-approval": "  node scripts/engineering-os.mjs request-approval --repo <path> --summary <text> [--kind <kind>] [--severity <level>] [--requester <name>] [--approver <name>] [--reason <text>]",
-    "show-approvals": "  node scripts/engineering-os.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
-    "resolve-approval": "  node scripts/engineering-os.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
-    "wake-up": "  node scripts/engineering-os.mjs wake-up --repo <path>",
-    "write-run-brief": "  node scripts/engineering-os.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
-    "write-handoff": "  node scripts/engineering-os.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
-    "write-review-result": "  node scripts/engineering-os.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>]",
-    "write-final-synthesis": "  node scripts/engineering-os.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
+    audit: "  node scripts/crew.mjs audit --repo <path>",
+    bootstrap: "  node scripts/crew.mjs bootstrap --repo <path>",
+    init: "  node scripts/crew.mjs init --repo <path> [--allow-existing]",
+    claim: "  node scripts/crew.mjs claim --repo <path> [--owner <name>] <files...>",
+    release: "  node scripts/crew.mjs release --repo <path> [--owner <name>] [files...]",
+    "show-claims": "  node scripts/crew.mjs show-claims --repo <path>",
+    "show-conflicts": "  node scripts/crew.mjs show-conflicts --repo <path> [--owner <name>] [files...]",
+    "request-approval": "  node scripts/crew.mjs request-approval --repo <path> --summary <text> [--kind <kind>] [--severity <level>] [--requester <name>] [--approver <name>] [--reason <text>]",
+    "show-approvals": "  node scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
+    "resolve-approval": "  node scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
+    "wake-up": "  node scripts/crew.mjs wake-up --repo <path>",
+    "write-run-brief": "  node scripts/crew.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
+    "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
+    "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>]",
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
   };
 
   if (target && subcommands[target]) {
     return [
-      "Engineering OS installer",
+      "Crew installer",
       "",
       "Usage:",
       subcommands[target]
@@ -244,7 +244,7 @@ function usage(target = null) {
   }
 
   return [
-    "Engineering OS installer",
+    "Crew installer",
     "",
     "Usage:",
     ...Object.values(subcommands)

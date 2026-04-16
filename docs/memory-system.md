@@ -2,7 +2,7 @@
 
 ## Why This Exists
 
-Memory should be its own Engineering OS feature.
+Memory should be its own Crew feature.
 
 The problem is simple:
 
@@ -18,11 +18,11 @@ So memory needs two properties at once:
 
 The v1 memory system should stay very simple.
 
-At session start or workflow start, Engineering OS should load only:
+At session start or workflow start, Crew should load only:
 
 - stable repo memory
   - `CLAUDE.md`
-  - `.claude/engineering-os/*.md`
+  - `.claude/crew/*.md`
 - current live state
   - active claims
   - open approvals
