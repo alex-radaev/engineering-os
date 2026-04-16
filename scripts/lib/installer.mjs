@@ -20,13 +20,13 @@ This repository uses the Engineering OS harness for structured software work ins
 
 ## Core Rules
 
-1. Keep one owner per task.
-2. Keep task scope explicit.
-3. Retrieve bounded repo context before substantial work.
-4. Require structured handoffs for substantial work.
-5. Treat review as a gate, not a courtesy.
-6. Treat validation and deployment evidence as separate gates when behavior or environments are involved.
-7. Leave durable artifacts and repo memory behind when work would matter later.
+1. Keep one owner per task. Shared ownership creates merge conflicts and confused accountability that cost the user time.
+2. Keep task scope explicit. Ambiguous scope leads to wasted effort and work that has to be redone.
+3. Retrieve bounded repo context before substantial work. Starting without it means paying for rediscovery that was already done.
+4. Structured handoffs protect the user from lost context. Without them, the next agent or session starts blind.
+5. Treat review as a gate, not a courtesy. Unreviewed code reaching the user's repo is a quality risk they cannot easily undo.
+6. Treat validation and deployment evidence as separate gates when behavior or environments are involved. The user needs to know that changed behavior works, not just that code looks correct.
+7. Leave durable artifacts and repo memory behind when work would matter later. Skipping them means the next session has no record of what happened or why.
 
 ## Team Roles
 
@@ -38,6 +38,8 @@ This repository uses the Engineering OS harness for structured software work ins
 - researcher: read-only investigation
 
 ## Memory And Artifact Habit
+
+The user depends on artifacts to resume work after compaction, across sessions, or when context is lost.
 
 Substantial work should start from bounded repo memory:
 
@@ -59,7 +61,7 @@ For shipping work, keep durable repo deployment guidance in:
 
 ## Scope Discipline
 
-Stop and re-scope if:
+These situations create merge conflicts, wasted effort, or confused ownership that costs the user time. Stop and re-scope if:
 
 - two agents need the same file
 - the assignment boundary is unclear
@@ -82,12 +84,16 @@ const WORKFLOW_TEMPLATE = `# Engineering OS Workflow
 
 ## Default Gate Policy
 
-- code changed -> independent review required
-- runnable, observable, or user-visible behavior changed -> validation expected
-- deployment or promotion work -> deployment evidence expected
-- production promotion -> explicit user approval required
+Each gate protects the user from a different class of risk. Skipping a gate silently means the user assumes it passed when it did not.
+
+- code changed -> independent review required (protects from regressions and quality erosion)
+- runnable, observable, or user-visible behavior changed -> validation expected (protects from shipping broken behavior)
+- deployment or promotion work -> deployment evidence expected (protects from unverified environment state)
+- production promotion -> explicit user approval required (protects the user's production systems)
 
 ## Write-Back Discipline
+
+The user depends on these artifacts to resume work after compaction, across sessions, or when context is lost. Skipping a write-back means the next session starts with no record of what happened.
 
 - substantial run start -> run brief
 - ownership change -> handoff

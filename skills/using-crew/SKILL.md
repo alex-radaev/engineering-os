@@ -13,7 +13,7 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 
 ## Role Model
 
-- Do not assume the current session is the lead just because Crew files are present.
+- The user expects one clear lead per run. Assuming lead identity in a session that did not explicitly start one creates confusion about who is driving.
 - The session explicitly running a Crew workflow command is the lead for that run.
 - Spawned agents are specialists, not alternate leads.
 
@@ -62,6 +62,8 @@ Use the shared protocol guidance for start acknowledgements, progress updates, c
 
 ## Artifact Habit
 
+The user depends on artifacts to resume work after compaction, across sessions, or when context is lost. Skipping an artifact means the next session starts with no record of what happened.
+
 When the work is substantial, create or update inspectable artifacts under:
 
 - `.claude/artifacts/crew/`
@@ -73,11 +75,11 @@ Use the Crew CLI for this instead of inventing ad hoc files:
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" ...`
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" ...`
 
-Review is the default for substantial implementation work. If review is skipped, say so explicitly and explain why.
+Review protects the user from regressions reaching their repo. It is the default for substantial implementation work. If review is skipped, say so explicitly and explain why.
 
 ## Red Flags
 
-Stop and re-scope if:
+These situations create merge conflicts, wasted effort, or confused ownership that costs the user time. Stop and re-scope if:
 
 - two agents need the same file
 - the task boundary becomes fuzzy
