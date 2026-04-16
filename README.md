@@ -19,6 +19,9 @@ The intended user-facing surface is deliberately small:
 - `/crew:wake-up-brief`
 - `/crew:build-feature`
 - `/crew:investigate-bug`
+- `/crew:review`
+- `/crew:validate`
+- `/crew:ship`
 
 Parallelism, claims, approvals, and artifact writers exist to support those workflows. They are framework machinery and development helpers, not the normal command set a user should need to memorize.
 
@@ -40,7 +43,7 @@ This first pass includes:
 
 - plugin manifest at `.claude-plugin/plugin.json`
 - development marketplace manifest at `.claude-plugin/marketplace.json`
-- three durable specialist agents in `agents/`
+- five durable specialist agents in `agents/`
 - three reusable skills in `skills/`
 - a small user-facing workflow layer in `commands/`
 - lead identity assigned by workflow commands instead of a spawnable lead agent
@@ -58,7 +61,7 @@ Recommended first use:
 1. Install this plugin at `user` scope for your personal default setup.
 2. For an existing repo, open it and run `/crew:bootstrap-repo`.
 3. For a brand-new repo, run `/crew:init-repo`.
-4. Use `/crew:wake-up-brief`, `/crew:build-feature`, or `/crew:investigate-bug` when the task fits.
+4. Use `/crew:wake-up-brief`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
 
 For local development, you can also add the included dev marketplace and install from it:
 
@@ -88,6 +91,8 @@ Internal or advanced coordination/testing helpers:
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-run-brief --repo <path> --title <text>`
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-handoff --repo <path> --title <text>`
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-review-result --repo <path> --title <text>`
+- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-validation-result --repo <path> --title <text>`
+- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-deployment-result --repo <path> --title <text>`
 - `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-final-synthesis --repo <path> --title <text>`
 
 Shortcut scripts:
@@ -138,6 +143,7 @@ Suggested shared-repo `.gitignore` block:
 - Startup context should stay small: `CLAUDE.md` imports only the neutral constitution layer.
 - Workflow commands assign lead identity at runtime and load shared workflow/protocol guidance on demand.
 - Specialist agents are reusable tools with optional global and repo overlays.
+- Review, validation, and shipping now exist as first-class lead entry points, but the validator/deployer prompts and evidence loops are intentionally minimal v1 contracts that should be iterated through dogfooding.
 - The installer already has automated tests plus a sample-repo smoke run.
 - Live Claude Code validation has now succeeded for install, audit, bootstrap, hooks, a feature flow, and a bug-fix flow.
 - The product direction is a small workflow surface with richer internal machinery underneath, not a growing list of user commands.

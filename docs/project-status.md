@@ -35,6 +35,9 @@ The MVP should shine through a very small user-facing surface:
 - `/crew:wake-up-brief`
 - `/crew:build-feature`
 - `/crew:investigate-bug`
+- `/crew:review`
+- `/crew:validate`
+- `/crew:ship`
 
 Claims, approvals, and artifact writers matter, but they are support machinery. They should increasingly be things the lead uses automatically or sparingly, not a growing list of commands the user must learn.
 
@@ -44,7 +47,7 @@ The repo currently contains:
 
 - a valid Claude Code plugin
 - a local development marketplace manifest
-- command-driven lead workflows plus durable builder, reviewer, and researcher specialist agents
+- command-driven lead workflows plus durable builder, reviewer, researcher, validator, and deployer specialist agents
 - reusable skills for operating mode, handoffs, and review gates
 - lead entry commands for repo setup, wake-up, feature work, and bug fixing
 - CLI coordination helpers for claims and approvals
@@ -93,6 +96,8 @@ Supported commands:
 - `write-run-brief`
 - `write-handoff`
 - `write-review-result`
+- `write-validation-result`
+- `write-deployment-result`
 - `write-final-synthesis`
 
 Behavior:
@@ -196,6 +201,7 @@ What is working today:
 - artifact writers in the installer and CLI
 - workflow prompts now explicitly instruct the lead to use artifact writers for substantial runs
 - workflow prompts now start from a repo wake-up brief built from durable state
+- review, validation, and shipping entry-point commands with minimal validator/deployer role contracts
 - wake-up now follows an explicit bounded-v1 memory shape with hot, warm, and cold buckets
 - CI for tests and version consistency
 
@@ -215,6 +221,7 @@ What is not yet proven:
 7. Richer task-board state is still not implemented.
 8. Release/version workflow is documented, but still manual.
 9. The new wake-up brief needs live validation in Claude Code.
+10. Validator and deployer now exist, but their prompts, evidence shapes, and command ergonomics are intentionally v1-minimal and should be iterated through dogfooding before we add stronger automation or enforcement.
 
 ## Recommended Next Steps
 
@@ -222,7 +229,7 @@ What is not yet proven:
 
 Turn the current internals into a simpler product experience:
 
-- keep the user story centered on the five core workflow commands
+- keep the user story centered on the eight core workflow commands
 - use claims only when parallel work actually risks collision
 - use approvals only for meaningful boundary crossings
 - live-test artifact writers in Claude Code

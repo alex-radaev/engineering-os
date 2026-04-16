@@ -39,16 +39,21 @@ Workflow:
    - researcher traces code paths and prior behavior
    - builder attempts the smallest credible fix once the problem is clear
    - reviewer validates regression risk and test coverage
+   - validator reruns the bug path and confirms the expected behavior
 16. Use claims only when multiple people may touch overlapping files, and use approvals only for destructive or scope-expanding decisions.
-17. For non-trivial fixes, reviewer validation is the default. If you skip review, say so explicitly and justify it before the final synthesis.
-18. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
+17. For non-trivial fixes, independent review is the default. If you skip review, say so explicitly and justify it before the final synthesis.
+18. If the bug has a reproducible path or behavior that can be checked meaningfully, validator validation is the default after review.
+19. If the work is blocked on a deployment boundary or environment-specific evidence, recommend or enter `/crew:ship`.
+20. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-19. When review materially validates the bug fix, write a review artifact:
+21. When review materially validates the bug fix, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-20. End with:
+22. When validator evidence materially validates the fix, write a validation artifact:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
+23. End with:
    - likely root cause
    - evidence
    - fix status
    - residual risk
-21. For substantial work, write a final synthesis artifact:
+24. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

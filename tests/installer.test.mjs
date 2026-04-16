@@ -42,8 +42,9 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   assert.match(claudeMd, /crew:start/);
   assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
   assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
-  assert.match(workflowMd, /If a workflow command invoked this file, you are the lead/);
-  assert.match(protocolMd, /Start Acknowledgement/);
+  assert.match(workflowMd, /validation is expected by default/);
+  assert.match(protocolMd, /Validation Result/);
+  assert.match(protocolMd, /Deployment Result/);
   assert.ok(settings.hooks.SessionStart);
   assert.ok(settings.hooks.TaskCreated);
   assert.deepEqual(claimsState.claims, {});

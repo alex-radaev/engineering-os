@@ -216,6 +216,48 @@ test("CLI artifact writers create markdown artifacts", async () => {
   const reviewAliasResult = JSON.parse(reviewAliasOutput.stdout);
   const reviewAliasBody = await fs.readFile(reviewAliasResult.path, "utf8");
   assert.match(reviewAliasBody, /approved_with_notes/);
+
+  const validationOutput = await execFile("node", [
+    cliPath,
+    "write-validation-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Platform guidance validation",
+    "--validator",
+    "validator",
+    "--environment",
+    "local",
+    "--scenario",
+    "Open the create page and confirm platform guidance renders",
+    "--decision",
+    "passed"
+  ]);
+  const validationResult = JSON.parse(validationOutput.stdout);
+  const validationBody = await fs.readFile(validationResult.path, "utf8");
+  assert.match(validationBody, /# Validation Result: Platform guidance validation/);
+  assert.match(validationBody, /Environment: local/);
+
+  const deploymentOutput = await execFile("node", [
+    cliPath,
+    "write-deployment-result",
+    "--repo",
+    repoPath,
+    "--title",
+    "Dev deploy",
+    "--deployer",
+    "deployer",
+    "--environment",
+    "dev",
+    "--target",
+    "pr-42",
+    "--outcome",
+    "verified"
+  ]);
+  const deploymentResult = JSON.parse(deploymentOutput.stdout);
+  const deploymentBody = await fs.readFile(deploymentResult.path, "utf8");
+  assert.match(deploymentBody, /# Deployment Result: Dev deploy/);
+  assert.match(deploymentBody, /Outcome: verified/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {
@@ -270,6 +312,8 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
   assert.equal(wakeUpResult.summary.hasRecentRunMemory, true);
   assert.match(wakeUpResult.latestArtifacts.runBrief.title, /Wake-up test run/);
   assert.match(wakeUpResult.memory.hot.latestArtifacts.runBrief.title, /Wake-up test run/);
+  assert.equal(wakeUpResult.summary.archiveCounts.validations, 0);
+  assert.equal(wakeUpResult.summary.archiveCounts.deployments, 0);
   assert.equal(wakeUpResult.memory.hot.claims.length, 1);
   assert.equal(wakeUpResult.memory.hot.openApprovals.length, 1);
   assert.ok(wakeUpResult.memory.cold.archiveCounts.runs >= 1);
@@ -284,10 +328,10 @@ test("CLI wake-up brief summarizes repo memory and state", async () => {
 test("CLI subcommand help works without error", async () => {
   const helpOutput = await execFile("node", [
     cliPath,
-    "write-review-result",
+    "write-validation-result",
     "--help"
   ]);
 
-  assert.match(helpOutput.stdout, /write-review-result/);
-  assert.match(helpOutput.stdout, /--verdict/);
+  assert.match(helpOutput.stdout, /write-validation-result/);
+  assert.match(helpOutput.stdout, /--scenario/);
 });

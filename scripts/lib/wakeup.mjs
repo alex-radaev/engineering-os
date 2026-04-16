@@ -7,6 +7,8 @@ import { listClaims } from "./claims.mjs";
 const RUNS_DIR = [".claude", "artifacts", "crew", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "crew", "handoffs"];
 const REVIEWS_DIR = [".claude", "artifacts", "crew", "reviews"];
+const VALIDATIONS_DIR = [".claude", "artifacts", "crew", "validations"];
+const DEPLOYMENTS_DIR = [".claude", "artifacts", "crew", "deployments"];
 const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "crew", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "crew", "sprint.json"];
@@ -137,13 +139,15 @@ function summarizeLatestArtifact(artifact) {
 }
 
 async function countArchive(repoPath) {
-  const [runs, handoffs, reviews] = await Promise.all([
+  const [runs, handoffs, reviews, validations, deployments] = await Promise.all([
     countFiles(path.join(repoPath, ...RUNS_DIR)),
     countFiles(path.join(repoPath, ...HANDOFFS_DIR)),
-    countFiles(path.join(repoPath, ...REVIEWS_DIR))
+    countFiles(path.join(repoPath, ...REVIEWS_DIR)),
+    countFiles(path.join(repoPath, ...VALIDATIONS_DIR)),
+    countFiles(path.join(repoPath, ...DEPLOYMENTS_DIR))
   ]);
 
-  return { runs, handoffs, reviews };
+  return { runs, handoffs, reviews, validations, deployments };
 }
 
 function buildMemoryBuckets({
@@ -154,6 +158,8 @@ function buildMemoryBuckets({
   latestFinalSynthesis,
   latestHandoff,
   latestReview,
+  latestValidation,
+  latestDeployment,
   recentEvents,
   recentClaimHistory,
   archiveCounts
@@ -167,11 +173,13 @@ function buildMemoryBuckets({
       latestArtifacts: {
         runBrief: latestRunBrief,
         finalSynthesis: latestFinalSynthesis,
-        handoff: latestHandoff
+        handoff: latestHandoff,
+        review: latestReview,
+        validation: latestValidation,
+        deployment: latestDeployment
       }
     },
     warm: {
-      review: latestReview,
       recentEvents,
       recentClaimHistory
     },
@@ -188,16 +196,27 @@ function buildMemoryBuckets({
 }
 
 export async function buildWakeUpBrief(repoPath) {
-  const [openApprovals, claims, sprint, latestRunBrief, latestFinalSynthesis, latestHandoff, latestReview] =
-    await Promise.all([
-      listApprovals(repoPath, { status: "open" }),
-      listClaims(repoPath),
-      readJson(path.join(repoPath, ...SPRINT_PATH)),
-      latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
-      latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
-      latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
-      latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result")
-    ]);
+  const [
+    openApprovals,
+    claims,
+    sprint,
+    latestRunBrief,
+    latestFinalSynthesis,
+    latestHandoff,
+    latestReview,
+    latestValidation,
+    latestDeployment
+  ] = await Promise.all([
+    listApprovals(repoPath, { status: "open" }),
+    listClaims(repoPath),
+    readJson(path.join(repoPath, ...SPRINT_PATH)),
+    latestArtifactByPrefix(repoPath, RUNS_DIR, "run-brief"),
+    latestArtifactByPrefix(repoPath, RUNS_DIR, "final-synthesis"),
+    latestArtifactByPrefix(repoPath, HANDOFFS_DIR, "handoff"),
+    latestArtifactByPrefix(repoPath, REVIEWS_DIR, "review-result"),
+    latestArtifactByPrefix(repoPath, VALIDATIONS_DIR, "validation-result"),
+    latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-result")
+  ]);
 
   const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
     readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
@@ -215,7 +234,9 @@ export async function buildWakeUpBrief(repoPath) {
     runBrief: latestRunBrief,
     finalSynthesis: latestFinalSynthesis,
     handoff: latestHandoff,
-    review: latestReview
+    review: latestReview,
+    validation: latestValidation,
+    deployment: latestDeployment
   };
 
   const memory = buildMemoryBuckets({
@@ -226,6 +247,8 @@ export async function buildWakeUpBrief(repoPath) {
     latestFinalSynthesis,
     latestHandoff,
     latestReview,
+    latestValidation,
+    latestDeployment,
     recentEvents,
     recentClaimHistory,
     archiveCounts
@@ -246,10 +269,22 @@ export async function buildWakeUpBrief(repoPath) {
       activeClaims: claims.length,
       openApprovals: openApprovals.length,
       hasRecentRunMemory: Boolean(
-        latestRunBrief || latestFinalSynthesis || latestHandoff || latestReview
+        latestRunBrief ||
+          latestFinalSynthesis ||
+          latestHandoff ||
+          latestReview ||
+          latestValidation ||
+          latestDeployment
       ),
       latestArtifact: summarizeLatestArtifact(
-        newestOf(latestFinalSynthesis, latestRunBrief, latestHandoff, latestReview)
+        newestOf(
+          latestFinalSynthesis,
+          latestRunBrief,
+          latestHandoff,
+          latestReview,
+          latestValidation,
+          latestDeployment
+        )
       ),
       archiveCounts
     }

@@ -38,18 +38,24 @@ Workflow:
 15. If using a `team run`, claim files only when parallel work might collide, and open approvals only when scope or ownership boundaries must be crossed.
 16. If using a `team run`, assign bounded work to:
    - builder for implementation
-   - reviewer for validation
+   - reviewer for review
+   - validator for behavior validation when the result can be exercised meaningfully
    - researcher for uncertainty reduction if needed
 17. Keep ownership explicit and avoid same-file parallel editing.
-18. For substantial implementation work, reviewer validation is the default. If you skip review, say so explicitly and justify it before the final synthesis.
-19. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
+18. For substantial implementation work, independent review is the default. If you skip review, say so explicitly and justify it before the final synthesis.
+19. If the result has user-visible, system-visible, or externally observable behavior that can be exercised meaningfully, validator validation is the default after review.
+20. If the work is already moving through a deployment boundary, recommend or enter `/crew:ship` instead of treating local implementation as the whole workflow.
+21. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-20. When a reviewer materially validates the work, write a review artifact:
+22. When a reviewer materially validates the work, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-21. End with a clear synthesis for the user:
+23. When a validator materially validates the behavior, write a validation artifact:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
+24. End with a clear synthesis for the user:
    - what changed
+   - what was reviewed
    - what was validated
    - risks or open questions
    - what happens next
-22. For substantial work, write a final synthesis artifact:
+25. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

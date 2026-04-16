@@ -24,7 +24,7 @@ This repository uses the Crew harness for structured software work inside Claude
 ## Core Rules
 
 1. Prefer single-session unless delegation clearly helps.
-2. Spawn only specialist agents: builder, reviewer, researcher, or another explicitly named specialist.
+2. Spawn only specialist agents: builder, reviewer, researcher, validator, deployer, or another explicitly named specialist.
 3. Keep one owner per task.
 4. Keep task scope explicit and bounded.
 5. Avoid same-file parallel editing.
@@ -52,10 +52,15 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 4. Restate the active objective plus in-scope and out-of-scope boundaries.
 5. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
 6. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
-7. Spawn specialists only if they reduce uncertainty or split clean ownership.
-8. Use claims only when parallel work might collide.
-9. Use approvals when scope, ownership, policy, or destructive actions need an explicit decision.
-10. Leave inspectable artifacts for substantial work.
+7. Apply the default gate policy:
+   - if code changed -> review required
+   - if behavior can be exercised meaningfully -> validation expected
+   - if work crosses an environment boundary -> deployment evidence and post-deploy validation expected
+   - if production is affected -> explicit user approval required before promotion
+8. Spawn specialists only if they reduce uncertainty or split clean ownership.
+9. Use claims only when parallel work might collide.
+10. Use approvals when scope, ownership, policy, or destructive actions need an explicit decision.
+11. Leave inspectable artifacts for substantial work.
 
 ## Mode Guidance
 
@@ -70,12 +75,16 @@ For substantial work, prefer:
 - \`write-run-brief\` near the start
 - \`write-handoff\` when ownership changes or a specialist completes bounded work
 - \`write-review-result\` when review materially validates implementation
+- \`write-validation-result\` when validation materially validates behavior
+- \`write-deployment-result\` when deployment materially validates an environment transition
 - \`write-final-synthesis\` when the run ends
 
-## Review Default
+## Gate Defaults
 
-- Substantial implementation work should normally end with reviewer validation.
-- If review is skipped, say so explicitly and give a concrete reason.
+- If code changed, review is required by default.
+- If behavior can be exercised meaningfully, validation is expected by default.
+- If work crosses an environment boundary, deployment evidence plus post-deploy validation are expected by default.
+- If a gate is skipped, say so explicitly and give a concrete reason.
 `;
 
 const PROTOCOL_TEMPLATE = `# Crew Protocol
@@ -124,6 +133,33 @@ And include:
 - risk or failure summary
 - required follow-up, if rejected
 
+## Validation Result
+
+Every validation result must be one of:
+
+- \`passed\`
+- \`failed\`
+- \`blocked\`
+
+And include:
+
+- environment
+- scenario
+- evidence checked
+- gaps, risks, or blockers
+- recommended next step
+
+## Deployment Result
+
+Every deployment result should include:
+
+- target environment
+- target revision or rollout target
+- outcome: \`deployed\`, \`verified\`, \`blocked\`, or \`rolled_back\`
+- evidence checked
+- risks, blockers, or follow-up
+- recommended next step
+
 ## Handoff Quality Bar
 
 Good handoffs are:
@@ -141,6 +177,8 @@ This directory stores inspectable run artifacts for the Crew harness.
 - \`runs/\` for run briefs and final syntheses
 - \`handoffs/\` for task ownership and completion notes
 - \`reviews/\` for review results and rejection notes
+- \`validations/\` for behavior-validation evidence and verdicts
+- \`deployments/\` for environment-transition evidence and outcomes
 `;
 
 const STATE_README_TEMPLATE = `# Crew State
@@ -471,6 +509,8 @@ async function writeHarnessFiles(repoPath, writes) {
     path.join(repoPath, ".claude", "artifacts", "crew", "runs"),
     path.join(repoPath, ".claude", "artifacts", "crew", "handoffs"),
     path.join(repoPath, ".claude", "artifacts", "crew", "reviews"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "validations"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "deployments"),
     path.join(repoPath, ".claude", "logs"),
     path.join(repoPath, ".claude", "state", "crew")
   ];

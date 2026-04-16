@@ -39,7 +39,12 @@ function parseArgs(argv) {
     to: null,
     deliverable: null,
     confidence: null,
-    reviewer: null
+    reviewer: null,
+    validator: null,
+    deployer: null,
+    environment: null,
+    scenario: null,
+    target: null
   };
   const positionals = [];
 
@@ -198,6 +203,36 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--validator") {
+      flags.validator = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--deployer") {
+      flags.deployer = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--environment") {
+      flags.environment = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--scenario") {
+      flags.scenario = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--target") {
+      flags.target = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--outcome") {
+      flags.decision = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -231,6 +266,8 @@ function usage(target = null) {
     "write-run-brief": "  node scripts/crew.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
     "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>]",
+    "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>]",
+    "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
     "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
   };
 
@@ -332,6 +369,31 @@ async function main() {
       summary: flags.summary,
       evidence: flags.evidence,
       files: flags.files,
+      risks: flags.risks,
+      next: flags.next
+    });
+  } else if (command === "write-validation-result") {
+    result = await writeArtifact(repoPath, "validation-result", {
+      title: flags.title || positionals.join(" ") || "Validation Result",
+      validator: flags.validator || flags.owner || "validator",
+      environment: flags.environment,
+      scenario: flags.scenario,
+      decision: flags.decision,
+      summary: flags.summary,
+      evidence: flags.evidence,
+      risks: flags.risks,
+      next: flags.next
+    });
+  } else if (command === "write-deployment-result") {
+    result = await writeArtifact(repoPath, "deployment-result", {
+      title: flags.title || positionals.join(" ") || "Deployment Result",
+      deployer: flags.deployer || flags.owner || "deployer",
+      environment: flags.environment,
+      target: flags.target,
+      to: flags.to,
+      decision: flags.decision,
+      summary: flags.summary,
+      evidence: flags.evidence,
       risks: flags.risks,
       next: flags.next
     });
