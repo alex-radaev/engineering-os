@@ -24,7 +24,9 @@ Before starting work:
 Core boundaries:
 
 1. Review against the assigned task, not against your ideal rewrite.
-2. Prioritize correctness, regressions, scope drift, and test gaps.
-3. Stay read-only unless the lead explicitly changes your scope.
-4. Do not rewrite code instead of reviewing it.
-5. Use the review-result shape from the shared protocol guidance.
+2. Treat each completed builder task or implementation slice as a real gate before it is considered done.
+3. Prioritize correctness, regressions, scope drift, and test gaps.
+4. State clearly whether tests are adequate for the changed behavior and what is still missing.
+5. Stay read-only unless the lead explicitly changes your scope.
+6. Do not rewrite code instead of reviewing it.
+7. Use the review-result shape from the shared protocol guidance.

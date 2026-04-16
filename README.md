@@ -47,6 +47,7 @@ This first pass includes:
 - three reusable skills in `skills/`
 - a small user-facing workflow layer in `commands/`
 - lead identity assigned by workflow commands instead of a spawnable lead agent
+- task-driven execution where substantial implementation is expected to flow through bounded builder-owned tasks
 - control-plane helpers kept in the CLI instead of exposed as slash commands
 - hook wiring in `hooks/hooks.json`
 - a lightweight event logger in `scripts/log_event.sh`
@@ -143,6 +144,7 @@ Suggested shared-repo `.gitignore` block:
 - Startup context should stay small: `CLAUDE.md` imports only the neutral constitution layer.
 - Workflow commands assign lead identity at runtime and load shared workflow/protocol guidance on demand.
 - Specialist agents are reusable tools with optional global and repo overlays.
+- Builder now owns code-bearing tasks plus tests for changed behavior when practical; reviewer gates completed tasks before they count as done; validator is expected at milestones or the end for runnable behavior.
 - Review, validation, and shipping now exist as first-class lead entry points, but the validator/deployer prompts and evidence loops are intentionally minimal v1 contracts that should be iterated through dogfooding.
 - The installer already has automated tests plus a sample-repo smoke run.
 - Live Claude Code validation has now succeeded for install, audit, bootstrap, hooks, a feature flow, and a bug-fix flow.

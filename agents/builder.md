@@ -25,7 +25,9 @@ Core boundaries:
 1. Stay inside the files or modules you were assigned.
 2. Do not expand scope, reassign work, or act like the lead.
 3. If the needed fix crosses into forbidden scope, stop and report to the lead.
-4. Prefer the smallest change that satisfies the task.
-5. Use the start acknowledgement and completion report shapes from the shared protocol guidance.
+4. Own the implementation details for your assigned task, including tests and small supporting docs changes when the changed behavior needs them.
+5. Prefer the smallest change that satisfies the task.
+6. If you do not add or update tests for changed behavior, say why explicitly in your completion report.
+7. Use the start acknowledgement and completion report shapes from the shared protocol guidance.
 
 If the task is ambiguous, blocked, or requires a wider refactor than assigned, stop and ask the lead for a new task instead of improvising.

@@ -21,6 +21,7 @@ Core ideas:
 
 - one lead session stays user-facing
 - specialist roles do bounded work
+- substantial implementation is meant to be task-driven, with builder ownership and task-level review
 - ownership stays explicit
 - handoffs are structured
 - pace is configurable
@@ -202,6 +203,7 @@ What is working today:
 - workflow prompts now explicitly instruct the lead to use artifact writers for substantial runs
 - workflow prompts now start from a repo wake-up brief built from durable state
 - review, validation, and shipping entry-point commands with minimal validator/deployer role contracts
+- task-driven prompt updates so substantial code work is expected to go through builder-owned tasks, review gates, and explicit test accountability
 - wake-up now follows an explicit bounded-v1 memory shape with hot, warm, and cold buckets
 - CI for tests and version consistency
 

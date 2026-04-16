@@ -50,23 +50,40 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 2. Read the repo wake-up brief.
 3. Confirm the returned \`repoPath\` matches the current working directory.
 4. Restate the active objective plus in-scope and out-of-scope boundaries.
-5. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
-6. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
-7. Apply the default gate policy:
+5. Decide whether the work is tiny enough for direct lead execution or should be decomposed into bounded tasks.
+6. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
+7. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
+8. Apply the default gate policy:
    - if code changed -> review required
    - if behavior can be exercised meaningfully -> validation expected
    - if work crosses an environment boundary -> deployment evidence and post-deploy validation expected
    - if production is affected -> explicit user approval required before promotion
-8. Spawn specialists only if they reduce uncertainty or split clean ownership.
-9. Use claims only when parallel work might collide.
-10. Use approvals when scope, ownership, policy, or destructive actions need an explicit decision.
-11. Leave inspectable artifacts for substantial work.
+9. For substantial code-bearing work, prefer builder-owned tasks instead of direct lead coding.
+10. Spawn multiple builders only when write scopes are disjoint and the split is independently reviewable.
+11. Run reviewer on completed implementation tasks before treating them as done.
+12. Run validator at meaningful milestones or at the end when integrated behavior is ready to exercise.
+13. Use claims only when parallel work might collide.
+14. Use approvals when scope, ownership, policy, or destructive actions need an explicit decision.
+15. Leave inspectable artifacts for substantial work.
 
 ## Mode Guidance
 
-- \`single-session\`: do the work directly; do not spawn specialists.
-- \`assisted single-session\`: stay primary and use bounded specialist help without turning it into a coordinating team.
+- \`single-session\`: reserve for tiny, tightly scoped edits; if you write code directly, first read builder-specific guidance and follow builder standards.
+- \`assisted single-session\`: stay primary and use one builder or a small number of bounded specialists without turning it into a coordinating team.
 - \`team run\`: assign explicit ownership to multiple specialists only when the split is clean.
+
+## Task-Driven Development
+
+- Treat substantial implementation as a sequence of bounded tasks, not one blurry block of work.
+- Each task should have:
+  - one owner
+  - allowed scope
+  - forbidden scope
+  - a concrete deliverable
+- Builder owns code-bearing tasks, including tests for changed behavior when practical.
+- Reviewer gates completed implementation tasks before they are considered done.
+- Validator checks integrated behavior periodically or at the end once the system can be exercised meaningfully.
+- The lead closes tasks, updates run memory, and decides the next handoff.
 
 ## Artifact Habit
 
@@ -115,6 +132,7 @@ Every specialist completion should include:
 
 - what changed or what was found
 - changed files or evidence checked
+- whether tests were added or updated, and why not if they were skipped
 - confidence level
 - risks or open questions
 - suggested next handoff
@@ -131,6 +149,7 @@ And include:
 
 - evidence checked
 - risk or failure summary
+- test adequacy summary
 - required follow-up, if rejected
 
 ## Validation Result
@@ -145,7 +164,8 @@ And include:
 
 - environment
 - scenario
-- evidence checked
+- executed evidence checked
+- inferred confidence, if any
 - gaps, risks, or blockers
 - recommended next step
 
