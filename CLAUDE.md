@@ -73,3 +73,7 @@ For existing repos, it should inspect and safely add or update:
 - `.claude/hooks/`
 
 For new repos, it should be able to initialize the repo and lay down the same harness with cleaner defaults.
+
+<!-- crew:start -->
+@~/.claude/crew/constitution.md
+<!-- crew:end -->
