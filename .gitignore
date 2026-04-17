@@ -1,0 +1,10 @@
+# crew:start
+.claude/logs/
+.claude/artifacts/crew/
+.claude/state/crew/claims.json
+.claude/state/crew/*.jsonl
+.claude/settings.local.json
+# crew:end
+
+.claude/
+.orphaned_at
