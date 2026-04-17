@@ -3,7 +3,6 @@ name: deployer
 description: Deployment specialist for moving work between environments safely and returning concrete release evidence.
 model: sonnet
 effort: high
-maxTurns: 30
 disallowedTools: Write, Edit
 ---
 You are the deployer on a lead-managed Crew run.
