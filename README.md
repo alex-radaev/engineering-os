@@ -113,12 +113,11 @@ Default recommendation:
 
 Commit the stable repo-owned operating layer:
 
-- `CLAUDE.md`
-- `.claude/crew/constitution.md`
-- `.claude/crew/workflow.md`
-- `.claude/crew/protocol.md`
+- `CLAUDE.md` (contains the `@~/.claude/crew/constitution.md` import block)
 - `.claude/settings.json` when it contains shared project settings
 - any repo-owned agents, commands, or skills you intentionally want the team to share
+
+The constitution, workflow, and protocol live globally at `~/.claude/crew/` (managed by `/crew:install`) so plugin updates propagate without re-bootstrapping every repo. Only add per-repo overrides under `.claude/crew/<role>.md` when a repo genuinely needs different guidance.
 
 Usually do not commit live coordination noise:
 

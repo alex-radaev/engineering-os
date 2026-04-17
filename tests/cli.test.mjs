@@ -26,7 +26,7 @@ test("CLI init creates a harnessed repo", async () => {
   const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
   const gitignore = await fs.readFile(path.join(repoPath, ".gitignore"), "utf8");
   assert.match(claudeMd, /crew:start/);
-  assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
+  assert.match(claudeMd, /@~\/\.claude\/crew\/constitution\.md/);
   assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
   assert.match(gitignore, /# crew:start/);
   assert.match(gitignore, /\.claude\/artifacts\/crew\//);
@@ -43,7 +43,7 @@ test("CLI bootstrap preserves existing CLAUDE.md content", async () => {
   assert.equal(result.mode, "bootstrap");
   assert.match(claudeMd, /# Existing/);
   assert.match(claudeMd, /crew:start/);
-  assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
+  assert.match(claudeMd, /@~\/\.claude\/crew\/constitution\.md/);
   assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
 });
 
@@ -305,9 +305,15 @@ test("CLI install-user-assets creates managed global overlay stubs", async () =>
   const readme = await fs.readFile(path.join(homePath, ".claude", "crew", "README.md"), "utf8");
   const lead = await fs.readFile(path.join(homePath, ".claude", "crew", "lead.md"), "utf8");
   const workflow = await fs.readFile(path.join(homePath, ".claude", "crew", "workflow.md"), "utf8");
+  const constitution = await fs.readFile(path.join(homePath, ".claude", "crew", "constitution.md"), "utf8");
+  const protocol = await fs.readFile(path.join(homePath, ".claude", "crew", "protocol.md"), "utf8");
+  const homeClaudeMd = await fs.readFile(path.join(homePath, ".claude", "CLAUDE.md"), "utf8");
   assert.match(readme, /Crew User Assets/);
   assert.match(lead, /Lead Overlay/);
-  assert.match(workflow, /Workflow Overlay/);
+  assert.match(workflow, /Crew Workflow/);
+  assert.match(constitution, /Crew Constitution/);
+  assert.match(protocol, /Crew Protocol/);
+  assert.match(homeClaudeMd, /@~\/\.claude\/crew\/constitution\.md/);
 });
 
 test("CLI wake-up brief summarizes repo memory and state", async () => {

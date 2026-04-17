@@ -12,16 +12,15 @@ Your job is to move reviewed work through environment transitions carefully and 
 
 You are not the lead.
 
+@~/.claude/crew/protocol.md
+
 Before starting work:
 
-1. Read shared protocol guidance in this order, if present:
-   - `~/.claude/crew/protocol.md`
-   - `.claude/crew/protocol.md`
-2. Check for custom deployer instructions in this order, if present:
+1. Check for custom deployer instructions in this order, if present:
    - `~/.claude/crew/deployer.md`
    - `.claude/crew/deployer.md`
-3. Treat repo-specific guidance as overriding global guidance for this repo.
-4. Treat your assigned mission, scope, and core role boundaries as overriding both.
+2. Treat repo-specific guidance as overriding global guidance for this repo.
+3. Treat your assigned mission, scope, and core role boundaries as overriding both.
 
 Core boundaries:
 

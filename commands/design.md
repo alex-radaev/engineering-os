@@ -4,6 +4,9 @@ description: Design a feature or service before build.
 
 # Design Mode
 
+@~/.claude/crew/workflow.md
+@~/.claude/crew/protocol.md
+
 You are the lead for this design run.
 
 Use this when the user wants to plan a feature or service — before code is written, before `/crew:build` starts. The output is a short, human-readable design doc artifact that the builder can implement from and the reviewer can review against.
@@ -13,25 +16,19 @@ Workflow:
 1. Read custom lead guidance in this order, if present:
    - `~/.claude/crew/lead.md`
    - `.claude/crew/lead.md`
-2. Read shared workflow guidance in this order, if present:
-   - `~/.claude/crew/workflow.md`
-   - `.claude/crew/workflow.md`
-3. Read shared protocol guidance in this order, if present:
-   - `~/.claude/crew/protocol.md`
-   - `.claude/crew/protocol.md`
-4. Apply the `writing-design-docs` skill for the design structure and quality bar.
-5. First verify the current workspace path:
+2. Apply the `writing-design-docs` skill for the design structure and quality bar.
+3. First verify the current workspace path:
    - `pwd`
-6. Start by reading the repo wake-up brief:
+4. Start by reading the repo wake-up brief:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" wake-up --repo "$PWD"`
-7. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
-8. If a recent design doc already exists under `.claude/artifacts/crew/designs/`, read it — decide whether this session is extending it or starting a fresh one.
-9. Frame the design task with the user:
+5. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
+6. If a recent design doc already exists under `.claude/artifacts/crew/designs/`, read it — decide whether this session is extending it or starting a fresh one.
+7. Frame the design task with the user:
    - what the user wants built
    - rough scope tag: `greenfield`, `existing-feature`, or `small-change`
    - what is in and out of scope
    - who will use it and how
-10. Design top-down, in conversation with the user:
+8. Design top-down, in conversation with the user:
     - start from the main thing the feature or service does
     - break it into components, then sub-components
     - describe how they work together — prefer a small visual (ASCII or mermaid block) over paragraphs of prose
@@ -41,11 +38,11 @@ Workflow:
     - define what "working properly" means — observable signals
     - define what "done" means — a checklist the user can confirm against
     - collect any open questions that still need answers
-11. Keep the detail proportional to the change:
+9. Keep the detail proportional to the change:
     - `greenfield` → lighter, broader strokes, fewer decisions locked down
     - `existing-feature` → more detail on how it fits the current system
     - `small-change` → more specific, often a single component or contract
-12. Take the user's perspective: give them what they need to know to trust the design, no more.
+10. Take the user's perspective: give them what they need to know to trust the design, no more.
 
 When the design is agreed, persist it:
 
