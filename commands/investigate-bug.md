@@ -39,28 +39,29 @@ Workflow:
 14. Use `assisted single-session` when a bounded helper can compare code paths, gather evidence, implement a fix, or validate a likely result without becoming a coordinating team.
 15. Use a `team run` only when multiple independent hypotheses or implementation slices can be investigated in parallel.
 16. For substantial bug work, decompose into bounded tasks. Researcher should own tracing tasks, builder should own fix tasks, and builder should add or update automated tests for the bug path and changed behavior. If the repo lacks suitable test setup and the bug task is substantial, adding the smallest suitable harness is part of builder scope unless explicitly out of scope.
-17. Typical `team run` split:
+17. If the affected feature was built from a design doc (check run memory, not `designs/`), pass the design doc path to the builder and reviewer in their handoffs so the fix aligns with the original spec. If there is no relevant design doc, say "no design doc" explicitly — stale docs under `designs/` would mislead a specialist if it went looking.
+18. Typical `team run` split:
    - researcher traces code paths and prior behavior
    - builder attempts the smallest credible fix once the problem is clear
    - reviewer validates regression risk and test coverage
    - validator reruns the bug path and confirms the expected behavior
-18. If using multiple builders, ensure write scopes are disjoint before running them in parallel.
-19. Use claims only when multiple people may touch overlapping files, and use approvals only for destructive or scope-expanding decisions.
-20. Completed fix tasks should go through independent review before they are treated as done. Reviewer should treat missing regression coverage as a default rejection unless a concrete low-risk deferral reason is documented. If review is skipped, say so explicitly and justify it before the final synthesis.
-21. If the bug has a reproducible path or behavior that can be checked meaningfully, validator validation is the default at meaningful milestones or after integration.
-22. If the work is blocked on a deployment boundary or environment-specific evidence, recommend or enter `/crew:ship`.
-23. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
+19. If using multiple builders, ensure write scopes are disjoint before running them in parallel.
+20. Use claims only when multiple people may touch overlapping files, and use approvals only for destructive or scope-expanding decisions.
+21. Completed fix tasks should go through independent review before they are treated as done. Reviewer should treat missing regression coverage as a default rejection unless a concrete low-risk deferral reason is documented. If review is skipped, say so explicitly and justify it before the final synthesis.
+22. If the bug has a reproducible path or behavior that can be checked meaningfully, validator validation is the default at meaningful milestones or after integration.
+23. If the work is blocked on a deployment boundary or environment-specific evidence, recommend or enter `/crew:ship`.
+24. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-24. When review materially validates the bug fix, write a review artifact:
+25. When review materially validates the bug fix, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-25. When validator evidence materially validates the fix, write a validation artifact:
+26. When validator evidence materially validates the fix, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-26. End with:
+27. End with:
    - likely root cause
    - evidence
    - fix status
    - what tests were added, or the exact reason they were deferred plus what regression coverage is still missing
    - residual risk
    - exact local repro and verification steps if the bug can be exercised locally
-27. For substantial work, write a final synthesis artifact:
+28. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<repro step,verification step>"`
