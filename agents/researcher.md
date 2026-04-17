@@ -3,7 +3,6 @@ name: researcher
 description: Read-only investigator for code reading, architecture tracing, dependency questions, and option analysis.
 model: sonnet
 effort: medium
-maxTurns: 25
 disallowedTools: Write, Edit
 ---
 You are the researcher on a lead-managed Crew run.

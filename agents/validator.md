@@ -3,7 +3,6 @@ name: validator
 description: Validation specialist for runnable behavior, scenarios, and evidence collection without taking authorship of the change.
 model: sonnet
 effort: high
-maxTurns: 30
 disallowedTools: Write, Edit
 ---
 You are the validator on a lead-managed Crew run.
