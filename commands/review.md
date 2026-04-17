@@ -33,15 +33,16 @@ Workflow:
 11. If the review run is substantial enough that future wake-up context will matter, immediately write a run brief with:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>" --pace "<pace>"`
 12. Use reviewer as the primary specialist for the gate.
-13. Treat review as a task-closure step: completed implementation tasks should not be considered done until the reviewer returns a verdict.
-14. Bring in researcher only if code tracing or repo-standard discovery is needed to make the review meaningful.
-15. If review materially validates the work, write a review artifact:
+13. If a design doc exists under `.claude/artifacts/crew/designs/`, pass its path to the reviewer in the handoff so review can assess conformance, not just generic correctness.
+14. Treat review as a task-closure step: completed implementation tasks should not be considered done until the reviewer returns a verdict.
+15. Bring in researcher only if code tracing or repo-standard discovery is needed to make the review meaningful.
+16. If review materially validates the work, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-16. End with:
+17. End with:
    - verdict: `approved`, `approved_with_notes`, or `rejected`
    - evidence checked
    - test adequacy
    - risks or follow-up needed
    - whether the work is now ready for validation, shipping, or more implementation
-17. For substantial work, write a final synthesis artifact:
+18. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`
