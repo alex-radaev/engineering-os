@@ -1,13 +1,14 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFile = promisify(execFileCallback);
-const cliPath = "/Users/aradaev/Documents/Playground/scripts/crew.mjs";
+const cliPath = fileURLToPath(new URL("../scripts/crew.mjs", import.meta.url));
 
 async function makeTempDir(prefix) {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));

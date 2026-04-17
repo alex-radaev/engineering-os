@@ -1,5 +1,5 @@
 ---
-description: Lead a bounded feature delivery run with explicit ownership, pacing, and handoffs.
+description: Build or extend a capability.
 ---
 
 # Build Feature In Crew Mode

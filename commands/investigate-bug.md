@@ -1,5 +1,5 @@
 ---
-description: Lead a debugging run with bounded parallelism, evidence gathering, and explicit review.
+description: Investigate and fix broken behavior.
 ---
 
 # Investigate Bug In Crew Mode

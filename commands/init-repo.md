@@ -1,5 +1,5 @@
 ---
-description: Create or initialize a new repository with the Crew harness already in place.
+description: Initialize a new repo with Crew.
 ---
 
 # Initialize A New Repo In Crew Mode

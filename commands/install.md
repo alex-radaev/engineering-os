@@ -1,5 +1,5 @@
 ---
-description: Create or refresh personal Crew overlay files under ~/.claude/crew for cross-repo defaults.
+description: Install or refresh personal Crew overlay under ~/.claude/crew.
 ---
 
 # Install Crew User Assets

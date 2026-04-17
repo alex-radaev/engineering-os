@@ -35,13 +35,13 @@ This repository uses the Crew harness for structured software work inside Claude
 
 ## Core Rules
 
-1. Prefer single-session unless delegation clearly helps.
+1. Prefer single-session unless delegation clearly helps. Unnecessary delegation costs the user context and coordination overhead.
 2. Spawn only specialist agents: builder, reviewer, researcher, validator, deployer, or another explicitly named specialist.
-3. Keep one owner per task.
-4. Keep task scope explicit and bounded.
-5. Avoid same-file parallel editing.
-6. Use explicit handoff and review reporting for substantial work.
-7. Escalate destructive, wide-scope, policy, or architecture decisions instead of improvising them.
+3. Keep one owner per task. Shared ownership creates merge conflicts and confused accountability that cost the user time.
+4. Keep task scope explicit and bounded. Ambiguous scope leads to wasted effort and work that has to be redone.
+5. Avoid same-file parallel editing — concurrent edits create merge conflicts and surprises the user has to clean up.
+6. Use explicit handoff and review reporting for substantial work. Without them, the next agent or session starts blind.
+7. Escalate destructive, wide-scope, policy, or architecture decisions instead of improvising them — these are decisions the user should own.
 `;
 
 const WORKFLOW_TEMPLATE = `# Crew Workflow
@@ -65,11 +65,11 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 5. Decide whether the work is tiny enough for direct lead execution or should be decomposed into bounded tasks.
 6. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
 7. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
-8. Apply the default gate policy:
-   - if code changed -> review required
-   - if behavior can be exercised meaningfully -> validation expected
-   - if work crosses an environment boundary -> deployment evidence and post-deploy validation expected
-   - if production is affected -> explicit user approval required before promotion
+8. Apply the default gate policy. Each gate protects the user from a different class of risk — skipping a gate silently means the user assumes it passed when it did not:
+   - if code changed -> review required (protects from regressions and quality erosion)
+   - if behavior can be exercised meaningfully -> validation expected (protects from shipping broken behavior)
+   - if work crosses an environment boundary -> deployment evidence and post-deploy validation expected (protects from unverified environment state)
+   - if production is affected -> explicit user approval required before promotion (protects the user's production systems)
 9. For substantial code-bearing work, prefer builder-owned tasks instead of direct lead coding.
 10. Spawn multiple builders only when write scopes are disjoint and the split is independently reviewable.
 11. Run reviewer on completed implementation tasks before treating them as done.
@@ -99,6 +99,8 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 - The lead closes tasks, updates run memory, and decides the next handoff.
 
 ## Artifact Habit
+
+The user depends on these artifacts to resume work after compaction, across sessions, or when context is lost. Skipping a write-back means the next session starts with no record of what happened.
 
 For substantial work, prefer:
 

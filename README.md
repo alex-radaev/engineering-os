@@ -2,7 +2,7 @@
 
 `crew` is a Claude Code plugin for running a small, legible engineering team around a lead session.
 
-It is aimed at the workflow described in [docs/v1-spec.md](/Users/aradaev/Documents/Playground/docs/v1-spec.md):
+It is aimed at the workflow described in [docs/v1-spec.md](docs/v1-spec.md):
 
 - explicit roles
 - bounded ownership
@@ -18,6 +18,7 @@ The intended user-facing surface is deliberately small:
 - `/crew:bootstrap-repo`
 - `/crew:install`
 - `/crew:wake-up-brief`
+- `/crew:design`
 - `/crew:build-feature`
 - `/crew:investigate-bug`
 - `/crew:review`
@@ -30,13 +31,13 @@ Parallelism, claims, approvals, and artifact writers exist to support those work
 
 If you are picking this repo up in a later session, read these first:
 
-- [project-status.md](/Users/aradaev/Documents/Playground/docs/project-status.md)
-- [reference-repo-plan.md](/Users/aradaev/Documents/Playground/docs/reference-repo-plan.md)
-- [memory-and-communication.md](/Users/aradaev/Documents/Playground/docs/memory-and-communication.md)
-- [memory-system.md](/Users/aradaev/Documents/Playground/docs/memory-system.md)
-- [how-it-feels.md](/Users/aradaev/Documents/Playground/docs/how-it-feels.md)
-- [v1-spec.md](/Users/aradaev/Documents/Playground/docs/v1-spec.md)
-- [release-versioning.md](/Users/aradaev/Documents/Playground/docs/release-versioning.md)
+- [project-status.md](docs/project-status.md)
+- [reference-repo-plan.md](docs/reference-repo-plan.md)
+- [memory-and-communication.md](docs/memory-and-communication.md)
+- [memory-system.md](docs/memory-system.md)
+- [how-it-feels.md](docs/how-it-feels.md)
+- [v1-spec.md](docs/v1-spec.md)
+- [release-versioning.md](docs/release-versioning.md)
 
 ## Current shape
 
@@ -45,7 +46,7 @@ This first pass includes:
 - plugin manifest at `.claude-plugin/plugin.json`
 - development marketplace manifest at `.claude-plugin/marketplace.json`
 - five durable specialist agents in `agents/`
-- three reusable skills in `skills/`
+- four reusable skills in `skills/`
 - a small user-facing workflow layer in `commands/`
 - lead identity assigned by workflow commands instead of a spawnable lead agent
 - task-driven execution where substantial implementation is expected to flow through bounded builder-owned tasks
@@ -64,11 +65,11 @@ Recommended first use:
 2. Optionally run `/crew:install` once to create managed personal overlays under `~/.claude/crew/`.
 3. For an existing repo, open it and run `/crew:bootstrap-repo`.
 4. For a brand-new repo, run `/crew:init-repo`.
-5. Use `/crew:wake-up-brief`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
+5. Use `/crew:wake-up-brief`, `/crew:design`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
 
 For local development, you can also add the included dev marketplace and install from it:
 
-1. `claude plugin marketplace add /Users/aradaev/Documents/Playground/.claude-plugin/marketplace.json`
+1. `claude plugin marketplace add ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json`
 2. `claude plugin install crew@crew-dev`
 
 ## Installer And Dev CLI
@@ -77,27 +78,27 @@ The plugin now ships a small CLI.
 
 Normal development mainly needs:
 
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs audit --repo <path>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs bootstrap --repo <path>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs init --repo <path> [--allow-existing]`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs install-user-assets`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs audit --repo <path>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs bootstrap --repo <path>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs init --repo <path> [--allow-existing]`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs install-user-assets`
 
 Internal or advanced coordination/testing helpers:
 
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs wake-up --repo <path>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs claim --repo <path> [--owner <name>] <files...>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs release --repo <path> [files...]`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs show-claims --repo <path>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs show-conflicts --repo <path> [files...]`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs request-approval --repo <path> --summary <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all]`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-run-brief --repo <path> --title <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-handoff --repo <path> --title <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-review-result --repo <path> --title <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-validation-result --repo <path> --title <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-deployment-result --repo <path> --title <text>`
-- `node /Users/aradaev/Documents/Playground/scripts/crew.mjs write-final-synthesis --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs wake-up --repo <path>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs claim --repo <path> [--owner <name>] <files...>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs release --repo <path> [files...]`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-claims --repo <path>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-conflicts --repo <path> [files...]`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs request-approval --repo <path> --summary <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all]`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-run-brief --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-handoff --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-review-result --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-validation-result --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-deployment-result --repo <path> --title <text>`
+- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-final-synthesis --repo <path> --title <text>`
 
 Shortcut scripts:
 

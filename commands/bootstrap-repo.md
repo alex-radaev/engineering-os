@@ -1,5 +1,5 @@
 ---
-description: Conservatively prepare the current repository for the Crew workflow.
+description: Bootstrap Crew into this repo conservatively.
 ---
 
 # Bootstrap This Repo For Crew

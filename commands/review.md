@@ -1,5 +1,5 @@
 ---
-description: Lead a review gate on completed work with explicit review standards and inspectable results.
+description: Run the review phase on completed work.
 ---
 
 # Review Work In Crew Mode

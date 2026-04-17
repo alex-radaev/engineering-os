@@ -44,7 +44,7 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   assert.match(claudeMd, /crew:start/);
   assert.match(claudeMd, /@\.claude\/crew\/constitution\.md/);
   assert.doesNotMatch(claudeMd, /@\.claude\/crew\/workflow\.md/);
-  assert.match(workflowMd, /Builder owns code-bearing tasks, including tests for changed behavior when practical/);
+  assert.match(workflowMd, /Builder owns code-bearing tasks, including automated tests for changed behavior/);
   assert.match(protocolMd, /Validation Result/);
   assert.match(protocolMd, /Deployment Result/);
   assert.match(protocolMd, /whether tests were added or updated/);

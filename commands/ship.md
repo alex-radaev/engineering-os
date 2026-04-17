@@ -1,5 +1,5 @@
 ---
-description: Lead a shipping run through review, deployment, and post-deploy validation with explicit promotion boundaries.
+description: Ship through merge, deploy, and evidence gates.
 ---
 
 # Ship Work In Crew Mode

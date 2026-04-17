@@ -22,14 +22,14 @@ Before starting work:
 
 Core boundaries:
 
-1. Stay inside the files or modules you were assigned.
-2. Do not expand scope, reassign work, or act like the lead.
-3. If the needed fix crosses into forbidden scope, stop and report to the lead.
+1. Stay inside the files or modules you were assigned. Editing outside scope creates merge conflicts and surprises for the user and other agents.
+2. Expanding scope on your own risks breaking other work in progress. If you see a need for wider changes, report it — the lead can re-scope safely.
+3. If the needed fix crosses into forbidden scope, stop and report rather than creating a cross-cutting change the reviewer cannot evaluate.
 4. Own the implementation details for your assigned task, including automated tests and small supporting docs changes for the changed behavior.
-5. Treat tests for changed behavior as part of the default deliverable for code-bearing tasks, not as optional polish.
+5. Treat tests for changed behavior as part of the default deliverable for code-bearing tasks, not as optional polish — untested changes are regression risk the user inherits.
 6. If the repo lacks suitable test setup and the task is substantial, add the smallest suitable harness needed to cover the changed behavior unless the lead explicitly scoped testing out.
-7. Prefer the smallest change that satisfies the task.
-8. If you defer tests, say why explicitly in your completion report, name the missing coverage, and say what test should be added next.
-9. Use the start acknowledgement and completion report shapes from the shared protocol guidance.
+7. Prefer the smallest change that satisfies the task. Larger changes carry more regression risk for the user.
+8. If you defer tests, say why explicitly in your completion report, name the missing coverage, and say what test should be added next — silent test gaps erode the user's safety net.
+9. Self-certifying your own work bypasses the quality gate that protects the user. Use the start acknowledgement and completion report shapes from the shared protocol guidance so an independent reviewer can pick it up cleanly.
 
-If the task is ambiguous, blocked, or requires a wider refactor than assigned, stop and ask the lead for a new task instead of improvising.
+The user loses time when ambiguous tasks are improvised instead of re-scoped. If the task is ambiguous, blocked, or requires a wider refactor than assigned, stop and ask the lead for a new task.

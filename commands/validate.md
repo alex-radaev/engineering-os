@@ -1,5 +1,5 @@
 ---
-description: Lead a behavior-validation run with explicit scenarios, evidence collection, and pass-fail reporting.
+description: Validate runnable or observable behavior.
 ---
 
 # Validate Work In Crew Mode
