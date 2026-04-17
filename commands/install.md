@@ -18,8 +18,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" install-user-assets`
 2. Treat the installer output as canonical for the managed global Crew files.
 3. Do not copy repo-local `constitution.md`, `workflow.md`, or `protocol.md` into `~/.claude/crew/` by hand.
-4. If a legacy `~/.claude/engineering-os/` directory exists, mention that it was detected and should be reviewed manually before reuse.
-5. Summarize exactly which overlay files were created and what they are for.
+4. Summarize exactly which overlay files were created and what they are for.
 
 Deliverable:
 

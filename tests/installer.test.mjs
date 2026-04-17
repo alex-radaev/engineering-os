@@ -70,56 +70,6 @@ test("bootstrap is idempotent for CLAUDE.md imports", async () => {
   assert.equal(occurrences.length, 1);
 });
 
-test("bootstrap upgrades legacy harness paths and CLAUDE import block", async () => {
-  const repoPath = await makeTempDir("crew-legacy-upgrade-");
-  await fs.mkdir(path.join(repoPath, ".claude", "engineering-os"), { recursive: true });
-  await fs.mkdir(path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"), {
-    recursive: true
-  });
-  await fs.mkdir(path.join(repoPath, ".claude", "state", "engineering-os"), {
-    recursive: true
-  });
-  await fs.writeFile(
-    path.join(repoPath, "CLAUDE.md"),
-    [
-      "# Repo",
-      "",
-      "<!-- engineering-os:start -->",
-      "@.claude/engineering-os/constitution.md",
-      "<!-- engineering-os:end -->",
-      ""
-    ].join("\n")
-  );
-  await fs.writeFile(
-    path.join(repoPath, ".claude", "engineering-os", "constitution.md"),
-    "# Legacy Constitution\n"
-  );
-  await fs.writeFile(
-    path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"),
-    "{\n  \"claims\": {\n    \"src/legacy.ts\": {\n      \"owner\": \"builder\"\n    }\n  }\n}\n"
-  );
-
-  await bootstrapRepo(repoPath);
-
-  const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8");
-  const claimsState = await fs.readFile(
-    path.join(repoPath, ".claude", "state", "crew", "claims.json"),
-    "utf8"
-  );
-  assert.match(claudeMd, /<!-- crew:start -->/);
-  assert.doesNotMatch(claudeMd, /engineering-os:start/);
-  assert.equal(await fs.access(path.join(repoPath, ".claude", "crew", "constitution.md")).then(() => true).catch(() => false), true);
-  assert.equal(await fs.access(path.join(repoPath, ".claude", "state", "crew", "claims.json")).then(() => true).catch(() => false), true);
-  assert.match(claimsState, /src\/legacy\.ts/);
-  assert.equal(
-    await fs
-      .access(path.join(repoPath, ".claude", "engineering-os"))
-      .then(() => true)
-      .catch(() => false),
-    false
-  );
-});
-
 test("init creates a new repo harness and audit sees it", async () => {
   const rootPath = await makeTempDir("crew-root-");
   const repoPath = path.join(rootPath, "demo-repo");
@@ -152,7 +102,6 @@ test("installUserAssets creates overlay files without overwriting existing custo
   const reviewer = await fs.readFile(path.join(homePath, ".claude", "crew", "reviewer.md"), "utf8");
 
   assert.equal(result.mode, "install-user-assets");
-  assert.equal(result.legacyPathDetected, false);
   assert.equal(lead, "# My Lead Overlay\n");
   assert.match(reviewer, /Reviewer Overlay/);
 });

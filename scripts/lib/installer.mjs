@@ -8,7 +8,6 @@ const CLAUDE_IMPORT_BLOCK = [
   "<!-- crew:end -->"
 ].join("\n");
 
-const LEGACY_IMPORT_BLOCK_RE = /<!--\s*engineering-os:start\s*-->[\s\S]*?<!--\s*engineering-os:end\s*-->/;
 const GITIGNORE_BLOCK_RE = /#\s*crew:start[\s\S]*?#\s*crew:end\s*/;
 
 const GITIGNORE_BLOCK = [
@@ -469,8 +468,7 @@ function isCrewHook(entry) {
     const description = hook?.description || "";
     return (
       command.includes(".claude/hooks/log_event.sh") ||
-      description.startsWith("crew:") ||
-      description.startsWith("engineering-os:")
+      description.startsWith("crew:")
     );
   });
 }
@@ -530,13 +528,6 @@ async function updateClaudeMd(repoPath, writes) {
     return;
   }
 
-  if (LEGACY_IMPORT_BLOCK_RE.test(existing)) {
-    const next = existing.replace(LEGACY_IMPORT_BLOCK_RE, CLAUDE_IMPORT_BLOCK);
-    await writeFileIfChanged(claudePath, `${next.trimEnd()}\n`);
-    writes.push(path.relative(repoPath, claudePath));
-    return;
-  }
-
   const next = `${existing.trimEnd()}\n\n${CLAUDE_IMPORT_BLOCK}\n`;
   await writeFileIfChanged(claudePath, next);
   writes.push(path.relative(repoPath, claudePath));
@@ -560,40 +551,6 @@ async function updateGitignore(repoPath, writes) {
   if (changed) {
     writes.push(path.relative(repoPath, gitignorePath));
   }
-}
-
-async function renamePathIfNeeded(repoPath, fromParts, toParts, writes) {
-  const fromPath = path.join(repoPath, ...fromParts);
-  const toPath = path.join(repoPath, ...toParts);
-
-  if (!(await pathExists(fromPath)) || (await pathExists(toPath))) {
-    return;
-  }
-
-  await ensureDir(path.dirname(toPath));
-  await fs.rename(fromPath, toPath);
-  writes.push(path.relative(repoPath, toPath));
-}
-
-async function migrateLegacyHarness(repoPath, writes) {
-  await renamePathIfNeeded(
-    repoPath,
-    [".claude", "engineering-os"],
-    [".claude", "crew"],
-    writes
-  );
-  await renamePathIfNeeded(
-    repoPath,
-    [".claude", "artifacts", "engineering-os"],
-    [".claude", "artifacts", "crew"],
-    writes
-  );
-  await renamePathIfNeeded(
-    repoPath,
-    [".claude", "state", "engineering-os"],
-    [".claude", "state", "crew"],
-    writes
-  );
 }
 
 async function updateSettings(repoPath, writes) {
@@ -706,7 +663,6 @@ export async function bootstrapRepo(repoPath) {
   }
 
   const writes = [];
-  await migrateLegacyHarness(repoPath, writes);
   await updateClaudeMd(repoPath, writes);
   await writeHarnessFiles(repoPath, writes);
   await updateSettings(repoPath, writes);
@@ -751,7 +707,6 @@ export async function initRepo(repoPath, options = {}) {
 export async function installUserAssets(options = {}) {
   const homePath = path.resolve(options.homePath || os.homedir());
   const crewPath = path.join(homePath, ".claude", "crew");
-  const legacyPath = path.join(homePath, ".claude", "engineering-os");
   const writes = [];
 
   await ensureDir(crewPath);
@@ -772,7 +727,6 @@ export async function installUserAssets(options = {}) {
     mode: "install-user-assets",
     homePath,
     crewPath,
-    writes,
-    legacyPathDetected: await pathExists(legacyPath)
+    writes
   };
 }
