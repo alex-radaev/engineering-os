@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
+import { collectGitSignal } from "./git-signal.mjs";
+import { collectGithubSignal } from "./github-signal.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "crew", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "crew", "handoffs"];
@@ -218,11 +220,14 @@ export async function buildWakeUpBrief(repoPath) {
     latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-result")
   ]);
 
-  const [recentEventsRaw, recentClaimHistory, archiveCounts] = await Promise.all([
+  const [recentEventsRaw, recentClaimHistory, archiveCounts, git] = await Promise.all([
     readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
     readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
-    countArchive(repoPath)
+    countArchive(repoPath),
+    collectGitSignal(repoPath)
   ]);
+
+  const github = await collectGithubSignal(repoPath, { branch: git?.branch });
 
   const recentEvents = recentEventsRaw.map((event) => ({
     timestamp: event.timestamp,
@@ -263,6 +268,8 @@ export async function buildWakeUpBrief(repoPath) {
     recentClaimHistory,
     recentEvents,
     latestArtifacts,
+    git,
+    github,
     memory,
     summary: {
       memoryPolicy: memory.policy,
