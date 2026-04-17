@@ -353,7 +353,19 @@ printf '{"schemaVersion":"1.0","source":"crew","timestamp":"%s","event":"%s","re
   "$payload_path" >> "$events_path"
 `;
 
+const DEFAULT_PERMISSIONS_ALLOW = [
+  "Write(.claude/artifacts/crew/**)",
+  "Edit(.claude/artifacts/crew/**)",
+  "Write(.claude/state/crew/**)",
+  "Edit(.claude/state/crew/**)",
+  "Write(.claude/logs/**)",
+  "Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs:*)"
+];
+
 const DEFAULT_SETTINGS = {
+  permissions: {
+    allow: DEFAULT_PERMISSIONS_ALLOW
+  },
   hooks: {
     SessionStart: [
       {
@@ -461,6 +473,19 @@ function isCrewHook(entry) {
       description.startsWith("engineering-os:")
     );
   });
+}
+
+function mergePermissions(existing = {}, desiredAllow = []) {
+  const currentAllow = Array.isArray(existing.allow) ? existing.allow : [];
+  const seen = new Set(currentAllow);
+  const merged = [...currentAllow];
+  for (const entry of desiredAllow) {
+    if (!seen.has(entry)) {
+      merged.push(entry);
+      seen.add(entry);
+    }
+  }
+  return { ...existing, allow: merged };
 }
 
 function mergeHooks(existingHooks = {}, desiredHooks = {}) {
@@ -577,6 +602,7 @@ async function updateSettings(repoPath, writes) {
   const current = existing ? JSON.parse(existing) : {};
   const next = {
     ...current,
+    permissions: mergePermissions(current.permissions, DEFAULT_PERMISSIONS_ALLOW),
     hooks: mergeHooks(current.hooks, DEFAULT_SETTINGS.hooks)
   };
 
