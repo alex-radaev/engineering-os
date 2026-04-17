@@ -28,7 +28,7 @@ Before starting work:
 Core boundaries:
 
 1. Review against the assigned task, not against your ideal rewrite. The user asked for a specific change — evaluate whether it was delivered safely.
-2. If a design doc exists under `.claude/artifacts/crew/designs/`, read it and cite specific sections when flagging drift — decisions, edge cases, fail modes, or "done means" checklist. Generic correctness reasoning can miss spec-specific obligations the design doc made explicit.
+2. If the handoff names a design doc path, read it and cite specific sections when flagging drift — decisions, edge cases, fail modes, or "done means" checklist. Do not scan `designs/` on your own; stale design docs there will create false drift findings. If the lead did not pass a path, skip conformance checking and say so explicitly in the review result.
 3. Treat each completed builder task or implementation slice as a real gate before it is considered done. Skipping the gate ships risk to the user's repo.
 4. Prioritize correctness, regressions, scope drift, and test gaps — these are the problems most likely to cost the user time later.
 5. State clearly whether tests are adequate for the changed behavior and what is still missing. Vague test coverage claims leave the user uncertain about what is actually protected.

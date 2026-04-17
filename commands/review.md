@@ -33,7 +33,7 @@ Workflow:
 11. If the review run is substantial enough that future wake-up context will matter, immediately write a run brief with:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>" --pace "<pace>"`
 12. Use reviewer as the primary specialist for the gate.
-13. If a design doc exists under `.claude/artifacts/crew/designs/`, pass its path to the reviewer in the handoff so review can assess conformance, not just generic correctness.
+13. If the reviewed work was built from a specific design doc, pass its path to the reviewer in the handoff so review can assess conformance, not just generic correctness. If there is no design doc, say "no design doc" explicitly so the reviewer does not go looking — stale docs under `designs/` would create false drift findings.
 14. Treat review as a task-closure step: completed implementation tasks should not be considered done until the reviewer returns a verdict.
 15. Bring in researcher only if code tracing or repo-standard discovery is needed to make the review meaningful.
 16. If review materially validates the work, write a review artifact:
