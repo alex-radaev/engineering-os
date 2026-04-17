@@ -105,15 +105,15 @@ Supported commands:
 
 Behavior:
 
-- creates or extends `CLAUDE.md`
+- creates or extends `CLAUDE.md` with an `@~/.claude/crew/constitution.md` import
 - manages a canonical Crew `.gitignore` block
-- writes `.claude/crew/constitution.md`
-- writes `.claude/crew/workflow.md`
-- writes `.claude/crew/protocol.md`
 - writes `.claude/hooks/log_event.sh`
-- creates `.claude/artifacts/crew/`
+- creates `.claude/artifacts/crew/` and `.claude/state/crew/`
 - merges `.claude/settings.json` hook config conservatively
-- creates optional managed overlay stubs under `~/.claude/crew/`
+- removes stale repo-local copies of `.claude/crew/{constitution,workflow,protocol}.md` if present
+- the canonical `constitution.md`, `workflow.md`, and `protocol.md` live under `~/.claude/crew/` and are managed by `install-user-assets`
+- seeds optional role-overlay stubs under `~/.claude/crew/` (lead, builder, reviewer, researcher, validator, deployer)
+- refreshes `~/.claude/CLAUDE.md` with the Crew import block so every session loads the constitution
 
 ### Tests
 

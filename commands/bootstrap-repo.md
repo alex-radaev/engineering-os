@@ -15,17 +15,18 @@ Goals:
 
 Workflow:
 
-1. Run the installer:
+1. Confirm the canonical Crew files exist globally. If `~/.claude/crew/constitution.md` is missing, run `/crew:install` first.
+2. Run the installer:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" bootstrap --repo "$PWD"`
-2. Treat the installer output as canonical for the Crew harness. Do not manually add extra Crew imports to `CLAUDE.md`.
-3. Inspect `CLAUDE.md`, `.claude/`, `.mcp.json`, and other repo guidance only to confirm the installer integrated conservatively.
-4. If repo-specific guidance needs follow-up, keep it separate from Crew-owned files and avoid rewriting generated workflow/protocol files.
-5. Let the installer own the Crew `.gitignore` block instead of improvising one by hand.
-6. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
+3. Treat the installer output as canonical for the Crew repo footprint. Do not manually add extra Crew imports to `CLAUDE.md`.
+4. Inspect `CLAUDE.md`, `.claude/`, `.mcp.json`, and other repo guidance only to confirm the installer integrated conservatively.
+5. Note that the constitution, workflow, and protocol live at `~/.claude/crew/` — the bootstrap does not copy them into the repo. If the repo previously had stale copies under `.claude/crew/{constitution,workflow,protocol}.md`, the installer removes them.
+6. Let the installer own the Crew `.gitignore` block instead of improvising one by hand.
+7. Explain any assumptions before editing if the repo shape makes the bootstrap risky.
 
 Deliverable:
 
-- a short summary of what was added
+- a short summary of what was added (and any stale canonical files removed)
 - file references for all changes
 - any follow-up needed to enable team mode or optional integrations
 - no extra freehand Crew harness edits beyond the installer output unless clearly necessary

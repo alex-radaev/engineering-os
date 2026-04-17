@@ -34,9 +34,10 @@ Stable project knowledge that should persist across tasks and sessions.
 
 Examples:
 
-- `CLAUDE.md`
-- `.claude/crew/constitution.md`
-- `.claude/crew/workflow.md`
+- `CLAUDE.md` (always-on; imports the global constitution)
+- `~/.claude/crew/constitution.md` (global, auto-imported via `CLAUDE.md`)
+- `~/.claude/crew/workflow.md` (global, command-loaded)
+- `~/.claude/crew/protocol.md` (global, agent-loaded)
 - repo conventions
 - architecture notes
 - important commands

@@ -164,8 +164,8 @@ Not fuzzy AI memory. Working memory.
 That memory lives in places like:
 
 - `CLAUDE.md`
-- `.claude/crew/constitution.md`
-- `.claude/crew/workflow.md`
+- `~/.claude/crew/constitution.md` (global, auto-imported)
+- `~/.claude/crew/workflow.md` (global, command-loaded)
 - `.claude/artifacts/crew/`
 - `.claude/state/crew/`
 
@@ -185,8 +185,8 @@ The lead should have access to:
 
 - the current user conversation
 - `CLAUDE.md`
-- `.claude/crew/constitution.md`
-- `.claude/crew/workflow.md`
+- `~/.claude/crew/constitution.md` (global, auto-imported)
+- `~/.claude/crew/workflow.md` (global, command-loaded)
 - current run artifacts
 - repo-local state and claims
 

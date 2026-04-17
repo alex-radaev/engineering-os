@@ -4,7 +4,7 @@ import path from "node:path";
 
 const CLAUDE_IMPORT_BLOCK = [
   "<!-- crew:start -->",
-  "@.claude/crew/constitution.md",
+  "@~/.claude/crew/constitution.md",
   "<!-- crew:end -->"
 ].join("\n");
 
@@ -291,22 +291,6 @@ Optional personal deployer guidance used across repositories.
 - Keep additions short and repo-agnostic.
 - Focus on deployment evidence and safety habits.
 - Do not remove approval boundaries.
-`,
-  "workflow.md": `# Workflow Overlay
-
-Optional personal Crew workflow additions used across repositories.
-
-- Keep additions short and repo-agnostic.
-- Add only lightweight preferences or reminders.
-- Do not restate or fork the base Crew workflow.
-`,
-  "protocol.md": `# Protocol Overlay
-
-Optional personal Crew protocol additions used across repositories.
-
-- Keep additions short and repo-agnostic.
-- Add only small reporting preferences or formatting habits.
-- Do not fork the shared protocol shapes.
 `
 };
 
@@ -569,20 +553,23 @@ async function updateSettings(repoPath, writes) {
   }
 }
 
+async function removeStaleRepoHarnessCopies(repoPath, writes) {
+  const staleRelPaths = [
+    [".claude", "crew", "constitution.md"],
+    [".claude", "crew", "workflow.md"],
+    [".claude", "crew", "protocol.md"]
+  ];
+  for (const parts of staleRelPaths) {
+    const fullPath = path.join(repoPath, ...parts);
+    if (await pathExists(fullPath)) {
+      await fs.rm(fullPath, { force: true });
+      writes.push(`removed ${path.relative(repoPath, fullPath)}`);
+    }
+  }
+}
+
 async function writeHarnessFiles(repoPath, writes) {
   const files = [
-    {
-      filePath: path.join(repoPath, ".claude", "crew", "constitution.md"),
-      contents: `${CONSTITUTION_TEMPLATE}\n`
-    },
-    {
-      filePath: path.join(repoPath, ".claude", "crew", "workflow.md"),
-      contents: `${WORKFLOW_TEMPLATE}\n`
-    },
-    {
-      filePath: path.join(repoPath, ".claude", "crew", "protocol.md"),
-      contents: `${PROTOCOL_TEMPLATE}\n`
-    },
     {
       filePath: path.join(repoPath, ".claude", "artifacts", "crew", "README.md"),
       contents: `${ARTIFACT_README_TEMPLATE}\n`,
@@ -643,16 +630,14 @@ async function writeHarnessFiles(repoPath, writes) {
 }
 
 export async function auditRepo(repoPath) {
+  const claudeMd = await fs.readFile(path.join(repoPath, "CLAUDE.md"), "utf8").catch(() => "");
   return {
     repoPath,
     exists: await pathExists(repoPath),
-    hasClaudeMd: await pathExists(path.join(repoPath, "CLAUDE.md")),
+    hasClaudeMd: claudeMd.length > 0,
     hasDotClaude: await pathExists(path.join(repoPath, ".claude")),
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
-    hasHarnessLayer:
-      (await pathExists(path.join(repoPath, ".claude", "crew", "constitution.md"))) &&
-      (await pathExists(path.join(repoPath, ".claude", "crew", "workflow.md"))) &&
-      (await pathExists(path.join(repoPath, ".claude", "crew", "protocol.md"))),
+    hasHarnessLayer: claudeMd.includes("<!-- crew:start -->"),
     hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "crew", "claims.json"))
   };
 }
@@ -663,6 +648,7 @@ export async function bootstrapRepo(repoPath) {
   }
 
   const writes = [];
+  await removeStaleRepoHarnessCopies(repoPath, writes);
   await updateClaudeMd(repoPath, writes);
   await writeHarnessFiles(repoPath, writes);
   await updateSettings(repoPath, writes);
@@ -704,6 +690,40 @@ export async function initRepo(repoPath, options = {}) {
   };
 }
 
+const CANONICAL_GLOBAL_FILES = [
+  { name: "constitution.md", template: CONSTITUTION_TEMPLATE },
+  { name: "workflow.md", template: WORKFLOW_TEMPLATE },
+  { name: "protocol.md", template: PROTOCOL_TEMPLATE }
+];
+
+async function updateHomeClaudeMd(homePath, writes) {
+  const claudePath = path.join(homePath, ".claude", "CLAUDE.md");
+  const existing = await fs.readFile(claudePath, "utf8").catch(() => null);
+
+  if (existing === null) {
+    await ensureDir(path.dirname(claudePath));
+    const contents = [
+      "# Personal Claude Code Rules",
+      "",
+      "Cross-project preferences. Keep this file short and universal.",
+      "",
+      CLAUDE_IMPORT_BLOCK,
+      ""
+    ].join("\n");
+    await fs.writeFile(claudePath, contents);
+    writes.push(claudePath);
+    return;
+  }
+
+  if (existing.includes("<!-- crew:start -->")) {
+    return;
+  }
+
+  const next = `${existing.trimEnd()}\n\n${CLAUDE_IMPORT_BLOCK}\n`;
+  await fs.writeFile(claudePath, next);
+  writes.push(claudePath);
+}
+
 export async function installUserAssets(options = {}) {
   const homePath = path.resolve(options.homePath || os.homedir());
   const crewPath = path.join(homePath, ".claude", "crew");
@@ -716,12 +736,21 @@ export async function installUserAssets(options = {}) {
     writes.push(readmePath);
   }
 
+  for (const { name, template } of CANONICAL_GLOBAL_FILES) {
+    const filePath = path.join(crewPath, name);
+    if (await writeFileIfChanged(filePath, `${template}\n`)) {
+      writes.push(filePath);
+    }
+  }
+
   for (const [fileName, contents] of Object.entries(USER_OVERLAY_TEMPLATES)) {
     const filePath = path.join(crewPath, fileName);
     if (await writeFileIfMissing(filePath, `${contents}\n`)) {
       writes.push(filePath);
     }
   }
+
+  await updateHomeClaudeMd(homePath, writes);
 
   return {
     mode: "install-user-assets",

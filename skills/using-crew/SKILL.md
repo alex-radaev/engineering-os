@@ -17,16 +17,11 @@ The goal is not maximum autonomy. The goal is legible teamwork the human can act
 - The session explicitly running a Crew workflow command is the lead for that run.
 - Spawned agents are specialists, not alternate leads.
 
-## Shared Guidance Order
+## Shared Guidance
 
-Before substantial work, read shared guidance in this order, if present:
+Crew's canonical workflow and protocol live at `~/.claude/crew/workflow.md` and `~/.claude/crew/protocol.md`. Workflow commands and specialist agents already inline them automatically — you do not need to re-read them.
 
-- `~/.claude/crew/workflow.md`
-- `.claude/crew/workflow.md`
-- `~/.claude/crew/protocol.md`
-- `.claude/crew/protocol.md`
-
-If repo guidance conflicts with global guidance, prefer the repo guidance for this repo.
+Run `/crew:install` once per machine to write or refresh those canonical files. Per-repo role overlays under `.claude/crew/<role>.md` remain optional; if present, prefer them over the global overlay for that repo.
 
 ## Execution Model
 

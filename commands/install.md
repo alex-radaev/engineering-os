@@ -1,26 +1,27 @@
 ---
-description: Install or refresh personal Crew overlay under ~/.claude/crew.
+description: Install or refresh the canonical Crew files under ~/.claude/crew.
 ---
 
 # Install Crew User Assets
 
-Use this workflow to create or refresh the managed personal Crew overlay directory under `~/.claude/crew`.
+Use this workflow to create or refresh the canonical Crew files under `~/.claude/crew`. These files are managed by the plugin and shared across every repo.
 
 Goals:
 
-- create the optional global overlay files that Crew already knows how to read
-- keep those files short, repo-agnostic, and additive
-- avoid copying repo-local harness files into user-global state
+- write or refresh the canonical `constitution.md`, `workflow.md`, and `protocol.md`
+- create optional role-overlay stubs (`lead.md`, `builder.md`, etc.) without clobbering user edits
+- ensure `~/.claude/CLAUDE.md` imports the constitution so every session picks it up
 
 Workflow:
 
 1. Run the installer:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" install-user-assets`
-2. Treat the installer output as canonical for the managed global Crew files.
-3. Do not copy repo-local `constitution.md`, `workflow.md`, or `protocol.md` into `~/.claude/crew/` by hand.
-4. Summarize exactly which overlay files were created and what they are for.
+2. Treat the installer output as canonical. `constitution.md`, `workflow.md`, and `protocol.md` are refreshed on every run; role overlays are only seeded when missing.
+3. Do not hand-edit the three canonical files — they will be overwritten next install. Put personal additions in the role overlay files instead.
+4. Confirm that `~/.claude/CLAUDE.md` contains the Crew import block so every session loads the constitution.
+5. Summarize which files were written and which overlays already existed.
 
 Deliverable:
 
-- a managed `~/.claude/crew/` directory with optional global overlay stubs
-- a short explanation of when to edit those files and when to keep guidance repo-local
+- a managed `~/.claude/crew/` directory with canonical files refreshed and role overlay stubs preserved
+- a short explanation of which files are canonical (plugin-owned) vs which are personal overlays (user-owned)
