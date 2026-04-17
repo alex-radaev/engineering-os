@@ -1,5 +1,5 @@
 ---
-description: Advanced internal coordination command for resolving an approval gate.
+description: Resolve an open approval gate.
 argument-hint: <approval-id>
 ---
 

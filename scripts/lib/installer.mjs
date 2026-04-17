@@ -9,10 +9,15 @@ const GLOBAL_METADATA_TEMPLATE = {
 };
 
 const CLAUDE_IMPORT_BLOCK = [
-  "<!-- engineering-os:start -->",
-  "<!-- Engineering OS global memory lives in ~/.claude/engineering-os/. Run /crew:install after plugin updates that change framework memory. -->",
-  "<!-- engineering-os:end -->"
+  "<!-- crew:start -->",
+  "<!-- Crew repo memory. Run /crew:install after plugin updates that change framework memory. -->",
+  "@.claude/crew/constitution.md",
+  "<!-- crew:end -->"
 ].join("\n");
+
+const LEGACY_CLAUDE_START_MARKER = "<!-- engineering-os:start -->";
+const LEGACY_CLAUDE_END_MARKER = "<!-- engineering-os:end -->";
+const CREW_CLAUDE_START_MARKER = "<!-- crew:start -->";
 
 const CONSTITUTION_TEMPLATE = `# Engineering OS Constitution
 
@@ -117,18 +122,198 @@ Every substantial handoff should include:
 - suggested next handoff
 `;
 
-const ARTIFACT_README_TEMPLATE = `# Engineering OS Artifacts
+const REPO_CONSTITUTION_TEMPLATE = `# Crew Constitution
 
-This directory stores inspectable run artifacts for the Engineering OS harness.
+This repository uses the Crew harness for structured software work inside Claude Code.
+
+## Core Rules
+
+1. Keep one owner per task. Shared ownership creates merge conflicts and confused accountability that cost the user time.
+2. Keep task scope explicit. Ambiguous scope leads to wasted effort and work that has to be redone.
+3. Retrieve bounded repo context before substantial work. Starting without it means paying for rediscovery that was already done.
+4. Structured handoffs protect the user from lost context. Without them, the next agent or session starts blind.
+5. Treat review as a gate, not a courtesy. Unreviewed code reaching the user's repo is a quality risk they cannot easily undo.
+6. Treat validation and deployment evidence as separate gates when behavior or environments are involved. The user needs to know that changed behavior works, not just that code looks correct.
+7. Leave durable artifacts and repo memory behind when work would matter later. Skipping them means the next session has no record of what happened or why.
+
+## Team Roles
+
+- lead: planning, delegation, synthesis
+- builder: bounded implementation
+- reviewer: independent change review
+- validator: behavior and scenario verification
+- deployer: deployment and environment evidence
+- researcher: read-only investigation
+
+## Memory And Artifact Habit
+
+The user depends on artifacts to resume work after compaction, across sessions, or when context is lost.
+
+Substantial work should start from bounded repo memory:
+
+- \`CLAUDE.md\`
+- \`.claude/crew/*.md\`
+- latest relevant wake-up context and artifacts
+
+Substantial work should leave inspectable artifacts under:
+
+- \`.claude/artifacts/crew/runs/\`
+- \`.claude/artifacts/crew/handoffs/\`
+- \`.claude/artifacts/crew/reviews/\`
+- \`.claude/artifacts/crew/validations/\`
+- \`.claude/artifacts/crew/deployments/\`
+- \`.claude/artifacts/crew/designs/\`
+
+For shipping work, keep durable repo deployment guidance in:
+
+- \`.claude/crew/deployment.md\`
+
+## Scope Discipline
+
+These situations create merge conflicts, wasted effort, or confused ownership that costs the user time. Stop and re-scope if:
+
+- two agents need the same file
+- the assignment boundary is unclear
+- the work needs a broader refactor than assigned
+`;
+
+const REPO_WORKFLOW_TEMPLATE = `# Crew Repo Workflow
+
+This file captures how the Crew roles cooperate inside this repo.
+
+## Role Responsibilities
+
+- Lead owns planning, task framing, mode selection, and synthesis.
+- Builder owns code-bearing tasks, including tests for changed behavior when practical. Builder does not review their own code.
+- Reviewer owns independent review — correctness, regressions, scope discipline, and test coverage reporting. Reviewer is always expected to report whether changes are tested.
+- Validator owns behavior verification once review completes, when the change is runnable or observable.
+- Deployer owns environment transitions and preserves deployment evidence. Production promotion requires explicit user approval.
+- Researcher owns read-only investigation and does not modify code.
+
+## Preferred Sequence
+
+1. verify workspace and retrieve bounded wake-up context
+2. choose mode: single-session, assisted single-session, or team run
+3. design first when the feature mental model is not yet shared (see /crew:design)
+4. define task ownership and scope with one owner per task
+5. implement in bounded chunks
+6. review code-bearing work before calling it done
+7. validate behavior when it can be exercised meaningfully
+8. gather deployment evidence when shipping through environments
+9. leave a final synthesis
+
+## Gate Policy
+
+- code changed -> independent review required
+- runnable, observable, or user-visible behavior changed -> validation expected after review
+- deployment or promotion work -> deployment evidence expected
+- production promotion -> explicit user approval required
+
+## Artifact Write-Back Discipline
+
+- substantial run start -> run brief
+- ownership change -> handoff
+- review completion -> review result immediately
+- validation completion -> validation result immediately
+- meaningful deployment evidence -> deployment check immediately
+- substantial completion -> final synthesis
+- shared feature design -> design doc before build
+`;
+
+const REPO_PROTOCOL_TEMPLATE = `# Crew Artifact Protocol
+
+This file captures what each inspectable artifact must contain. It exists so the next agent or session can trust the "done" signal without rediscovering what was checked.
+
+## Run Brief
+
+- objective
+- mode and pace
+- scope and out-of-scope
+- planned files or surfaces
+- next step
+
+## Task Handoff
+
+- objective
+- owner
+- allowed scope
+- forbidden scope
+- deliverable
+- evidence or changed files
+- confidence level
+- risks or open questions
+- suggested next handoff
+
+## Review Result
+
+Every review result must always report:
+
+- gates run
+- repo standards and configured review skills applied
+- evidence checked
+- test coverage finding — always present, never omitted. Include whether tests exercise the change, which parts of the change are not exercised, whether new tests were added alongside the code, and whether the existing test suite was run and passed. Reviewer must always report back whether tests were added or updated for the change, even when the finding is "no tests for this change".
+- failure or risk summary
+- required follow-up, if rejected
+- confidence level
+
+When a design doc exists, review must also report design-doc adherence, listing any deviations in components, decisions, edge cases, fail modes, or scope.
+
+## Validation Result
+
+- scenario exercised
+- environment
+- decision: passed, passed_with_notes, or failed
+- executed evidence
+- observed behavior vs. expected
+- risks or blockers
+- required follow-up
+
+## Deployment Result
+
+- environment
+- resource or service name
+- service URL
+- revision, image, or release identifier
+- decision: verified, partial, or failed
+- evidence collected
+- risks or blockers
+- required follow-up
+
+## Design Doc
+
+- summary
+- mental model
+- components (top-down)
+- how they work together (visuals preferred)
+- key technical decisions with justifications
+- edge cases
+- fail modes
+- what working properly means
+- what done means
+- open questions
+
+## Final Synthesis
+
+- outcome
+- changed files and evidence
+- gates resolved (review, validation, deployment)
+- risks left open
+- next step
+`;
+
+const ARTIFACT_README_TEMPLATE = `# Crew Artifacts
+
+This directory stores inspectable run artifacts for the Crew harness.
 
 - \`runs/\` for run briefs and final syntheses
 - \`handoffs/\` for task ownership and completion notes
 - \`reviews/\` for review results and rejection notes
 - \`validations/\` for validation plans and validation results
 - \`deployments/\` for deployment checks and environment evidence
+- \`designs/\` for feature and service design docs
 `;
 
-const STATE_README_TEMPLATE = `# Engineering OS State
+const STATE_README_TEMPLATE = `# Crew State
 
 This directory stores lightweight repo-local coordination state.
 
@@ -174,7 +359,7 @@ else
   cat > "$payload_path"
 fi
 
-printf '{"schemaVersion":"1.0","source":"engineering-os","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\\n' \\
+printf '{"schemaVersion":"1.0","source":"crew","timestamp":"%s","event":"%s","repoPath":"%s","payloadPath":"%s"}\\n' \\
   "$timestamp" \\
   "$event_name" \\
   "$project_dir" \\
@@ -299,7 +484,7 @@ if (!isCommit && !isPr) {
 }
 
 const cwd = input.cwd || process.cwd();
-const workflowPath = path.join(cwd, ".claude", "state", "engineering-os", "workflow-state.json");
+const workflowPath = path.join(cwd, ".claude", "state", "crew", "workflow-state.json");
 if (!fs.existsSync(workflowPath)) {
   process.exit(0);
 }
@@ -344,7 +529,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh session_start",
-            description: "engineering-os:session-start"
+            description: "crew:session-start"
           }
         ]
       }
@@ -355,7 +540,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh task_created",
-            description: "engineering-os:task-created"
+            description: "crew:task-created"
           }
         ]
       }
@@ -366,7 +551,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh task_completed",
-            description: "engineering-os:task-completed"
+            description: "crew:task-completed"
           }
         ]
       }
@@ -377,7 +562,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh subagent_start",
-            description: "engineering-os:subagent-start"
+            description: "crew:subagent-start"
           }
         ]
       }
@@ -388,7 +573,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/log_event.sh subagent_stop",
-            description: "engineering-os:subagent-stop"
+            description: "crew:subagent-stop"
           }
         ]
       }
@@ -400,7 +585,7 @@ const DEFAULT_SETTINGS = {
           {
             type: "command",
             command: "${PWD}/.claude/hooks/check_git_gate.sh",
-            description: "engineering-os:git-gate-reminder"
+            description: "crew:git-gate-reminder"
           }
         ]
       }
@@ -442,7 +627,8 @@ function isEngineeringOsHook(entry) {
     const description = hook?.description || "";
     return command.includes(".claude/hooks/log_event.sh")
       || command.includes(".claude/hooks/check_git_gate.sh")
-      || description.startsWith("engineering-os:");
+      || description.startsWith("engineering-os:")
+      || description.startsWith("crew:");
   });
 }
 
@@ -465,6 +651,19 @@ function mergeHooks(existingHooks = {}, desiredHooks = {}) {
   return result;
 }
 
+function replaceLegacyClaudeBlock(existing) {
+  const startIdx = existing.indexOf(LEGACY_CLAUDE_START_MARKER);
+  if (startIdx === -1) {
+    return existing;
+  }
+  const endIdx = existing.indexOf(LEGACY_CLAUDE_END_MARKER, startIdx);
+  if (endIdx === -1) {
+    return existing;
+  }
+  const blockEnd = endIdx + LEGACY_CLAUDE_END_MARKER.length;
+  return `${existing.slice(0, startIdx)}${CLAUDE_IMPORT_BLOCK}${existing.slice(blockEnd)}`;
+}
+
 async function updateClaudeMd(repoPath, writes) {
   const claudePath = path.join(repoPath, "CLAUDE.md");
   const existing = await fs.readFile(claudePath, "utf8").catch(() => null);
@@ -473,7 +672,7 @@ async function updateClaudeMd(repoPath, writes) {
     const contents = [
       "# Repo Instructions",
       "",
-      "This repository uses the Engineering OS harness.",
+      "This repository uses the Crew harness.",
       "",
       CLAUDE_IMPORT_BLOCK,
       ""
@@ -483,7 +682,16 @@ async function updateClaudeMd(repoPath, writes) {
     return;
   }
 
-  if (existing.includes("<!-- engineering-os:start -->")) {
+  if (existing.includes(LEGACY_CLAUDE_START_MARKER)) {
+    const rewritten = replaceLegacyClaudeBlock(existing);
+    if (rewritten !== existing) {
+      await writeFileIfChanged(claudePath, rewritten);
+      writes.push(path.relative(repoPath, claudePath));
+    }
+    return;
+  }
+
+  if (existing.includes(CREW_CLAUDE_START_MARKER)) {
     return;
   }
 
@@ -510,27 +718,39 @@ async function updateSettings(repoPath, writes) {
 async function writeHarnessFiles(repoPath, writes) {
   const files = [
     [
-      path.join(repoPath, ".claude", "artifacts", "engineering-os", "README.md"),
+      path.join(repoPath, ".claude", "crew", "constitution.md"),
+      `${REPO_CONSTITUTION_TEMPLATE}\n`
+    ],
+    [
+      path.join(repoPath, ".claude", "crew", "workflow.md"),
+      `${REPO_WORKFLOW_TEMPLATE}\n`
+    ],
+    [
+      path.join(repoPath, ".claude", "crew", "protocol.md"),
+      `${REPO_PROTOCOL_TEMPLATE}\n`
+    ],
+    [
+      path.join(repoPath, ".claude", "artifacts", "crew", "README.md"),
       `${ARTIFACT_README_TEMPLATE}\n`
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "README.md"),
+      path.join(repoPath, ".claude", "state", "crew", "README.md"),
       `${STATE_README_TEMPLATE}\n`
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "claims.json"),
+      path.join(repoPath, ".claude", "state", "crew", "claims.json"),
       `${JSON.stringify(CLAIMS_TEMPLATE, null, 2)}\n`
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "history.jsonl"),
+      path.join(repoPath, ".claude", "state", "crew", "history.jsonl"),
       ""
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "approvals.jsonl"),
+      path.join(repoPath, ".claude", "state", "crew", "approvals.jsonl"),
       ""
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json"),
+      path.join(repoPath, ".claude", "state", "crew", "workflow-state.json"),
       `${JSON.stringify({
         version: "1.0",
         updatedAt: "2026-01-01T00:00:00.000Z",
@@ -539,7 +759,7 @@ async function writeHarnessFiles(repoPath, writes) {
       }, null, 2)}\n`
     ],
     [
-      path.join(repoPath, ".claude", "state", "engineering-os", "sprint.json"),
+      path.join(repoPath, ".claude", "state", "crew", "sprint.json"),
       `${JSON.stringify(SPRINT_TEMPLATE, null, 2)}\n`
     ],
     [
@@ -554,6 +774,16 @@ async function writeHarnessFiles(repoPath, writes) {
 
   for (const [filePath, contents] of files) {
     const isHookScript = filePath.endsWith("log_event.sh") || filePath.endsWith("check_git_gate.sh");
+    const existed = await pathExists(filePath);
+    const isStateFile = filePath.includes(`${path.sep}state${path.sep}crew${path.sep}`)
+      && (filePath.endsWith("claims.json")
+        || filePath.endsWith("history.jsonl")
+        || filePath.endsWith("approvals.jsonl")
+        || filePath.endsWith("workflow-state.json")
+        || filePath.endsWith("sprint.json"));
+    if (isStateFile && existed) {
+      continue;
+    }
     const changed = await writeFileIfChanged(
       filePath,
       contents,
@@ -565,16 +795,68 @@ async function writeHarnessFiles(repoPath, writes) {
   }
 
   const directories = [
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "runs"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "handoffs"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "reviews"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "validations"),
-    path.join(repoPath, ".claude", "artifacts", "engineering-os", "deployments"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "runs"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "handoffs"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "reviews"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "validations"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "deployments"),
+    path.join(repoPath, ".claude", "artifacts", "crew", "designs"),
     path.join(repoPath, ".claude", "logs"),
-    path.join(repoPath, ".claude", "state", "engineering-os")
+    path.join(repoPath, ".claude", "state", "crew")
   ];
   for (const directory of directories) {
     await ensureDir(directory);
+  }
+}
+
+async function removeDirRecursive(dirPath) {
+  await fs.rm(dirPath, { recursive: true, force: true });
+}
+
+async function moveDirContents(fromDir, toDir) {
+  const entries = await fs.readdir(fromDir, { withFileTypes: true }).catch(() => []);
+  if (entries.length === 0) {
+    return;
+  }
+  await ensureDir(toDir);
+  for (const entry of entries) {
+    const fromPath = path.join(fromDir, entry.name);
+    const toPath = path.join(toDir, entry.name);
+    const destExists = await pathExists(toPath);
+    if (destExists) {
+      if (entry.isDirectory()) {
+        await moveDirContents(fromPath, toPath);
+        await removeDirRecursive(fromPath);
+      }
+      continue;
+    }
+    await fs.rename(fromPath, toPath);
+  }
+}
+
+async function migrateLegacyPaths(repoPath, writes) {
+  const migrations = [
+    [
+      path.join(repoPath, ".claude", "engineering-os"),
+      path.join(repoPath, ".claude", "crew")
+    ],
+    [
+      path.join(repoPath, ".claude", "state", "engineering-os"),
+      path.join(repoPath, ".claude", "state", "crew")
+    ],
+    [
+      path.join(repoPath, ".claude", "artifacts", "engineering-os"),
+      path.join(repoPath, ".claude", "artifacts", "crew")
+    ]
+  ];
+
+  for (const [legacyDir, targetDir] of migrations) {
+    if (!(await pathExists(legacyDir))) {
+      continue;
+    }
+    await moveDirContents(legacyDir, targetDir);
+    await removeDirRecursive(legacyDir);
+    writes.push(`${path.relative(repoPath, legacyDir)} -> ${path.relative(repoPath, targetDir)}`);
   }
 }
 
@@ -586,9 +868,9 @@ export async function auditRepo(repoPath) {
     hasClaudeMd: await pathExists(path.join(repoPath, "CLAUDE.md")),
     hasDotClaude: await pathExists(path.join(repoPath, ".claude")),
     hasSettings: await pathExists(path.join(repoPath, ".claude", "settings.json")),
-    hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "engineering-os")),
-    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "claims.json")),
-    hasWorkflowState: await pathExists(path.join(repoPath, ".claude", "state", "engineering-os", "workflow-state.json")),
+    hasHarnessLayer: await pathExists(path.join(repoPath, ".claude", "artifacts", "crew")),
+    hasStateLayer: await pathExists(path.join(repoPath, ".claude", "state", "crew", "claims.json")),
+    hasWorkflowState: await pathExists(path.join(repoPath, ".claude", "state", "crew", "workflow-state.json")),
     global
   };
 }
@@ -619,6 +901,7 @@ export async function bootstrapRepo(repoPath) {
   }
 
   const writes = [];
+  await migrateLegacyPaths(repoPath, writes);
   await updateClaudeMd(repoPath, writes);
   await writeHarnessFiles(repoPath, writes);
   await updateSettings(repoPath, writes);

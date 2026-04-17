@@ -185,6 +185,12 @@ Mode discipline:
 - If you spawn a helper, call it `assisted single-session`.
 - If specialists need to coordinate with each other, call it a `team run`.
 
+Design phase:
+
+- Before substantial new feature or service work, consider the design phase. The `/crew:design` command captures a short, human-readable design doc with the feature's mental model, components, edge cases, fail modes, and definition of done.
+- If a design doc already exists for the current work (surfaced in the wake-up brief as `latestArtifacts.designDoc`), read it before building — and keep the builder and reviewer pointed at its path instead of restating it.
+- Detail size scales inversely with change size: greenfield → lighter, existing-feature → more, small-change → most specific.
+
 Success means the user can answer all of these at any time:
 
 - who owns what

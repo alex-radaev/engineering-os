@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const DEPLOYMENT_GUIDANCE_PATH = [".claude", "engineering-os", "deployment.md"];
+const DEPLOYMENT_GUIDANCE_PATH = [".claude", "crew", "deployment.md"];
 const MAX_CLUES = 30;
 const MAX_DEPTH = 3;
 const IGNORED_DIRS = new Set([

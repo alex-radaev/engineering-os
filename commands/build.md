@@ -1,12 +1,12 @@
 ---
-description: Preferred short entry point for building or extending capability in the current repo.
+description: Build or extend a capability.
 ---
 
-# Build With The Lead Workflow
+# Build
 
-This is the preferred short entry point for feature work.
+Lead-owned workflow for feature work.
 
-Use the same lead-owned workflow as `build-feature`:
+Steps:
 
 1. verify the current workspace path with `pwd`
 2. read the repo wake-up brief:
@@ -49,5 +49,3 @@ Before you declare the work done, explicitly check:
 - if yes, is validation resolved or explicitly skipped?
 - did the run leave the artifact trail it should?
 - what is the next responsible step?
-
-Follow the detailed workflow and command examples from `build-feature`.

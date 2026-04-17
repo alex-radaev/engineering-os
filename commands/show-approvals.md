@@ -1,5 +1,5 @@
 ---
-description: Internal/debug command for inspecting repo-local approval state.
+description: Debug — inspect approval state.
 argument-hint: [open|resolved|all]
 ---
 

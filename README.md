@@ -32,35 +32,25 @@ For the broader implementation order and rename plan, see [docs/product-roadmap.
 
 The public surface should stay small.
 
-Preferred entry points:
+Primary commands:
 
-- `/crew:brief-me` — get a fixed-structure briefing on current objective, recent activity, blockers, reminders, and next step
-- `/crew:build` — build or extend capability
+- `/crew:brief-me` — situational report for this repo
+- `/crew:design` — design a feature or service before build
+- `/crew:build` — build or extend a capability
 - `/crew:fix` — investigate and fix broken behavior
 - `/crew:review` — run the review phase on completed work
-- `/crew:validate` — run the validation phase on runnable or observable behavior
-- `/crew:ship` — move work through PR, deployment, and post-deploy evidence gates
-- `/crew:adopt` — adopt an existing repo into the workflow
-- `/crew:init` — initialize a new repo with the harness
-- `/crew:install` — install or update the managed global framework memory
+- `/crew:validate` — validate runnable or observable behavior
+- `/crew:ship` — ship through merge, deploy, and evidence gates
+- `/crew:adopt` — adopt an existing repo into Crew
+- `/crew:init` — initialize a new repo with Crew
+- `/crew:install` — install or update global Crew memory
 
-Legacy compatibility aliases still exist for migration, but they should not be the primary surface:
+Internal / debugging plumbing:
 
-- `/crew:build-feature`
-- `/crew:investigate-bug`
-- `/crew:bootstrap-repo`
-- `/crew:init-repo`
-- `/crew:install-global`
+- `/crew:parallel-review`, `/crew:wake-up-brief`, `/crew:audit-repo`
+- claim and approval commands
 
-Everything else should be treated as internal, advanced, or debugging-oriented workflow plumbing:
-
-- `parallel-review`
-- `wake-up-brief`
-- `audit-repo`
-- claims / approvals commands
-- direct artifact-writing commands
-
-The user should mostly talk to the lead. The lead should infer `build`, `fix`, `review`, `validate`, and `ship` from normal conversation when the intent is clear.
+The user should mostly talk to the lead. The lead should infer `design`, `build`, `fix`, `review`, `validate`, and `ship` from normal conversation when the intent is clear.
 The lead should also notice when work is ready to move into shipping stages and recommend `ship` without waiting for the user to remember the command.
 `/crew:brief-me` should be the normal first command when the user wants a crisp situational report before continuing.
 
@@ -137,7 +127,7 @@ Agents support two-tier custom instructions, same model as Claude Code settings:
 | Level | Path | Scope |
 |-------|------|-------|
 | Global | `~/.claude/engineering-os/<role>.md` | All repos |
-| Repo | `.claude/engineering-os/<role>.md` | This repo only |
+| Repo | `.claude/crew/<role>.md` | This repo only |
 
 Both files are read if they exist. Repo instructions take precedence over global on conflict.
 
@@ -167,7 +157,7 @@ The review model is:
 That means you should put your review program in:
 
 - `~/.claude/engineering-os/reviewer.md` for machine-wide defaults
-- `.claude/engineering-os/reviewer.md` for repo-specific review behavior
+- `.claude/crew/reviewer.md` for repo-specific review behavior
 
 The reviewer will read those files before review, and the lead should dispatch review using them as the source of truth for extra review standards.
 
@@ -180,13 +170,13 @@ The reviewer will read those files before review, and the lead should dispatch r
 - For security-sensitive changes, add a security review gate.
 ```
 
-`.claude/engineering-os/builder.md` (repo-level):
+`.claude/crew/builder.md` (repo-level):
 ```markdown
 - Follow strict typing — no `Any` unless unavoidable
 - All new functions must have tests
 ```
 
-`.claude/engineering-os/reviewer.md` (repo-level):
+`.claude/crew/reviewer.md` (repo-level):
 ```markdown
 - For this repo, always review against our internal API compatibility rules.
 - For Go code, apply the team's configured Go review skill.
@@ -218,15 +208,15 @@ Default model assignments:
 Commit the stable operating layer:
 
 - `CLAUDE.md`
-- `.claude/engineering-os/` (custom agent instructions)
+- `.claude/crew/` (constitution, workflow, protocol, custom agent instructions)
 - `.claude/settings.json` (shared project settings)
 
 Do **not** commit transient coordination state:
 
 ```gitignore
 .claude/logs/
-.claude/artifacts/engineering-os/
-.claude/state/engineering-os/
+.claude/artifacts/crew/
+.claude/state/crew/
 .claude/settings.local.json
 ```
 

@@ -1,5 +1,5 @@
 ---
-description: Preferred short entry point for running the validation phase on runnable or observable behavior.
+description: Validate runnable or observable behavior.
 ---
 
 # Validate In The Lead Workflow

@@ -64,7 +64,18 @@ function parseArgs(argv) {
     resource: null,
     url: null,
     revision: null,
-    badge: null
+    badge: null,
+    scopeTag: null,
+    mentalModel: null,
+    components: null,
+    interactions: null,
+    decisions: null,
+    edgeCases: null,
+    failModes: null,
+    workingMeans: null,
+    doneMeans: null,
+    openQuestions: null,
+    visuals: null
   };
   const positionals = [];
 
@@ -318,6 +329,61 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--scope-tag") {
+      flags.scopeTag = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--mental-model") {
+      flags.mentalModel = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--components") {
+      flags.components = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--interactions") {
+      flags.interactions = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--decisions") {
+      flags.decisions = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--edge-cases") {
+      flags.edgeCases = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--fail-modes") {
+      flags.failModes = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--working-means") {
+      flags.workingMeans = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--done-means") {
+      flags.doneMeans = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--open-questions") {
+      flags.openQuestions = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--visuals") {
+      flags.visuals = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -360,7 +426,8 @@ function usage(target = null) {
     "write-validation-plan": "  node scripts/crew.mjs write-validation-plan --repo <path> --title <text> [--validator <role>] [--environment <name>]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <name>] [--decision <decision>]",
     "write-deployment-check": "  node scripts/crew.mjs write-deployment-check --repo <path> --title <text> [--deployer <role>] [--environment dev|prod] [--resource <name>] [--url <service-url>] [--revision <id>] [--decision <decision>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]"
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>]",
+    design: "  node scripts/crew.mjs design --repo <path> --title <text> [--scope-tag greenfield|existing-feature|small-change] [--summary <text>] [--mental-model <text>] [--components <a,b>] [--interactions <text>] [--decisions <a,b>] [--edge-cases <a,b>] [--fail-modes <a,b>] [--working-means <a,b>] [--done-means <a,b>] [--open-questions <a,b>] [--visuals <text>] [--next <text>]"
   };
 
   if (target && subcommands[target]) {
@@ -548,6 +615,25 @@ async function main() {
       evidence: flags.evidence,
       files: flags.files,
       risks: flags.risks,
+      next: flags.next
+    });
+  } else if (command === "design") {
+    result = await writeArtifact(repoPath, "design-doc", {
+      title: flags.title || positionals.join(" ") || "Design Doc",
+      owner: flags.owner || "lead-session",
+      status: flags.status === "open" ? "draft" : flags.status,
+      scopeTag: flags.scopeTag,
+      summary: flags.summary,
+      mentalModel: flags.mentalModel,
+      components: flags.components,
+      interactions: flags.interactions,
+      decisions: flags.decisions,
+      edgeCases: flags.edgeCases,
+      failModes: flags.failModes,
+      workingMeans: flags.workingMeans,
+      doneMeans: flags.doneMeans,
+      openQuestions: flags.openQuestions,
+      visuals: flags.visuals,
       next: flags.next
     });
   } else if (command === "write-final-synthesis") {

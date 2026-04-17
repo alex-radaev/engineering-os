@@ -1,5 +1,5 @@
 ---
-description: Internal coordination command for cases where parallel ownership genuinely helps.
+description: Run parallel review across split ownership.
 ---
 
 # Run Parallel Review In Internal Coordination Mode

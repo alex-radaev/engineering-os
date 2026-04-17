@@ -1,5 +1,5 @@
 ---
-description: Internal/debug command for inspecting current file-claim state.
+description: Debug — inspect file-claim state.
 ---
 
 # Show Internal Claims

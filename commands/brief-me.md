@@ -1,5 +1,5 @@
 ---
-description: Preferred first command for a fixed-structure situational report on the current repo.
+description: Situational report for this repo.
 ---
 
 # Brief Me

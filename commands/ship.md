@@ -1,5 +1,5 @@
 ---
-description: Preferred short entry point for moving work through merge, deployment, and post-deploy evidence gates.
+description: Ship through merge, deploy, and evidence gates.
 ---
 
 # Ship In The Lead Workflow

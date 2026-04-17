@@ -1,5 +1,5 @@
 ---
-description: Advanced internal coordination command for releasing claimed files after parallel work.
+description: Release claimed files after parallel work.
 argument-hint: [path] [more paths]
 ---
 

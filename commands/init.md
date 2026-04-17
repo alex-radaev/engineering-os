@@ -1,12 +1,12 @@
 ---
-description: Preferred short entry point for initializing a new repo with the workflow harness.
+description: Initialize a new repo with Crew.
 ---
 
-# Initialize A New Crew Repo In The Lead Workflow
+# Init
 
-This is the preferred short entry point for new repositories.
+Initialize a new repo with Crew.
 
-Use the same setup workflow as `init-repo`:
+Steps:
 
 1. decide whether the repo already exists or needs to be created
 2. run the init installer for the current repo path
@@ -16,7 +16,7 @@ Use the same setup workflow as `init-repo`:
    - `README`
    - `.github/workflows/`
    - Docker / compose / infra files
-6. if deployment clues are clear enough, write initial deployment guidance in `.claude/engineering-os/deployment.md`
+6. if deployment clues are clear enough, write initial deployment guidance in `.claude/crew/deployment.md`
    - mark it as `repo-derived` unless live infrastructure has actually been checked
 7. if the deployment picture is only partial, record what is known and what still needs live verification instead of guessing
 8. recommend `/crew:install` if the managed global memory is missing or stale
@@ -24,5 +24,3 @@ Use the same setup workflow as `init-repo`:
    - congratulate the user on the excellent decision to use Crew
    - keep it brief and slightly tongue-in-cheek
    - show the main commands to start with: `/crew:brief-me`, `/crew:build`, `/crew:fix`, and `/crew:ship`
-
-Follow the detailed workflow and command examples from `init-repo`.

@@ -1,5 +1,5 @@
 ---
-description: Preferred short entry point for running the review phase on completed work.
+description: Run the review phase on completed work.
 ---
 
 # Review In The Lead Workflow

@@ -1,5 +1,5 @@
 ---
-description: Advanced internal coordination command for claiming files during true parallel ownership.
+description: Claim files for parallel ownership.
 argument-hint: <path> [more paths]
 ---
 

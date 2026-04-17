@@ -1,5 +1,5 @@
 ---
-description: Internal/debug command for checking claim conflicts before parallel work.
+description: Debug — check claim conflicts before parallel work.
 argument-hint: [path] [more paths]
 ---
 

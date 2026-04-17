@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const STATE_DIR = [".claude", "state", "engineering-os"];
+const STATE_DIR = [".claude", "state", "crew"];
 const WORKFLOW_STATE_PATH = [...STATE_DIR, "workflow-state.json"];
 const MAX_RECENT_RUNS = 5;
 
@@ -100,6 +100,7 @@ function createRun(fields = {}) {
     artifacts: {
       runBrief: fields.path || null,
       handoffs: [],
+      designDoc: null,
       reviewResult: null,
       validationPlan: null,
       validationResult: null,
@@ -365,6 +366,8 @@ export async function registerWorkflowArtifact(repoPath, artifact, fields = {}) 
 
   if (artifact.kind === "handoff") {
     run.artifacts.handoffs = [...(run.artifacts.handoffs || []), artifact.path].slice(-10);
+  } else if (artifact.kind === "design-doc") {
+    run.artifacts.designDoc = artifact.path;
   } else if (artifact.kind === "review-result") {
     run.artifacts.reviewResult = artifact.path;
     applyBadge(

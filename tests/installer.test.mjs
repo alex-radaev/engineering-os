@@ -156,7 +156,7 @@ test("bootstrap installs a soft git gate reminder hook", async () => {
     repoPath,
     ".claude",
     "state",
-    "engineering-os",
+    "crew",
     "workflow-state.json"
   );
   await fs.writeFile(
@@ -216,7 +216,7 @@ test("bootstrap git gate reminder also warns when a completed phase is missing i
     repoPath,
     ".claude",
     "state",
-    "engineering-os",
+    "crew",
     "workflow-state.json"
   );
   await fs.writeFile(

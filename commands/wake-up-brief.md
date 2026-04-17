@@ -1,5 +1,5 @@
 ---
-description: Internal startup/debug command for inspecting the raw Crew wake-up brief for this repo.
+description: Debug — inspect raw Crew wake-up brief.
 ---
 
 # Read Engineering OS Wake-Up Brief

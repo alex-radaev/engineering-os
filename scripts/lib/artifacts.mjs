@@ -45,6 +45,27 @@ function renderListField(label, value) {
   ].join("\n");
 }
 
+function renderBlockSection(heading, value) {
+  const body = (value || "").trim();
+  if (!body) {
+    return `## ${heading}\n\n-\n`;
+  }
+  return `## ${heading}\n\n${body}\n`;
+}
+
+function renderListSection(heading, value) {
+  const items = toList(value);
+  if (items.length === 0) {
+    return `## ${heading}\n\n-\n`;
+  }
+  return [
+    `## ${heading}`,
+    "",
+    ...items.map((item) => `- ${item}`),
+    ""
+  ].join("\n");
+}
+
 function resolveArtifactConfig(kind) {
   if (kind === "run-brief") {
     return {
@@ -232,6 +253,41 @@ function resolveArtifactConfig(kind) {
           renderField("Recommended Next Step", fields.next),
           ""
         ].join("\n");
+      }
+    };
+  }
+
+  if (kind === "design-doc") {
+    return {
+      directory: "designs",
+      prefix: "design-doc",
+      render(fields) {
+        const header = [
+          `# Design Doc: ${fields.title || "Untitled"}`,
+          "",
+          renderField("Created", nowIso()),
+          renderField("Owner", fields.owner),
+          renderField("Scope Tag", fields.scopeTag || "existing-feature"),
+          renderField("Status", fields.status || "draft"),
+          renderField("Next Step", fields.next),
+          ""
+        ].join("\n");
+
+        const body = [
+          renderBlockSection("Summary", fields.summary),
+          renderBlockSection("Mental Model", fields.mentalModel),
+          renderListSection("Components", fields.components),
+          renderBlockSection("How It Works Together", fields.interactions),
+          renderListSection("Key Technical Decisions", fields.decisions),
+          renderListSection("Edge Cases", fields.edgeCases),
+          renderListSection("Fail Modes", fields.failModes),
+          renderListSection("What Working Properly Means", fields.workingMeans),
+          renderListSection("What Done Means", fields.doneMeans),
+          renderListSection("Open Questions", fields.openQuestions),
+          renderBlockSection("Visuals", fields.visuals)
+        ].join("\n");
+
+        return `${header}\n${body}`;
       }
     };
   }

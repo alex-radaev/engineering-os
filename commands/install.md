@@ -1,5 +1,5 @@
 ---
-description: Preferred short entry point for installing or updating the managed global framework memory.
+description: Install or update global Crew memory.
 ---
 
 # Install Global Crew Memory

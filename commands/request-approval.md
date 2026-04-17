@@ -1,5 +1,5 @@
 ---
-description: Advanced internal coordination command for opening an approval gate on risky or blocked work.
+description: Open an approval gate for risky work.
 argument-hint: <short summary>
 ---
 

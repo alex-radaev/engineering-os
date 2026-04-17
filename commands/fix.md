@@ -1,12 +1,12 @@
 ---
-description: Preferred short entry point for investigating and fixing broken behavior in the current repo.
+description: Investigate and fix broken behavior.
 ---
 
-# Fix With The Lead Workflow
+# Fix
 
-This is the preferred short entry point for bug work.
+Lead-owned workflow for bug work.
 
-Use the same lead-owned workflow as `investigate-bug`:
+Steps:
 
 1. verify the current workspace path with `pwd`
 2. read the repo wake-up brief:
@@ -43,5 +43,3 @@ Before you declare the fix done, explicitly check:
 - if yes, is validation resolved or explicitly skipped?
 - did the run leave the artifact trail it should?
 - what is the next responsible step?
-
-Follow the detailed workflow and command examples from `investigate-bug`.
