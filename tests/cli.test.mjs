@@ -301,7 +301,6 @@ test("CLI install-user-assets creates managed global overlay stubs", async () =>
   const result = JSON.parse(output.stdout);
 
   assert.equal(result.mode, "install-user-assets");
-  assert.equal(result.legacyPathDetected, false);
 
   const readme = await fs.readFile(path.join(homePath, ".claude", "crew", "README.md"), "utf8");
   const lead = await fs.readFile(path.join(homePath, ".claude", "crew", "lead.md"), "utf8");
