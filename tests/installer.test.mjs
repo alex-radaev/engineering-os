@@ -50,6 +50,9 @@ test("bootstrap adds harness files to an existing repo and preserves CLAUDE.md",
   assert.match(protocolMd, /whether tests were added or updated/);
   assert.ok(settings.hooks.SessionStart);
   assert.ok(settings.hooks.TaskCreated);
+  assert.ok(Array.isArray(settings.permissions?.allow));
+  assert.ok(settings.permissions.allow.includes("Write(.claude/artifacts/crew/**)"));
+  assert.ok(settings.permissions.allow.includes("Edit(.claude/state/crew/**)"));
   assert.match(gitignore, /node_modules\//);
   assert.match(gitignore, /# crew:start/);
   assert.deepEqual(claimsState.claims, {});
