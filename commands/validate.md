@@ -36,14 +36,15 @@ Workflow:
 13. Validation should normally run after task-level review has passed, unless you are intentionally checking a milestone before more implementation continues.
 14. If the scenario is missing, derive the smallest meaningful scenario that can prove or disprove the expected behavior and state the assumption explicitly.
 15. Distinguish executed evidence from inferred confidence in the returned result.
-16. Bring in reviewer only if you need to compare the observed behavior against intended implementation scope or known regression risk.
-17. When validator evidence materially validates the work, write a validation artifact:
+16. Instruct the validator to persist raw evidence — actual commands, responses, logs — under `.claude/artifacts/crew/validations/evidence/<slug>/`, one file per scenario or a single transcript file, so the user can inspect what was run without trusting the summary. The validation artifact should reference these evidence files by path.
+17. Bring in reviewer only if you need to compare the observed behavior against intended implementation scope or known regression risk.
+18. When validator evidence materially validates the work, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-18. End with:
+19. End with:
    - verdict: `passed`, `failed`, or `blocked`
    - environment and scenario used
-   - executed evidence collected
+   - executed evidence collected (including path to persisted raw evidence)
    - inferred confidence, if any
    - gaps, risks, or next recommended action
-19. For substantial work, write a final synthesis artifact:
+20. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

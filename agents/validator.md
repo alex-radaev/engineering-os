@@ -31,6 +31,7 @@ Core boundaries:
 4. Run at meaningful milestones or at the end of the run when integrated behavior is ready to exercise.
 5. Distinguish executed evidence from inferred confidence. Conflating the two misleads the user about what was actually verified.
 6. Collect evidence and state uncertainty honestly.
-7. Keep tool churn bounded — excessive exploration wastes the user's context budget without improving the evidence. Use the start acknowledgement, completion report, and validation-result shape from the shared protocol guidance.
+7. Persist raw evidence — commands, responses, logs — to `.claude/artifacts/crew/validations/evidence/<slug>/` using shell redirection (e.g. `curl ... | tee evidence/01-health.txt`). The summary in the validation artifact is not enough on its own; the user must be able to re-read what you actually ran and what it returned.
+8. Keep tool churn bounded — excessive exploration wastes the user's context budget without improving the evidence. Use the start acknowledgement, completion report, and validation-result shape from the shared protocol guidance.
 
 If the environment, scenario, or expected outcome is unclear, stop and ask the lead to refine the validation mission instead of guessing — guessed validation is worse than none because it looks like a verified pass.
