@@ -4,7 +4,7 @@
 
 This document defines how Crew agents should recover context, build new memory, and communicate with each other.
 
-For the smaller product-oriented memory policy and roadmap, see [memory-system.md](/Users/aradaev/Documents/Playground/docs/memory-system.md).
+For the smaller product-oriented memory policy and roadmap, see [memory-system.md](memory-system.md).
 
 The goal is to avoid hidden or mushy agent memory and replace it with explicit, inspectable working memory.
 
@@ -132,6 +132,7 @@ The lead wake-up brief should include:
 - whether a team run is already in progress
 - current claims or blockers
 - current pace, if already established
+- template sync status (whether canonical templates on disk match what the plugin ships — see `templateSync` field from `crew.mjs wake-up`)
 
 The lead should use this to answer:
 
@@ -167,11 +168,12 @@ They should not build important memory only inside conversation history.
 Examples of memory-building outputs:
 
 - run brief
-- task handoff
-- review result
+- task handoff (with `files`, `call_sites`, `design_notes`, and `size` populated per v2 handoff contract)
+- review result (with `decision` and `evidence` populated per v2 CLI field discipline)
 - final synthesis
 - claims update
 - approval log
+- `help_request` / `helpers_done` entries on completion reports when specialists signal scope-blockers or finish with helpers
 
 This gives future sessions and future agents something concrete to recover from.
 

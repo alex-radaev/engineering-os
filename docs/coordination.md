@@ -93,5 +93,5 @@ Signals the v2 coordination is healthy in real runs:
 ## Further Reading
 
 - `docs/v2-coordination-evolution.md` — design doc with rationale, edge cases, fail modes, and phasing.
-- `docs/v1-spec.md` — original lead-specialist architecture that v2 builds on.
+- `docs/project-status.md` — current shape, shipped work, gaps, and what's next.
 - `~/.claude/crew/protocol.md` — the canonical protocol templates installed by `/crew:install`.

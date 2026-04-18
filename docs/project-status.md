@@ -1,37 +1,24 @@
 # Crew Status
 
-## Read This With
+Current state of the plugin, the gaps that matter, and what's next.
 
-For full continuity after compaction, read this alongside:
+For user-facing behavior, see `coordination.md`. For v2 architectural detail, see `v2-coordination-evolution.md`.
 
-- `docs/reference-repo-plan.md`
-- `docs/memory-and-communication.md`
-- `docs/memory-system.md`
-- `docs/how-it-feels.md`
-- `docs/v1-spec.md`
-- `docs/release-versioning.md`
-- `docs/v2-coordination-evolution.md`
-- `docs/coordination.md`
+## What Crew Is
 
-## What We Are Building
+A Claude Code plugin for structured, legible multi-agent software work. Not an autonomous swarm — a personal engineering operating system that makes team-style work easier to follow, safer to steer, and easier to inspect.
 
-`crew` is a Claude Code plugin for structured, legible multi-agent software work.
-
-The goal is not a high-autonomy swarm. The goal is a personal engineering operating system that makes team-style work easier to follow, safer to steer, and easier to inspect.
-
-Core ideas:
+Core bets:
 
 - one lead session stays user-facing
-- specialist roles do bounded work
-- substantial implementation is meant to be task-driven, with builder ownership and task-level review
-- ownership stays explicit
-- handoffs are structured
-- pace is configurable
-- observability is built in
+- specialists do bounded work, one owner per task
+- handoffs are structured and inspectable
+- review is an independent gate, not self-certification
+- observability is built in (artifacts, events, wake-up)
 
-## MVP Direction
+## User Surface
 
-The MVP should shine through a very small user-facing surface:
+The MVP intentionally exposes a small set of commands:
 
 - `/crew:init-repo`
 - `/crew:bootstrap-repo`
@@ -43,326 +30,51 @@ The MVP should shine through a very small user-facing surface:
 - `/crew:validate`
 - `/crew:ship`
 
-Claims, approvals, and artifact writers matter, but they are support machinery. They should increasingly be things the lead uses automatically or sparingly, not a growing list of commands the user must learn.
+Claims, approvals, and artifact writers are support machinery — they should increasingly live under the main workflows, not as commands users learn.
 
-## Current Product Shape
+## What's Shipped
 
-The repo currently contains:
+**v1 foundations:**
 
-- a valid Claude Code plugin
-- a local development marketplace manifest
-- command-driven lead workflows plus durable builder, reviewer, researcher, validator, and deployer specialist agents
-- reusable skills for operating mode, handoffs, and review gates
-- lead entry commands for repo setup, user-asset install, wake-up, feature work, and bug fixing
-- CLI coordination helpers for claims and approvals
-- internal artifact-writing support for run briefs, handoffs, reviews, and final syntheses
-- hook wiring for basic lifecycle logging
-- a real installer CLI for repo adoption, repo initialization, and user-asset installation
-- automated tests and an end-to-end filesystem smoke test
+- Valid Claude Code plugin with agents, skills, commands, hooks.
+- Installer CLI (`scripts/crew.mjs`) covering repo init, bootstrap, user-asset install, wake-up, claims, approvals, and artifact writers.
+- Durable specialist roles: builder, reviewer, researcher, validator, deployer.
+- Canonical templates for constitution, workflow, and protocol live under `scripts/lib/installer.mjs` and install to `~/.claude/crew/`.
+- Automated tests (`tests/*.test.mjs`) and filesystem smoke (`scripts/e2e-smoke.mjs`). CI runs tests and checks version consistency.
 
-## What Has Been Done
+**v2 coordination evolution (`feat/v2-coordination-evolution`, merged):**
 
-### Plugin Foundation
+- CR-01 Token audit: deduped repeated patterns across role files and commands.
+- CR-02 Lead-scoped handoff contract: `files`, `call_sites`, `design_notes` required on substantive handoffs.
+- CR-03 `help_request` protocol: specialists emit structured scope-blocker requests; lead biases toward approval.
+- CR-04 Teardown discipline: `helpers_done` signal + lead-periodic roster sweep; concurrent-helper cap of 2.
+- CR-05 Light-close path: `size: light | standard` in the handoff; light skips artifact writes.
+- CR-06 Design-doc framing as positive contract ("linked by explicit handoff path, not by search").
+- CR-07 User-facing docs (`coordination.md`) and project-status update.
 
-Implemented:
+**v3 polish (`feat/v3-polish`, merged):**
 
-- `.claude-plugin/plugin.json`
-- `.claude-plugin/marketplace.json`
-- `agents/`
-- `skills/`
-- `commands/`
-- `hooks/hooks.json`
+- CR-08 Finished the token audit across the remaining four command files.
+- CR-09 CLI field discipline: `write-handoff` and `write-review-result` reject sparse inputs with actionable errors. `--force` escape hatch.
+- CR-10 Auto-install on template change: wake-up detects drift between canonical templates and `~/.claude/crew/*.md`, auto-refreshes. Role-slot overlays preserved.
 
-Validated:
+## Gaps That Matter
 
-- `claude plugin validate /Users/aradaev/Documents/Playground`
+1. **`help_request` and `helpers_done` paths** landed but haven't fired in a real scope-blocker yet. First live round-trip is still an open item.
+2. **Cadence and cap are tentative.** The every-3-events cadence and 2-concurrent-helper cap come from the design doc, not observation. Should tune after a few runs.
+3. **Artifact writers for validator/deployer (`write-validation-result`, `write-deployment-result`)** don't have the CR-09 field discipline yet. Less frequently used; fair game for a follow-up CR.
+4. **Richer task-board state** isn't implemented. Claims work; a real run board doesn't exist.
+5. **Event schema is thin** (see `event-schema.md`) — `schemaVersion`, `event`, `timestamp`, `repoPath`, `payloadPath`. Planned optional fields (`sessionId`, `runId`, `taskId`, `owner`, `status`) are not emitted yet.
+6. **Memory retrieval is recency-based only.** The roadmap in `memory-system.md` sketches meaning-based retrieval with reinforcement and decay, but none of that is built.
 
-### Installer
+## What's Next
 
-Implemented:
+Short list, in rough priority order:
 
-- `scripts/crew.mjs`
-- `scripts/lib/installer.mjs`
+1. Exercise `help_request`/`helpers_done` naturally and tune cadence + cap.
+2. Extend CLI field discipline to validator and deployer writers.
+3. Richer event schema once there's a concrete consumer that would use it.
+4. Observability improvements: surface `templateSync` drift in the lead output; maybe a `/crew:wake-up-brief` that visualizes warm/cold artifact layers.
+5. Address UX friction as it surfaces — watch for artifact sparseness, approval-kind UX, claim vs. conflict distinctions.
 
-Supported commands:
-
-- `audit`
-- `bootstrap`
-- `init`
-- `install-user-assets`
-- `wake-up`
-- `claim`
-- `release`
-- `show-claims`
-- `show-conflicts`
-- `request-approval`
-- `show-approvals`
-- `resolve-approval`
-- `write-run-brief`
-- `write-handoff`
-- `write-review-result`
-- `write-validation-result`
-- `write-deployment-result`
-- `write-final-synthesis`
-
-Behavior:
-
-- creates or extends `CLAUDE.md` with an `@~/.claude/crew/constitution.md` import
-- manages a canonical Crew `.gitignore` block
-- writes `.claude/hooks/log_event.sh`
-- creates `.claude/artifacts/crew/` and `.claude/state/crew/`
-- merges `.claude/settings.json` hook config conservatively
-- removes stale repo-local copies of `.claude/crew/{constitution,workflow,protocol}.md` if present
-- the canonical `constitution.md`, `workflow.md`, and `protocol.md` live under `~/.claude/crew/` and are managed by `install-user-assets`
-- seeds optional role-overlay stubs under `~/.claude/crew/` (lead, builder, reviewer, researcher, validator, deployer)
-- refreshes `~/.claude/CLAUDE.md` with the Crew import block so every session loads the constitution
-
-### Tests
-
-Implemented:
-
-- `tests/installer.test.mjs`
-- `tests/cli.test.mjs`
-- `scripts/e2e-smoke.mjs`
-
-Verified:
-
-- `npm test`
-- `npm run e2e:smoke`
-
-### CI And Versioning
-
-Validated in live repo work:
-
-- CI now runs tests on pull requests
-- CI also checks plugin version consistency
-- plugin versioning is currently manual-on-change, not auto-bumped on merge
-
-Current release guidance:
-
-- bump versions for user-visible plugin behavior changes
-- keep `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` aligned
-- prefer manual release cadence for now
-
-### Local Plugin Installation
-
-Completed in this thread:
-
-- added a temporary local marketplace from a copied plugin path under `/tmp`
-- moved the dev install to a stable path at `~/Desktop/Projects/crew-plugin`
-- reinstalled `crew@crew-dev` at user scope from the stable marketplace
-
-Important note:
-
-- the current installed dev marketplace now points at the stable development copy
-- the `/tmp` install path is no longer the active development setup
-
-### Live Claude Code Validation
-
-Validated in a real Claude Code session:
-
-- `/crew:bootstrap-repo` on an existing repo with pre-existing `CLAUDE.md` and `.claude/`
-- CLI audit on an existing repo before and after bootstrap to confirm harness presence
-- hook output written to `.claude/logs/events.jsonl`
-- a bounded feature workflow in `makeadz`
-- a clean single-session bug investigation and fix in `makeadz`
-- repo-local claims round-trip in `makeadz` through the CLI helpers
-- repo-local approval queue round-trip in `makeadz` through the CLI helpers
-- an assisted single-session CI/versioning task that added PR test automation and a version-consistency gate
-- a substantial `terminal-art-club` feature run that used wake-up, run brief, reviewer, review artifact, and final synthesis in one flow
-
-Observed lessons:
-
-- the plugin is already useful as a structured workflow layer even before claims/state are implemented
-- small, tightly coupled tasks should usually remain single-session
-- the mode model needed a third category: `assisted single-session` for background helpers that do not form a communicating team
-- `assisted single-session` appears to be the most common and natural real-world mode so far
-- a substantial run with reviewer plus artifacts feels materially more distinct than a default Claude session
-- wake-up briefs must verify `pwd` against the returned `repoPath`; otherwise the lead can trust the wrong repo context
-- reviewer should be treated as the default for substantial implementation work, not an optional nice-to-have
-- logs are firing in real sessions, but the event schema needs richer structure
-- mixed-plugin environments can blur attribution, so isolated tests are valuable
-- claim semantics must distinguish `owned by me` from a real conflict
-- repo-scoped CLI commands need the correct `--repo` path or they will look at the wrong state files
-- the normal user journey should stay centered on a few workflow commands, with the rest treated as internal or advanced tools
-- manual versioning plus CI consistency checks is sufficient for now; auto-bump-on-merge is not yet necessary
-- artifact CLI ergonomics matter in practice; common aliases like `--verdict` and working subcommand help reduce workflow friction
-- memory should become a standalone feature track, but v1 must stay bounded: stable repo memory plus current live state plus the latest useful artifacts, not the full archive
-
-## Where We Are Now
-
-The project is past concept stage and into usable v1 groundwork.
-
-What is working today:
-
-- plugin structure
-- installer CLI
-- repo initialization
-- repo bootstrap for existing repos
-- filesystem-level smoke testing
-- local plugin installation through Claude Code
-- live audit/bootstrap in Claude Code
-- live workflow execution in Claude Code
-- repo-local claims/state and live claim round-trips in Claude Code
-- repo-local approval queue in the installer and CLI
-- artifact writers in the installer and CLI
-- workflow prompts now explicitly instruct the lead to use artifact writers for substantial runs
-- workflow prompts now start from a repo wake-up brief built from durable state
-- review, validation, and shipping entry-point commands with minimal validator/deployer role contracts
-- task-driven prompt updates so substantial code work is expected to go through builder-owned tasks, review gates, and explicit test accountability
-- managed user-global overlay stubs for `~/.claude/crew/` plus canonical `.gitignore` ownership in the installer
-- wake-up now follows an explicit bounded-v1 memory shape with hot, warm, and cold buckets
-- CI for tests and version consistency
-
-What is not yet proven:
-
-- real team-run artifact generation during feature or bug workflows
-- approval queues or richer task-board state
-
-## v2 Coordination Evolution
-
-Branch `feat/v2-coordination-evolution` landed a set of protocol additions on top of the v1 lead-specialist model. What shipped across CR-01 through CR-07:
-
-- CR-01: token audit and consolidation across global CLAUDE.md, constitution, protocol, and role files (duplications removed, self-contained role guidance preserved where it matters).
-- CR-02: lead-scoped handoff contract — `files`, `call_sites`, `design_notes` are now required fields on substantive handoffs; specialists flag missing scope via `help_request` rather than broad grepping.
-- CR-03: `help_request` protocol addition — specialists emit a structured request when they hit genuine scope-blockers; lead default-biases toward approval.
-- CR-04: teardown discipline — `helpers_done` signal plus a lead-periodic safety sweep; concurrent-helper cap of 2.
-- CR-05: light-close path — `size: light | standard` in the handoff; light tasks skip the artifact write but keep the structured completion message.
-- CR-06: design-doc framing reworded from workaround ("don't scan `designs/`") to positive norm ("lead passes explicit paths").
-- CR-07: end-to-end smoke and user-facing docs (`docs/coordination.md`, README section, this note). Standard and light flows dogfooded naturally through CR-01..CR-06; `help_request` + `helpers_done` remain unverified code paths awaiting a real scope-blocker in the wild.
-- Open follow-ups: first live `help_request` round-trip, tuning of the periodic-check cadence, and validation of concurrent-helper cap under load.
-
-## Current Gaps
-
-1. The installer is intentionally minimal and does not yet generate richer repo-local agents or stronger automatic workflow behavior.
-2. Hook logging exists, but the event schema is still intentionally thin.
-3. Workflow commands describe the operating model but do not yet enforce all of it.
-4. Claims and approvals work, but they are still too visible as standalone mechanics instead of mostly living under the main workflows.
-5. Approval queue exists and works, but its UX still needs refinement.
-6. Artifact writers now have a clear workflow path, but they still need to be exercised in live Claude Code.
-7. Richer task-board state is still not implemented.
-8. Release/version workflow is documented, but still manual.
-9. The new wake-up brief needs live validation in Claude Code.
-10. Validator and deployer now exist, but their prompts, evidence shapes, and command ergonomics are intentionally v1-minimal and should be iterated through dogfooding before we add stronger automation or enforcement.
-
-## Recommended Next Steps
-
-### Next Immediate Step
-
-Turn the current internals into a simpler product experience:
-
-- keep the user story centered on the eight core workflow commands
-- use claims only when parallel work actually risks collision
-- use approvals only for meaningful boundary crossings
-- live-test artifact writers in Claude Code
-- improve approval-kind UX so destructive requests are easy to route correctly
-- decide whether artifact writing should be automatic for substantial runs
-
-### After Coordination Refinement
-
-Improve the generated repo harness:
-
-- richer artifact templates
-- stronger workflow prompts
-- clearer repo-local state layout
-- better bootstrap behavior around existing `CLAUDE.md`
-
-### Next Structural Feature
-
-Add the next layer on top of claims:
-
-- clearer run board or sprint state
-- lightweight task status tracking
-
-### Next Memory Feature
-
-Treat memory as its own small product area:
-
-- keep startup memory bounded through wake-up summaries
-- define hot, warm, and cold memory behavior
-- improve artifact structure so later retrieval can become meaning-based
-- explore reinforcement and decay only after bounded v1 memory feels solid
-
-### Next Observability Feature
-
-Expand the event schema so future tooling can consume richer run data, including:
-
-- task and claim events
-- approval events
-- subagent events
-- handoff and review artifact references
-- ownership transitions
-
-## Borrowed Ideas We Want To Explore Further
-
-From prior repo research, the most promising directions are:
-
-- light startup plus on-demand heavy orchestration
-- file claims or repo-local task state
-- cleaner event schema for future visualization
-- optional approval gates for risky actions
-- stronger plugin-maintenance patterns
-- clearer run/spec templates
-- selective future specialist-role improvements
-
-Candidate repos worth deeper local inspection:
-
-- `barkain/claude-code-workflow-orchestration`
-- `MarioGiancini/conductor-protocol`
-- `patoles/agent-flow`
-- `gaurav-yadav/agent-conductor`
-- `obra/superpowers-developing-for-claude-code`
-- `aws-samples/sample-claude-code-agent-team`
-- `VoltAgent/awesome-claude-code-subagents`
-
-## Suggested Stable Development Setup
-
-Move the local plugin development copy out of `/tmp` and into a stable path such as:
-
-- `~/Desktop/Projects/crew-plugin`
-
-Then:
-
-1. point the local marketplace at that stable path
-2. reinstall or update the plugin from there
-3. continue live testing against the stable copy
-
-## Useful Commands
-
-Validation:
-
-- `claude plugin validate /Users/aradaev/Documents/Playground`
-
-Installer:
-
-- `npm run installer:audit -- --repo <path>`
-- `npm run installer:bootstrap -- --repo <path>`
-- `npm run installer:init -- --repo <path>`
-
-Smoke:
-
-- `npm test`
-- `npm run e2e:smoke`
-
-Further planning:
-
-- `docs/reference-repo-plan.md`
-- `docs/memory-and-communication.md`
-- `docs/event-schema.md`
-
-Next implementation slice:
-
-- live-test artifact creation through the main workflow commands
-- live-test wake-up brief usage at the start of a real workflow
-- expand event coverage beyond session-start hooks
-- keep release/versioning simple unless real pain appears
-
-## If We Compact
-
-The important continuity points are:
-
-- this is a Claude Code plugin, not a standalone orchestration app
-- the installer CLI already exists and works in tests
-- live Claude Code validation has succeeded for setup, workflows, and claims
-- the next build slice is simplifying the visible UX while wiring approvals/artifacts into the core workflows
-- the next likely feature area is repo-local state and stronger observability
+Big structural moves (task-board state, meaning-based memory) stay deferred until there's a concrete use case pulling for them.

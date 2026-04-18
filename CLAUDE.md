@@ -6,19 +6,12 @@ This repository builds a Claude Code plugin for structured multi-agent software 
 
 If you are a future coding agent picking this repo up after compaction, read these in roughly this order:
 
-1. `docs/project-status.md`
-2. `docs/reference-repo-plan.md`
-3. `docs/memory-and-communication.md`
-4. `docs/how-it-feels.md`
-5. `docs/v1-spec.md`
-
-These files capture:
-
-- current implementation status
-- borrowed ideas and planned next steps
-- memory and communication model
-- intended user experience
-- core v1 architecture
+1. `docs/project-status.md` — current shape, shipped v1/v2/v3, gaps, next
+2. `docs/coordination.md` — user-facing guide to v2 coordination behavior
+3. `docs/v2-coordination-evolution.md` — architectural detail behind v2
+4. `docs/memory-and-communication.md` — memory layers and wake-up model
+5. `docs/how-it-feels.md` — product vision and emotional targets
+6. `docs/memory-system.md` — memory roadmap beyond v1
 
 ## Development Priorities
 
@@ -62,17 +55,7 @@ When adding artifact-producing features, prefer:
 
 ## Current Focus
 
-The next major implementation target is a conservative installer CLI that supports both existing and brand-new repos.
-
-For existing repos, it should inspect and safely add or update:
-
-- `CLAUDE.md`
-- `.claude/agents/`
-- `.claude/commands/`
-- `.claude/settings.json`
-- `.claude/hooks/`
-
-For new repos, it should be able to initialize the repo and lay down the same harness with cleaner defaults.
+v1 foundations, v2 coordination protocol, and v3 CLI polish are shipped. Current focus is dogfooding v2 (`help_request`, `helpers_done`, light-close) on real tasks and tuning cadence / cap values from observation rather than design-time guessing. See `docs/project-status.md` for the live gap list.
 
 <!-- crew:start -->
 @~/.claude/crew/constitution.md
