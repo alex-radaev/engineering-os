@@ -304,7 +304,7 @@ function usage(target = null) {
     "request-approval": "  node scripts/crew.mjs request-approval --repo <path> --summary <text> [--kind <kind>] [--severity <level>] [--requester <name>] [--approver <name>] [--reason <text>]",
     "show-approvals": "  node scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
     "resolve-approval": "  node scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
-    "wake-up": "  node scripts/crew.mjs wake-up --repo <path>",
+    "wake-up": "  node scripts/crew.mjs wake-up --repo <path> [--home <path>]",
     "write-run-brief": "  node scripts/crew.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
     "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> --summary <text> --files <a,b> [--from <role>] [--to <role>] [--force]",
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
@@ -375,7 +375,7 @@ async function main() {
       note: flags.note || ""
     });
   } else if (command === "wake-up") {
-    result = await buildWakeUpBrief(repoPath);
+    result = await buildWakeUpBrief(repoPath, { homePath: flags.home });
   } else if (command === "write-run-brief") {
     result = await writeArtifact(repoPath, "run-brief", {
       title: flags.title || positionals.join(" ") || "Run Brief",

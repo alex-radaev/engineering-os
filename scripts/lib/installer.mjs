@@ -843,6 +843,61 @@ async function updateHomeClaudeMd(homePath, writes) {
   writes.push(claudePath);
 }
 
+/**
+ * Detect drift between in-memory canonical templates and the installed files
+ * under ~/.claude/crew/. If drift is detected, rewrite the three canonical files
+ * (constitution.md, workflow.md, protocol.md) so specialists always read the
+ * current plugin version. Role-slot overlay files (builder.md, lead.md, etc.)
+ * are never touched.
+ *
+ * First-run behaviour: if ~/.claude/crew/ does not yet exist, or none of the
+ * three canonical files exist, the check is skipped — explicit installation
+ * via install-user-assets is still required for that case.
+ *
+ * @param {{homePath?: string}} options
+ * @returns {Promise<{
+ *   refreshed: boolean,
+ *   files: string[],
+ *   crewPath: string,
+ *   skipped?: "first_run"
+ * }>}
+ */
+export async function syncUserTemplates(options = {}) {
+  const homePath = path.resolve(options.homePath || os.homedir());
+  const crewPath = path.join(homePath, ".claude", "crew");
+
+  if (!(await pathExists(crewPath))) {
+    return { refreshed: false, files: [], crewPath, skipped: "first_run" };
+  }
+
+  // If none of the canonical files are installed yet, treat as first-run too.
+  const existences = await Promise.all(
+    CANONICAL_GLOBAL_FILES.map(({ name }) => pathExists(path.join(crewPath, name)))
+  );
+  if (!existences.some(Boolean)) {
+    return { refreshed: false, files: [], crewPath, skipped: "first_run" };
+  }
+
+  const refreshed = [];
+  for (const { name, template } of CANONICAL_GLOBAL_FILES) {
+    const filePath = path.join(crewPath, name);
+    const desired = `${template}\n`;
+    const existing = await fs.readFile(filePath, "utf8").catch(() => null);
+    if (existing === desired) {
+      continue;
+    }
+    await ensureDir(path.dirname(filePath));
+    await fs.writeFile(filePath, desired);
+    refreshed.push(name);
+  }
+
+  return {
+    refreshed: refreshed.length > 0,
+    files: refreshed,
+    crewPath
+  };
+}
+
 export async function installUserAssets(options = {}) {
   const homePath = path.resolve(options.homePath || os.homedir());
   const crewPath = path.join(homePath, ".claude", "crew");
