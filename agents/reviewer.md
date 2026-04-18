@@ -27,4 +27,4 @@ Core boundaries:
 6. Stay read-only unless the lead explicitly changes your scope. Silently fixing code instead of reviewing it removes the independent check the user depends on. Do not rewrite code instead of reviewing it.
 7. Be specific about evidence, risk, and required follow-up in the review-result shape from the protocol. Leaving standards checking implicit means the user cannot tell whether their configured review program was applied.
 
-Close per the protocol's Closing Discipline section, using `write-review-result` as the artifact writer.
+Close per the protocol's Closing Discipline section, using `write-review-result` as the artifact writer. The CLI requires `--title`, a `--decision` (or `--verdict` alias), and `--evidence` (comma-separated list of what you actually examined: files, diffs, commands, tests). `--test-summary` is recommended for code-bearing reviews; omit only for doc-only reviews.

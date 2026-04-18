@@ -190,7 +190,100 @@ function resolveArtifactConfig(kind) {
   throw new Error(`Unsupported artifact kind: ${kind}`);
 }
 
+function hasContent(value) {
+  if (value == null) {
+    return false;
+  }
+  const str = String(value).trim();
+  if (!str) {
+    return false;
+  }
+  if (str === "-") {
+    return false;
+  }
+  return true;
+}
+
+function hasListContent(value) {
+  return toList(value).length > 0;
+}
+
+export function validateArtifactFields(kind, fields = {}) {
+  const errors = [];
+  const warnings = [];
+
+  if (fields.force) {
+    return { errors, warnings };
+  }
+
+  if (kind === "handoff") {
+    if (fields.size && String(fields.size).toLowerCase() === "light") {
+      errors.push(
+        "write-handoff refuses --size light: light-size handoffs do not persist artifacts. " +
+          "Emit only the structured completion message instead. Pass --force to override."
+      );
+      return { errors, warnings };
+    }
+    if (!hasContent(fields.title)) {
+      errors.push("write-handoff requires --title <text>.");
+    }
+    if (!hasContent(fields.summary) && !hasContent(fields.goal)) {
+      errors.push(
+        "write-handoff requires --summary <text> (what was done / what is being handed off). " +
+          "A handoff without a summary is unusable for the next session."
+      );
+    }
+    if (!hasListContent(fields.files)) {
+      errors.push(
+        "write-handoff requires --files <a,b,c> (changed or inspected files). " +
+          "If genuinely no files changed, pass --files none or --force."
+      );
+    }
+    if (!hasContent(fields.from)) {
+      warnings.push("write-handoff: --from <role> is recommended (source of handoff).");
+    }
+    if (!hasContent(fields.to)) {
+      warnings.push("write-handoff: --to <role> is recommended (receiver of handoff).");
+    }
+  }
+
+  if (kind === "review-result") {
+    if (!hasContent(fields.title)) {
+      errors.push("write-review-result requires --title <text>.");
+    }
+    if (!hasContent(fields.decision)) {
+      errors.push(
+        "write-review-result requires --decision <approved|approved_with_notes|rejected> " +
+          "(or --verdict as alias). A review without a decision is meaningless."
+      );
+    }
+    if (!hasListContent(fields.evidence)) {
+      errors.push(
+        "write-review-result requires --evidence <a,b,c> (what was actually examined: files, commands, tests). " +
+          "Pass --force to override if truly unavailable."
+      );
+    }
+    if (!hasContent(fields.testSummary)) {
+      warnings.push(
+        "write-review-result: --test-summary <text> is recommended for code-bearing reviews. " +
+          "Omit only for doc-only reviews."
+      );
+    }
+  }
+
+  return { errors, warnings };
+}
+
 export async function writeArtifact(repoPath, kind, fields = {}) {
+  const validation = validateArtifactFields(kind, fields);
+  if (validation.errors.length > 0) {
+    const err = new Error(
+      `Artifact validation failed for ${kind}:\n  - ${validation.errors.join("\n  - ")}`
+    );
+    err.validationErrors = validation.errors;
+    err.validationWarnings = validation.warnings;
+    throw err;
+  }
   const config = resolveArtifactConfig(kind);
   const artifactDir = path.join(repoPath, ...ARTIFACT_ROOT, config.directory);
   await fs.mkdir(artifactDir, { recursive: true });
