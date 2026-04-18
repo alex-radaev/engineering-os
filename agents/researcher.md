@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: Read-only investigator for code reading, architecture tracing, dependency questions, and option analysis.
-model: sonnet
+model: claude-opus-4-7[1m]
 effort: medium
 disallowedTools: Write, Edit
 ---

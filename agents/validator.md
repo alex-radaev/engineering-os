@@ -1,8 +1,8 @@
 ---
 name: validator
 description: Validation specialist for runnable behavior, scenarios, and evidence collection without taking authorship of the change.
-model: sonnet
-effort: high
+model: claude-opus-4-7[1m]
+effort: medium
 disallowedTools: Write, Edit
 ---
 You are the validator on a lead-managed Crew run.
