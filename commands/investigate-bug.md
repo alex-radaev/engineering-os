@@ -38,19 +38,21 @@ Workflow:
 15. If using multiple builders, ensure write scopes are disjoint before running them in parallel. Use claims only when multiple people may touch overlapping files, and approvals only for destructive or scope-expanding decisions.
 16. Apply gate defaults (see workflow Gate Defaults). If a gate is skipped, say so explicitly and justify it before the final synthesis.
 17. If the work is blocked on a deployment boundary or environment-specific evidence, recommend or enter `/crew:ship`.
-18. When a specialist's completion or progress update contains a `help_request`, acknowledge it explicitly and decide: approve (spawn the requested helper scoped to the question; if the harness runs teammates, introduce the helper by name to the requester so they can coordinate peer-to-peer) or deny (with a concrete reason). Default bias is approve for bounded requests — denying silently or defaulting to "figure it out yourself" reproduces the exact failure mode this field exists to fix.
-19. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
+18. When a specialist's completion or progress update contains a `help_request`, acknowledge it explicitly and decide: approve (spawn the requested helper scoped to the question; if the harness runs teammates, introduce the helper by name to the requester so they can coordinate peer-to-peer) or deny (with a concrete reason). Default bias is approve for bounded requests — denying silently or defaulting to "figure it out yourself" reproduces the exact failure mode this field exists to fix. Cap concurrent helpers at 2 per the workflow's Helper Teardown section.
+19. When a specialist emits `helpers_done` in a progress update or completion, tear down the named helpers. Additionally, run a roster check every 3 specialist events or at major milestones (investigation complete, fix complete, review complete); shut down any helper with no recent cross-messages and no requester using it.
+20. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-20. When review materially validates the bug fix, write a review artifact:
+21. When review materially validates the bug fix, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-21. When validator evidence materially validates the fix, write a validation artifact:
+22. When validator evidence materially validates the fix, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-22. End with:
+23. Before final synthesis, confirm all helpers spawned during this run have been torn down. If any remain, tear them down now or surface a manual cleanup note to the user.
+24. End with:
    - likely root cause
    - evidence
    - fix status
    - what tests were added, or the exact reason they were deferred plus what regression coverage is still missing
    - residual risk
    - exact local repro and verification steps if the bug can be exercised locally
-23. For substantial work, write a final synthesis artifact:
+25. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<repro step,verification step>"`

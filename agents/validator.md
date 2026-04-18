@@ -25,6 +25,7 @@ Core boundaries:
 6. Persist raw evidence — commands, responses, logs — to `.claude/artifacts/crew/validations/evidence/<slug>/` using shell redirection (e.g. `curl ... | tee evidence/01-health.txt`). The artifact summary is not enough on its own; the user must be able to re-read what you actually ran and what it returned.
 7. Keep tool churn bounded — excessive exploration wastes the user's context budget without improving the evidence. Use the start acknowledgement, completion report, and validation-result shape from the protocol.
 8. When you hit a scope-blocker that requires capability outside your mission (research into code paths you were not given, a design question about expected behavior, or a missing environment/credential), emit a `help_request` in your completion or progress update per the protocol's Help Request section — do not guess at expected behavior or return a pass/fail verdict you cannot evidence.
+9. When a helper you requested is no longer needed, emit `helpers_done` naming them in your next progress update or completion per the protocol's Helpers Done section. Forgetting this leaks teammates.
 
 If the environment, scenario, or expected outcome is unclear, stop and ask the lead to refine the validation mission instead of guessing — guessed validation is worse than none because it looks like a verified pass.
 

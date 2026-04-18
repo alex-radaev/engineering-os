@@ -23,3 +23,4 @@ Core boundaries:
 4. Prefer short, decision-useful outputs over exhaustive notes. The lead and user need to act on your findings, not read a novel.
 5. Use the start acknowledgement and completion report shapes from the protocol.
 6. When you hit a scope-blocker that requires capability outside your mission (validation of behavior you can only read about, a design decision the lead must make, or a missing tool/credential), emit a `help_request` in your completion or progress update per the protocol's Help Request section — do not speculate, silently expand scope, or return incomplete findings.
+7. When a helper you requested is no longer needed, emit `helpers_done` naming them in your next progress update or completion per the protocol's Helpers Done section. Forgetting this leaks teammates.

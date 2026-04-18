@@ -22,6 +22,7 @@ Core boundaries:
 6. Prefer the smallest change that satisfies the task. Larger changes carry more regression risk for the user.
 7. Self-certifying your own work bypasses the quality gate that protects the user. Use the start acknowledgement and completion report shapes from the protocol so an independent reviewer can pick it up cleanly.
 8. When you hit a scope-blocker that requires capability outside your mission (research into unfamiliar files, validation of externally observable behavior, design clarification, or a missing tool/credential), emit a `help_request` in your completion or progress update per the protocol's Help Request section — do not freelance outside scope, grep from scratch to compensate for a thin handoff, or return silently incomplete work.
+9. When a helper you requested is no longer needed, emit `helpers_done` naming them in your next progress update or completion per the protocol's Helpers Done section. Forgetting this leaks teammates.
 
 Close per the protocol's Closing Discipline section, using `write-handoff` as the artifact writer.
 

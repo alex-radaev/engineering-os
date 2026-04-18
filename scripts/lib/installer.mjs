@@ -100,6 +100,17 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 - On deny: respond with a concrete reason. The specialist adjusts within existing scope or returns failure with the denial on record.
 - Silently dropping a \`help_request\` is a protocol failure — the user will see the gap in the completion message.
 
+## Helper Teardown
+
+Helpers spawned in response to a \`help_request\` are temporary — the lead is responsible for tearing them down when they are no longer needed. Two triggers operate together:
+
+- **Primary (specialist-signaled):** read \`helpers_done\` from specialist progress updates and completions. For each named helper, shut it down (via the platform's shutdown mechanism, e.g. SendMessage shutdown_request when running as a team).
+- **Safety net (lead-periodic):** every 3 specialist events, or at major milestones (design complete, implementation complete, review complete), run a roster check. For each active helper, confirm a requester is still using it. If idle with no recent cross-messages, initiate shutdown.
+
+**Concurrent cap: max 2 active helpers at any time.** If at cap and a new \`help_request\` arrives, respond to the requester with: "one helper must finish first — can you reuse an existing helper or wait?" Do not exceed the cap silently.
+
+**End-of-run cleanup:** the final lead step before completion is a roster check confirming all helpers spawned during the run have been torn down. Orphaned helpers surviving past run end is a protocol failure — surface manual cleanup to the user if teardown fails.
+
 ## Artifact Habit
 
 The user depends on these artifacts to resume work after compaction, across sessions, or when context is lost. Skipping a write-back means the next session starts with no record of what happened.
@@ -112,6 +123,8 @@ For substantial work, prefer:
 - \`write-validation-result\` when validation materially validates behavior
 - \`write-deployment-result\` when deployment materially validates an environment transition
 - \`write-final-synthesis\` when the run ends
+
+At end of run, confirm no active helpers remain before final synthesis (see Helper Teardown).
 
 ## Gate Defaults
 
@@ -156,6 +169,7 @@ Use when reporting mid-task:
 - whether scope is still valid
 - blocker, if any
 - next expected handoff
+- \`helpers_done\` entry, if a helper you requested is no longer needed (see Helpers Done below)
 
 ## Completion Report
 
@@ -168,6 +182,7 @@ Every specialist completion should include:
 - risks or open questions
 - suggested next handoff
 - \`help_request\` entry, if the specialist hit a scope-blocker it believes warrants lead intervention (see Help Request below)
+- \`helpers_done\` entry, if a helper you requested during this task is no longer needed (see Helpers Done below)
 
 ## Help Request
 
@@ -206,6 +221,25 @@ When a specialist's completion or progress update contains a \`help_request\`, a
 **Default bias: approve.** Lead reluctance to spawn is a known failure mode. Approve when the request is bounded and the specialist would otherwise freelance outside scope or bloat its context. Deny only when the request is clearly out-of-scope, speculative, or duplicates existing work.
 
 Do not silently drop a \`help_request\`. An unacknowledged request is a protocol failure — the user sees the gap in the completion message.
+
+## Helpers Done
+
+When a specialist that requested a helper no longer needs it, the specialist signals teardown in its next progress update or completion:
+
+\`\`\`yaml
+helpers_done:
+  - name: researcher-1
+    reason: "answer integrated, no further research needed"
+\`\`\`
+
+The lead reads this signal and tears down the named helper(s). Forgetting to emit \`helpers_done\` leaks teammates into indefinite life — name every helper you requested that is no longer needed.
+
+Teardown has two triggers, used as belt + suspenders:
+
+- **Primary (specialist-signaled):** the requester emits \`helpers_done\` as above. This is the normal path.
+- **Safety net (lead-periodic):** every 3 specialist events, or at major milestones (design complete, implementation complete, review complete), the lead runs a roster check. Any helper with no recent cross-messages and no requester using it gets shut down.
+
+Specialist forgetting ≠ leaked teammate (safety net catches it). Lead over-aggressive ≠ premature shutdown (safety net requires true idle).
 
 ## Review Result
 
