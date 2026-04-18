@@ -1,139 +1,138 @@
 # Crew
 
-`crew` is a Claude Code plugin for running a small, legible engineering team around a lead session.
+**A Claude Code plugin that turns one chat into a small, disciplined engineering team.**
 
-It is aimed at the workflow described in [docs/v1-spec.md](docs/v1-spec.md):
+You stay in the lead window. Behind a single slash command, Crew spins up specialists — builder, reviewer, validator, researcher, deployer — with explicit ownership, scoped files, required artifacts, and review gates. No hidden swarm. No runaway agents. Just a legible team loop that leaves inspectable tracks.
 
-- explicit roles
-- bounded ownership
-- structured handoffs
-- configurable pace
-- basic observability
+## Why Crew
 
-## MVP Shape
+Plain Claude Code is a great pair programmer, but on substantial work it tends to:
 
-The intended user-facing surface is deliberately small:
+- wander into unrelated files,
+- silently skip tests,
+- forget what it decided yesterday,
+- and hand you a ten-thousand-token monologue instead of a review.
 
-- `/crew:init-repo`
-- `/crew:bootstrap-repo`
-- `/crew:install`
-- `/crew:wake-up-brief`
-- `/crew:design`
-- `/crew:build-feature`
-- `/crew:investigate-bug`
-- `/crew:review`
-- `/crew:validate`
-- `/crew:ship`
+Crew fixes this by making the team model explicit. One **lead** owns the conversation and synthesis. Specialists get bounded missions with required output artifacts. A **reviewer gate** stands between "builder says done" and "task is done." Memory lives in files under `.claude/` — not in scrollback — so tomorrow's session starts oriented.
 
-Parallelism, claims, approvals, and artifact writers exist to support those workflows. They are framework machinery and development helpers, not the normal command set a user should need to memorize.
+## How It Works (30 seconds)
 
-## Orientation Docs
+```
+┌───────────────────────────────────────────────────────────────┐
+│  You ──► /crew:build-feature "add JWT refresh rotation"       │
+│           │                                                   │
+│           ▼                                                   │
+│   ┌─────────────┐   pre-scopes files, picks mode & pace       │
+│   │    LEAD     │──► writes run brief → .claude/artifacts/    │
+│   └─────┬───────┘                                             │
+│         │ bounded handoff (files, scope, forbidden, tests)    │
+│         ▼                                                     │
+│   ┌─────────────┐   edits only owned files, adds tests        │
+│   │   BUILDER   │──► completion handoff artifact              │
+│   └─────┬───────┘                                             │
+│         │ review request                                      │
+│         ▼                                                     │
+│   ┌─────────────┐   approved | approved_with_notes | rejected │
+│   │  REVIEWER   │──► review artifact                          │
+│   └─────┬───────┘                                             │
+│         │                                                     │
+│         ▼                                                     │
+│   ┌─────────────┐   runs the feature, captures evidence       │
+│   │  VALIDATOR  │──► validation artifact                      │
+│   └─────┬───────┘                                             │
+│         │                                                     │
+│         ▼                                                     │
+│        LEAD ──► final synthesis to you + written artifact     │
+└───────────────────────────────────────────────────────────────┘
+```
 
-If you are picking this repo up in a later session, read these first:
+Five pieces make this work:
 
-- [project-status.md](docs/project-status.md)
-- [reference-repo-plan.md](docs/reference-repo-plan.md)
-- [memory-and-communication.md](docs/memory-and-communication.md)
-- [memory-system.md](docs/memory-system.md)
-- [how-it-feels.md](docs/how-it-feels.md)
-- [v1-spec.md](docs/v1-spec.md)
-- [release-versioning.md](docs/release-versioning.md)
+1. **Explicit roles.** Five durable specialist agents (`builder`, `reviewer`, `validator`, `researcher`, `deployer`) live in `agents/`. The lead is whichever session you ran a `/crew:*` command in.
+2. **Bounded handoffs.** Every delegation carries `files`, `call_sites`, `design_notes`, and `size` (`light` or `standard`). Thin handoffs are a code smell — the lead pre-scopes with `Explore`/`Plan` before dispatching.
+3. **Review gate.** Reviewer must sign off before work counts as done. Tests for changed behavior are the default deliverable; reviewer rejects by default if they're missing without a concrete reason.
+4. **File ownership.** Claims protect overlapping edits. Approvals gate scope expansion. Both live under `.claude/state/crew/`.
+5. **Inspectable artifacts.** Run briefs, handoffs, reviews, validations, and final syntheses are written to `.claude/artifacts/crew/` as Markdown. Event logs append to `.claude/logs/events.jsonl`. The black box becomes translucent.
 
-## Coordination
+## A Live Session
 
-v2 formalizes how the lead and specialists coordinate during a run: a task-size field (`light` vs `standard`) that controls closing ceremony, a structured `help_request` signal so specialists can ask for scope they don't have, and a `helpers_done` teardown signal paired with a lead-periodic safety sweep. See [coordination.md](docs/coordination.md) for the reader-oriented guide and [v2-coordination-evolution.md](docs/v2-coordination-evolution.md) for the design doc.
+Here's a real run. The task: *"Add a `/health` endpoint to a new Express server, with a supertest test."* User typed `/crew:build-feature`, the lead did the rest.
 
-## Current shape
+> The side panel in these screenshots is [Claude Panel](https://github.com/alex-radaev/claude-panel) — a separate Claude Code plugin that gives Claude its own visual surface for status, plans, and focus. Not required for Crew; shown here because it makes a live run easier to follow.
 
-This first pass includes:
+### 1. Lead restates scope, picks mode, writes run brief
 
-- plugin manifest at `.claude-plugin/plugin.json`
-- development marketplace manifest at `.claude-plugin/marketplace.json`
-- five durable specialist agents in `agents/`
-- four reusable skills in `skills/`
-- a small user-facing workflow layer in `commands/`
-- lead identity assigned by workflow commands instead of a spawnable lead agent
-- task-driven execution where substantial implementation is expected to flow through bounded builder-owned tasks
-- control-plane helpers kept in the CLI instead of exposed as slash commands
-- hook wiring in `hooks/hooks.json`
-- a lightweight event logger in `scripts/log_event.sh`
-- repo development guidance in `CLAUDE.md`
+![lead restates scope](docs/img/crew-01-lead.png)
 
-## Install direction
+The lead reads the wake-up brief, echoes goal / mode / pace back, names what's in and out of scope, writes a run brief under `.claude/artifacts/crew/runs/`, and pre-scopes the files before dispatching anyone.
 
-Claude Code plugins are installed through the `/plugin` flow.
+### 2. Builder runs in its own context, returns a completion handoff
 
-Recommended first use:
+![builder completion](docs/img/crew-02-builder.png)
 
-1. Install this plugin at `user` scope for your personal default setup.
-2. Optionally run `/crew:install` once to create managed personal overlays under `~/.claude/crew/`.
-3. For an existing repo, open it and run `/crew:bootstrap-repo`.
-4. For a brand-new repo, run `/crew:init-repo`.
-5. Use `/crew:wake-up-brief`, `/crew:design`, `/crew:build-feature`, `/crew:investigate-bug`, `/crew:review`, `/crew:validate`, or `/crew:ship` when the task fits.
+Builder only sees its bounded mission: `server.js`, `tests/health.test.js`, plus the `design_notes` from the handoff. It edits, runs the tests, and reports back — changed files, test status, any `help_request`.
 
-For local development, you can also add the included dev marketplace and install from it:
+### 3. Reviewer signs off (or rejects)
 
-1. `claude plugin marketplace add ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json`
-2. `claude plugin install crew@crew-dev`
+![reviewer decision](docs/img/crew-03-review.png)
 
-## Installer And Dev CLI
+The reviewer is a gate, not a formality. It checks scope discipline, regression risk, and test coverage, then lands one of three verdicts: `approved`, `approved_with_notes`, or `rejected`. Decision is written to `.claude/artifacts/crew/reviews/`.
 
-The plugin now ships a small CLI.
+### 4. Lead synthesizes for you
 
-Normal development mainly needs:
+![final synthesis](docs/img/crew-04-synthesis.png)
 
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs audit --repo <path>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs bootstrap --repo <path>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs init --repo <path> [--allow-existing]`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs install-user-assets`
+Final synthesis is the one place where the run talks back to you in plain language: what changed, what was reviewed, what was validated, what tests were added, residual risks, and exact local-run steps. It's also written to disk — so tomorrow's `/crew:wake-up-brief` picks up oriented instead of guessing.
 
-Internal or advanced coordination/testing helpers:
+## The Command Surface
 
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs wake-up --repo <path>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs claim --repo <path> [--owner <name>] <files...>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs release --repo <path> [files...]`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-claims --repo <path>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-conflicts --repo <path> [files...]`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs request-approval --repo <path> --summary <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all]`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-run-brief --repo <path> --title <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-handoff --repo <path> --title <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-review-result --repo <path> --title <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-validation-result --repo <path> --title <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-deployment-result --repo <path> --title <text>`
-- `node ${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs write-final-synthesis --repo <path> --title <text>`
+Ten slash commands, grouped by what you're trying to do:
 
-Shortcut scripts:
+| Command                   | When to use it                                                   |
+| ------------------------- | ---------------------------------------------------------------- |
+| `/crew:install`           | One-time: install personal overlays under `~/.claude/crew/`      |
+| `/crew:init-repo`         | Brand-new repo — lay down the full harness                       |
+| `/crew:bootstrap-repo`    | Existing repo — conservative, additive install                   |
+| `/crew:wake-up-brief`     | Morning orientation — read durable state and recent artifacts    |
+| `/crew:design`            | Design a feature before building it                              |
+| `/crew:build-feature`     | Build or extend capability (the workhorse)                       |
+| `/crew:investigate-bug`   | Trace, fix, and regression-test a bug                            |
+| `/crew:review`            | Run the review phase on completed work                           |
+| `/crew:validate`          | Exercise runnable behavior and capture evidence                  |
+| `/crew:ship`              | Move work through merge, deploy, and evidence gates              |
 
-- `npm run installer:audit -- --repo <path>`
-- `npm run installer:bootstrap -- --repo <path>`
-- `npm run installer:init -- --repo <path>`
-- `npm run e2e:smoke`
+Parallelism, claims, approvals, and artifact writers exist underneath to support these workflows. They live in the CLI, not the command set — you shouldn't need to memorize them.
 
-## What To Commit
+## Install
 
-Default recommendation:
+Crew installs through Claude Code's standard `/plugin` flow.
 
-Commit the stable repo-owned operating layer:
+```text
+1. Install the plugin at user scope (/plugin install ...)
+2. /crew:install             # writes ~/.claude/crew/ overlays (one-time)
+3. Open your repo, then:
+     /crew:bootstrap-repo    # for an existing repo  (conservative, additive)
+     /crew:init-repo         # for a brand-new repo
+4. Start working:
+     /crew:build-feature | /crew:investigate-bug | /crew:design | ...
+```
 
-- `CLAUDE.md` (contains the `@~/.claude/crew/constitution.md` import block)
-- `.claude/settings.json` when it contains shared project settings
-- any repo-owned agents, commands, or skills you intentionally want the team to share
+For local dev against this repo, add the included dev marketplace (run from the repo root):
 
-The constitution, workflow, and protocol live globally at `~/.claude/crew/` (managed by `/crew:install`) so plugin updates propagate without re-bootstrapping every repo. Only add per-repo overrides under `.claude/crew/<role>.md` when a repo genuinely needs different guidance.
+```bash
+claude plugin marketplace add "$(pwd)/.claude-plugin/marketplace.json"
+claude plugin install crew@crew-dev
+```
 
-Usually do not commit live coordination noise:
+## What Gets Committed
 
-- `.claude/logs/`
-- `.claude/artifacts/crew/`
-- `.claude/state/crew/claims.json`
-- `.claude/state/crew/*.jsonl`
-- `.claude/settings.local.json`
+**Commit** the stable operating layer:
 
-This is especially important in multi-engineer repos. Claims, approvals, logs, and transient run artifacts are operational state and will create noisy, low-value merge conflicts if tracked by default.
+- `CLAUDE.md` (imports the global constitution)
+- `.claude/settings.json` (shared project settings)
+- any repo-owned agents, commands, or skills you want the team to share
 
-Suggested shared-repo `.gitignore` block:
+**Don't commit** live coordination state:
 
 ```gitignore
 .claude/logs/
@@ -143,22 +142,46 @@ Suggested shared-repo `.gitignore` block:
 .claude/settings.local.json
 ```
 
-## Notes
+The installer owns this `.gitignore` block so multi-engineer repos don't fight over claims files. The constitution, workflow, and protocol live globally at `~/.claude/crew/` — plugin updates propagate without re-bootstrapping every repo. Add per-repo overrides at `.claude/crew/<role>.md` only when a repo genuinely needs different guidance.
 
-- The installer core is real now, but still intentionally conservative and minimal.
-- `bootstrap-repo` and `init-repo` should eventually share the same conservative installer core with different entry behavior.
-- Hook logging is intentionally minimal and appends JSONL metadata to `.claude/logs/events.jsonl` in the working repo.
-- Startup context should stay small: `CLAUDE.md` imports only the neutral constitution layer.
-- The installer now owns the canonical Crew `.gitignore` block so repo setup stays consistent.
-- Workflow commands assign lead identity at runtime and load shared workflow/protocol guidance on demand.
-- Specialist agents are reusable tools with optional global and repo overlays.
-- `/crew:install` now creates managed global overlay stubs under `~/.claude/crew/` instead of leaving that path completely manual.
-- Builder now owns code-bearing tasks plus automated tests for changed behavior; if a substantial task lacks suitable test setup, the smallest suitable harness is part of the task unless explicitly scoped out. Reviewer gates completed tasks before they count as done, and validator is expected at milestones or the end for runnable behavior.
-- Review, validation, and shipping now exist as first-class lead entry points, but the validator/deployer prompts and evidence loops are intentionally minimal v1 contracts that should be iterated through dogfooding.
-- The installer already has automated tests plus a sample-repo smoke run.
-- Live Claude Code validation has now succeeded for install, audit, bootstrap, hooks, a feature flow, and a bug-fix flow.
-- The product direction is a small workflow surface with richer internal machinery underneath, not a growing list of user commands.
-- The next step toward a real `wow` is better context recovery, so the workflows now start from a repo wake-up brief built from durable state and artifacts.
-- Memory is now being treated as its own product track: bounded startup memory first, with meaning-based retrieval, reinforcement, and decay as a later direction.
-- CI now exists for tests plus plugin-version consistency.
-- Plugin versioning is currently manual-on-change with CI enforcing consistency across the release files.
+## CLI (power users)
+
+The plugin ships a small CLI at `scripts/crew.mjs`. Inside Claude Code, slash commands invoke it via `${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs`. From a regular terminal (e.g. running from this repo), use a plain path:
+
+```bash
+node scripts/crew.mjs audit              --repo <path>
+node scripts/crew.mjs bootstrap          --repo <path>
+node scripts/crew.mjs init               --repo <path> [--allow-existing]
+node scripts/crew.mjs install-user-assets
+```
+
+Coordination helpers (`wake-up`, `claim`, `release`, `show-claims`, `show-conflicts`, `request-approval`, `resolve-approval`, and artifact writers `write-run-brief` / `write-handoff` / `write-review-result` / `write-validation-result` / `write-deployment-result` / `write-final-synthesis`) exist for testing and advanced flows — the slash commands invoke these for you.
+
+## Coordination Signals
+
+Specialists and lead coordinate mid-run through a few structured fields:
+
+- **Task size** (`light` vs `standard`) controls closing ceremony — `light` tasks skip the artifact write but keep the structured completion message.
+- **`help_request`** lets a specialist explicitly ask for scope it doesn't own. Default bias is approve for bounded requests.
+- **`helpers_done`** plus a lead-periodic safety sweep handles teardown so helpers don't linger.
+
+## Design Principles
+
+- **Content-heavy, runtime-light.** Durable behavior lives in `agents/`, `skills/`, and `commands/` as Markdown. Hooks are small and auditable. Scripts are thin helpers, not a hidden framework.
+- **Respect existing repos.** `bootstrap-repo` inspects before it writes. It won't trample your `CLAUDE.md` or existing `.claude/` files.
+- **Prefer files to memory.** Progress persists in inspectable artifacts, not fuzzy context.
+- **Small command surface, rich internals.** We'd rather grow machinery than grow the list of commands a user must remember.
+
+## Status
+
+- Installer, hooks, artifact writers, and coordination CLI are live and tested.
+- Full feature-build and bug-fix flows have been dogfooded end-to-end through real Claude Code sessions.
+- Validator and deployer prompts are v1 contracts — intentionally minimal, iterated through dogfooding.
+- CI enforces tests and plugin-version consistency across release files.
+
+## Learn More
+
+- [`docs/coordination.md`](docs/coordination.md) — user-facing guide to how a Crew run unfolds, with `size`, `help_request`, `helpers_done`, and mode notes.
+- [`docs/v2-coordination-evolution.md`](docs/v2-coordination-evolution.md) — architectural detail behind v2 (rationale, edge cases, fail modes, phasing).
+- [`docs/project-status.md`](docs/project-status.md) — current shape, shipped work, gaps, and what's next.
+- [`docs/how-it-feels.md`](docs/how-it-feels.md) — product vision and emotional targets.
