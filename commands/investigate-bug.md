@@ -28,6 +28,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>" --pace "<pace>"`
 11. If using `single-session` and you will write code directly, first read builder guidance per the protocol's Custom Instructions Lookup section (role name: `builder`).
 12. For substantial bug work, decompose into bounded tasks. Researcher owns tracing; builder owns fix tasks and tests for the bug path per the constitution's test-as-default rule.
+    - Before dispatching a specialist on a substantive task, pre-scope: use Explore or Plan subagents as needed to identify relevant files and call sites. Pass these plus design notes explicitly in the specialist's handoff (`files`, `call_sites`, `design_notes`). Thin handoffs (missing files or call_sites) force specialists to freelance exploration in their own context window, which the platform does not let them offload.
 13. If the affected feature was built from a design doc (check run memory, not `designs/`), pass the design doc path to the builder and reviewer in their handoffs so the fix aligns with the original spec. If there is no relevant design doc, say "no design doc" explicitly — stale docs under `designs/` would mislead a specialist if it went looking.
 14. Typical `team run` split:
    - researcher traces code paths and prior behavior

@@ -89,6 +89,7 @@ This file is command-loaded run guidance for the lead. It is not always-on start
   - forbidden scope
   - a concrete deliverable
 - Builder owns code-bearing tasks; reviewer gates them before they are considered done; validator exercises integrated behavior. See the constitution's test-as-default rule for coverage expectations.
+- Lead does upstream exploration via built-in subagents (Explore/Plan) and passes findings (files, call_sites, design_notes) in the handoff. Specialists should not freelance exploration to compensate for thin handoffs.
 - The lead closes tasks, updates run memory, and decides the next handoff.
 
 ## Artifact Habit
@@ -211,6 +212,14 @@ Good handoffs are:
 - specific
 - inspectable
 - honest about uncertainty
+
+For substantive specialist tasks, the lead must populate:
+
+- \`files\` — specific paths the specialist should read or modify
+- \`call_sites\` — where the affected logic is invoked, for cross-cutting changes
+- \`design_notes\` — decisions, edge cases, and constraints the lead has already identified
+
+Specialists cannot delegate exploration to subagents. A handoff missing \`files\` or \`call_sites\` on a substantive task is a thin handoff; the specialist should return a blocker in the Completion Report rather than grep from scratch.
 
 ## Closing Discipline
 

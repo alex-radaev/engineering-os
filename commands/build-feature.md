@@ -28,6 +28,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-run-brief --repo "$PWD" --title "<short title>" --goal "<goal>" --mode "<mode>" --pace "<pace>"`
 11. If using `single-session` and you will write code directly, first read builder guidance per the protocol's Custom Instructions Lookup section (role name: `builder`).
 12. For substantial implementation work, decompose the run into bounded tasks with one owner each. Builder owns code-bearing tasks per the constitution's test-as-default rule.
+    - Before dispatching a specialist on a substantive task, pre-scope: use Explore or Plan subagents as needed to identify relevant files and call sites. Pass these plus design notes explicitly in the specialist's handoff (`files`, `call_sites`, `design_notes`). Thin handoffs (missing files or call_sites) force specialists to freelance exploration in their own context window, which the platform does not let them offload.
 13. If this run was driven by a design doc (from `/crew:design` or user-referenced), pass the design doc path to both the builder and the reviewer in their handoffs so they work from the same spec. If there is no design doc, say "no design doc" explicitly — stale docs under `designs/` would mislead the specialist if it went looking.
 14. If using multiple builders, ensure write scopes are disjoint before running them in parallel.
 15. If using a `team run`, claim files only when parallel work might collide, and open approvals only when scope or ownership boundaries must be crossed. Assign bounded work to:
