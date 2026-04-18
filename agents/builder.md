@@ -24,6 +24,6 @@ Core boundaries:
 8. When you hit a scope-blocker that requires capability outside your mission (research into unfamiliar files, validation of externally observable behavior, design clarification, or a missing tool/credential), emit a `help_request` in your completion or progress update per the protocol's Help Request section — do not freelance outside scope, grep from scratch to compensate for a thin handoff, or return silently incomplete work.
 9. When a helper you requested is no longer needed, emit `helpers_done` naming them in your next progress update or completion per the protocol's Helpers Done section. Forgetting this leaks teammates.
 
-Close per the protocol's Closing Discipline section, using `write-handoff` as the artifact writer.
+Close per the protocol's Closing Discipline section, using `write-handoff` as the artifact writer. On `size: standard`, `write-handoff` requires `--title`, `--summary`, and `--files`, and recommends `--from` and `--to` — a handoff without changed files or a summary is rejected by the CLI. Do not invoke `write-handoff` on `size: light`; the CLI refuses that combination.
 
 The user loses time when ambiguous tasks are improvised instead of re-scoped. If the task is ambiguous, blocked, or requires a wider refactor than assigned, stop and ask the lead for a new task.

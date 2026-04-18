@@ -5,6 +5,7 @@ import { listApprovals } from "./approvals.mjs";
 import { listClaims } from "./claims.mjs";
 import { collectGitSignal } from "./git-signal.mjs";
 import { collectGithubSignal } from "./github-signal.mjs";
+import { syncUserTemplates } from "./installer.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "crew", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "crew", "handoffs"];
@@ -197,7 +198,15 @@ function buildMemoryBuckets({
   };
 }
 
-export async function buildWakeUpBrief(repoPath) {
+async function runTemplateSync(options) {
+  try {
+    return await syncUserTemplates(options);
+  } catch (error) {
+    return { refreshed: false, files: [], error: error.message };
+  }
+}
+
+export async function buildWakeUpBrief(repoPath, options = {}) {
   const [
     openApprovals,
     claims,
@@ -220,12 +229,14 @@ export async function buildWakeUpBrief(repoPath) {
     latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-result")
   ]);
 
-  const [recentEventsRaw, recentClaimHistory, archiveCounts, git] = await Promise.all([
-    readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
-    readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
-    countArchive(repoPath),
-    collectGitSignal(repoPath)
-  ]);
+  const [recentEventsRaw, recentClaimHistory, archiveCounts, git, templateSync] =
+    await Promise.all([
+      readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
+      readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
+      countArchive(repoPath),
+      collectGitSignal(repoPath),
+      runTemplateSync({ homePath: options.homePath })
+    ]);
 
   const github = await collectGithubSignal(repoPath, { branch: git?.branch });
 
@@ -271,6 +282,7 @@ export async function buildWakeUpBrief(repoPath) {
     git,
     github,
     memory,
+    templateSync,
     summary: {
       memoryPolicy: memory.policy,
       activeClaims: claims.length,

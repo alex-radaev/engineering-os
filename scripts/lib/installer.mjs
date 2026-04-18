@@ -322,7 +322,7 @@ The completion message shape is identical in both sizes. Only the persisted arti
 
 A specialist's turn is not complete until the final actions of the turn are:
 
-1. If the handoff specifies \`size: standard\` (or omits \`size\` — default is standard), persist the role-appropriate artifact via \`node "\${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" <writer> --repo "$PWD" --title "<short title>" ...\`. Writers by role: builder -> \`write-handoff\`; reviewer -> \`write-review-result\`; validator -> \`write-validation-result\`; deployer -> \`write-deployment-result\`; researcher -> \`write-handoff\` when findings ship ownership forward. If the handoff specifies \`size: light\`, skip this step.
+1. If the handoff specifies \`size: standard\` (or omits \`size\` — default is standard), persist the role-appropriate artifact via \`node "\${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" <writer> --repo "$PWD" --title "<short title>" ...\`. Writers by role: builder -> \`write-handoff\`; reviewer -> \`write-review-result\`; validator -> \`write-validation-result\`; deployer -> \`write-deployment-result\`; researcher -> \`write-handoff\` when findings ship ownership forward. Field discipline enforced by the CLI: \`write-handoff\` requires \`--title\`, \`--summary\`, \`--files\` (and refuses \`--size light\`); \`write-review-result\` requires \`--title\`, \`--decision\` (or \`--verdict\`), \`--evidence\`. Sparse invocations are rejected with a non-zero exit. If the handoff specifies \`size: light\`, skip this step.
 2. Emit a final structured completion message using the shape for the role (completion report, review result, validation result, or deployment result). This step is required for both sizes.
 
 Do not end the turn after a mid-implementation tool call — if you are about to return control without the completion message, stop and emit it first. If a hard blocker prevents the artifact write on a \`size: standard\` task, still emit the structured completion message and name the blocker explicitly.
@@ -841,6 +841,61 @@ async function updateHomeClaudeMd(homePath, writes) {
   const next = `${existing.trimEnd()}\n\n${CLAUDE_IMPORT_BLOCK}\n`;
   await fs.writeFile(claudePath, next);
   writes.push(claudePath);
+}
+
+/**
+ * Detect drift between in-memory canonical templates and the installed files
+ * under ~/.claude/crew/. If drift is detected, rewrite the three canonical files
+ * (constitution.md, workflow.md, protocol.md) so specialists always read the
+ * current plugin version. Role-slot overlay files (builder.md, lead.md, etc.)
+ * are never touched.
+ *
+ * First-run behaviour: if ~/.claude/crew/ does not yet exist, or none of the
+ * three canonical files exist, the check is skipped — explicit installation
+ * via install-user-assets is still required for that case.
+ *
+ * @param {{homePath?: string}} options
+ * @returns {Promise<{
+ *   refreshed: boolean,
+ *   files: string[],
+ *   crewPath: string,
+ *   skipped?: "first_run"
+ * }>}
+ */
+export async function syncUserTemplates(options = {}) {
+  const homePath = path.resolve(options.homePath || os.homedir());
+  const crewPath = path.join(homePath, ".claude", "crew");
+
+  if (!(await pathExists(crewPath))) {
+    return { refreshed: false, files: [], crewPath, skipped: "first_run" };
+  }
+
+  // If none of the canonical files are installed yet, treat as first-run too.
+  const existences = await Promise.all(
+    CANONICAL_GLOBAL_FILES.map(({ name }) => pathExists(path.join(crewPath, name)))
+  );
+  if (!existences.some(Boolean)) {
+    return { refreshed: false, files: [], crewPath, skipped: "first_run" };
+  }
+
+  const refreshed = [];
+  for (const { name, template } of CANONICAL_GLOBAL_FILES) {
+    const filePath = path.join(crewPath, name);
+    const desired = `${template}\n`;
+    const existing = await fs.readFile(filePath, "utf8").catch(() => null);
+    if (existing === desired) {
+      continue;
+    }
+    await ensureDir(path.dirname(filePath));
+    await fs.writeFile(filePath, desired);
+    refreshed.push(name);
+  }
+
+  return {
+    refreshed: refreshed.length > 0,
+    files: refreshed,
+    crewPath
+  };
 }
 
 export async function installUserAssets(options = {}) {

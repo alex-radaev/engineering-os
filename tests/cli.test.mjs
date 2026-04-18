@@ -200,7 +200,9 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--reviewer",
     "reviewer",
     "--files",
-    "app/templates/create.html"
+    "app/templates/create.html",
+    "--evidence",
+    "diff of create.html,npm test output"
   ]);
   const reviewResult = JSON.parse(reviewOutput.stdout);
   const reviewBody = await fs.readFile(reviewResult.path, "utf8");
@@ -217,7 +219,9 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--verdict",
     "approved_with_notes",
     "--test-summary",
-    "No automated tests yet; manual validation only"
+    "No automated tests yet; manual validation only",
+    "--evidence",
+    "manual walkthrough of create.html"
   ]);
   const reviewAliasResult = JSON.parse(reviewAliasOutput.stdout);
   const reviewAliasBody = await fs.readFile(reviewAliasResult.path, "utf8");

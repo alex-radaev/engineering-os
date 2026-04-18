@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import { writeArtifact } from "./lib/artifacts.mjs";
+import { validateArtifactFields, writeArtifact } from "./lib/artifacts.mjs";
 import { auditRepo, bootstrapRepo, initRepo, installUserAssets } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
@@ -49,7 +49,9 @@ function parseArgs(argv) {
     executedEvidence: null,
     inferredConfidence: null,
     runSteps: null,
-    home: null
+    home: null,
+    size: null,
+    force: false
   };
   const positionals = [];
 
@@ -263,6 +265,15 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--size") {
+      flags.size = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--force") {
+      flags.force = true;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -293,10 +304,10 @@ function usage(target = null) {
     "request-approval": "  node scripts/crew.mjs request-approval --repo <path> --summary <text> [--kind <kind>] [--severity <level>] [--requester <name>] [--approver <name>] [--reason <text>]",
     "show-approvals": "  node scripts/crew.mjs show-approvals --repo <path> [--status open|resolved|all] [--approver <name>]",
     "resolve-approval": "  node scripts/crew.mjs resolve-approval --repo <path> --id <approval-id> --decision approved|rejected|canceled [--resolver <name>] [--note <text>]",
-    "wake-up": "  node scripts/crew.mjs wake-up --repo <path>",
+    "wake-up": "  node scripts/crew.mjs wake-up --repo <path> [--home <path>]",
     "write-run-brief": "  node scripts/crew.mjs write-run-brief --repo <path> --title <text> [--goal <text>] [--mode <mode>] [--pace <pace>]",
-    "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> [--from <role>] [--to <role>] [--files <a,b>]",
-    "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> [--reviewer <role>] [--decision <decision>] [--verdict <decision>] [--test-summary <text>]",
+    "write-handoff": "  node scripts/crew.mjs write-handoff --repo <path> --title <text> --summary <text> --files <a,b> [--from <role>] [--to <role>] [--force]",
+    "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
     "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]"
@@ -364,7 +375,7 @@ async function main() {
       note: flags.note || ""
     });
   } else if (command === "wake-up") {
-    result = await buildWakeUpBrief(repoPath);
+    result = await buildWakeUpBrief(repoPath, { homePath: flags.home });
   } else if (command === "write-run-brief") {
     result = await writeArtifact(repoPath, "run-brief", {
       title: flags.title || positionals.join(" ") || "Run Brief",
@@ -380,9 +391,9 @@ async function main() {
       next: flags.next
     });
   } else if (command === "write-handoff") {
-    result = await writeArtifact(repoPath, "handoff", {
+    const handoffFields = {
       title: flags.title || positionals.join(" ") || "Task Handoff",
-      from: flags.from || flags.owner || "lead-session",
+      from: flags.from,
       to: flags.to,
       goal: flags.goal,
       summary: flags.summary,
@@ -392,10 +403,18 @@ async function main() {
       files: flags.files,
       confidence: flags.confidence,
       risks: flags.risks,
-      next: flags.next
-    });
+      next: flags.next,
+      size: flags.size,
+      force: flags.force
+    };
+    const { warnings } = validateArtifactFields("handoff", handoffFields);
+    for (const w of warnings) {
+      console.error(`warning: ${w}`);
+    }
+    handoffFields.from = handoffFields.from || flags.owner || "lead-session";
+    result = await writeArtifact(repoPath, "handoff", handoffFields);
   } else if (command === "write-review-result") {
-    result = await writeArtifact(repoPath, "review-result", {
+    const reviewFields = {
       title: flags.title || positionals.join(" ") || "Review Result",
       reviewer: flags.reviewer || flags.owner || "reviewer",
       decision: flags.decision,
@@ -404,8 +423,14 @@ async function main() {
       files: flags.files,
       testSummary: flags.testSummary,
       risks: flags.risks,
-      next: flags.next
-    });
+      next: flags.next,
+      force: flags.force
+    };
+    const { warnings } = validateArtifactFields("review-result", reviewFields);
+    for (const w of warnings) {
+      console.error(`warning: ${w}`);
+    }
+    result = await writeArtifact(repoPath, "review-result", reviewFields);
   } else if (command === "write-validation-result") {
     result = await writeArtifact(repoPath, "validation-result", {
       title: flags.title || positionals.join(" ") || "Validation Result",

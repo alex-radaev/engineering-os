@@ -13,9 +13,7 @@ Use this when the user wants to plan a feature or service — before code is wri
 
 Workflow:
 
-1. Read custom lead guidance in this order, if present:
-   - `~/.claude/crew/lead.md`
-   - `.claude/crew/lead.md`
+1. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
 2. Apply the `writing-design-docs` skill for the design structure and quality bar.
 3. First verify the current workspace path:
    - `pwd`
