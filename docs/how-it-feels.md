@@ -4,6 +4,8 @@ This document is not a spec.
 
 It is a user-story description of the product we are trying to build, so we can feel the experience end to end.
 
+For the current behavior shipping today, see `coordination.md` (user-facing) and `v2-coordination-evolution.md` (architectural). This doc describes where we're headed; those describe what's live now. Most of the emotional targets here are already reality after v2 — review gate, bounded scope, inspectable artifacts, explicit ownership — with `help_request` + peer messaging filling in the rougher spots.
+
 ## Morning: Starting A New Project
 
 You open your laptop in the morning and decide that today you want to start a new project.
@@ -548,4 +550,22 @@ But even the prototype should already give the user this basic feeling:
 5. When parallel work happens, it is clearer and safer.
 6. I can inspect what happened afterward.
 
-That is the bar for “working and useful.”
+That is the bar for "working and useful."
+
+## What's Already Here
+
+As of v2 + v3 polish, the following emotional targets are live:
+
+- **Review gate is real.** Specialists can't self-certify; reviewer agent is an independent pass with its own context window.
+- **Bounded scope is enforced.** Lead pre-scopes with `files`, `call_sites`, `design_notes` in the handoff; builders don't grep freely.
+- **Artifacts are durable.** `.claude/artifacts/crew/` fills up with handoffs, reviews, run briefs, final syntheses. CLI rejects sparse artifact writes.
+- **Light vs. standard close.** Trivial tasks skip the artifact ceremony via `size: light`; substantive tasks keep the full trail.
+- **Peer coordination when it helps.** `help_request` gives specialists a structured way to ask the lead for scope expansion; lead approves, spawns a helper, and introduces. Peers message directly from then on.
+- **Self-healing templates.** `wake-up` auto-detects drift between canonical templates and `~/.claude/crew/*.md` and refreshes. No manual reinstall step.
+
+## What's Still Aspirational
+
+- **Meaning-based memory retrieval.** Today's memory is recency + latest-artifact; `memory-system.md` sketches the next level.
+- **Richer task-board state.** Claims work; a real sprint/run board doesn't yet.
+- **Statusline/TUI/browser visual layer.** Terminal-first is where we are; visual surface is deferred.
+- **Full approval queue UX.** Approval mechanics work; the ergonomics are still v1-ish.
