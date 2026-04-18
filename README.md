@@ -58,6 +58,8 @@ Five pieces make this work:
 
 Here's a real run. The task: *"Add a `/health` endpoint to a new Express server, with a supertest test."* User typed `/crew:build-feature`, the lead did the rest.
 
+> The side panel in these screenshots is [Claude Panel](https://github.com/alex-radaev/claude-panel) — a separate Claude Code plugin that gives Claude its own visual surface for status, plans, and focus. Not required for Crew; shown here because it makes a live run easier to follow.
+
 ### 1. Lead restates scope, picks mode, writes run brief
 
 ![lead restates scope](docs/img/crew-01-lead.png)
