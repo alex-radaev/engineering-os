@@ -92,6 +92,14 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 - Lead does upstream exploration via built-in subagents (Explore/Plan) and passes findings (files, call_sites, design_notes) in the handoff. Specialists should not freelance exploration to compensate for thin handoffs.
 - The lead closes tasks, updates run memory, and decides the next handoff.
 
+## Help Request Handling
+
+- Specialists surface scope-blockers via a \`help_request\` field in their completion or progress update (shape defined in the protocol). The lead must acknowledge every \`help_request\` explicitly — approve or deny.
+- **Default bias: approve.** Approve when the request is bounded and the specialist would otherwise bloat its own context or freelance outside scope. Deny only when the request is clearly out-of-scope, speculative, or duplicates existing work.
+- On approve: spawn the requested helper scoped to the question. If the harness runs teammates, introduce the helper by name to the requester so they can coordinate peer-to-peer. If specialists are one-shot subagents, dispatch a fresh specialist with the scoped mission and route findings back.
+- On deny: respond with a concrete reason. The specialist adjusts within existing scope or returns failure with the denial on record.
+- Silently dropping a \`help_request\` is a protocol failure — the user will see the gap in the completion message.
+
 ## Artifact Habit
 
 The user depends on these artifacts to resume work after compaction, across sessions, or when context is lost. Skipping a write-back means the next session starts with no record of what happened.
@@ -159,6 +167,45 @@ Every specialist completion should include:
 - confidence level
 - risks or open questions
 - suggested next handoff
+- \`help_request\` entry, if the specialist hit a scope-blocker it believes warrants lead intervention (see Help Request below)
+
+## Help Request
+
+A specialist that hits a scope-blocker — capability outside its mission, information it cannot gather within its assigned files, a design question that needs a decision — should surface a \`help_request\` rather than freelance outside scope, bloat its context by grepping from scratch, or return silently incomplete work.
+
+Include the \`help_request\` in the completion (or a progress update if blocking mid-task). Shape:
+
+\`\`\`yaml
+help_request:
+  kind: research | validation | design_question | capability_gap
+  question: "concrete, scoped ask"
+  scope_note: "why this is outside my assigned mission"
+  urgency: blocking | informational
+\`\`\`
+
+Field guidance:
+
+- \`kind\` — one of the four known kinds. Unknown kinds are allowed but the lead may deny with reason.
+  - \`research\` — code reading, architecture tracing, or dependency questions outside assigned files.
+  - \`validation\` — externally observable behavior that needs exercising, not just reading.
+  - \`design_question\` — a decision the specialist cannot make alone (edge case, tradeoff, constraint clarification).
+  - \`capability_gap\` — a tool, credential, or environment the specialist does not have.
+- \`question\` — concrete and scoped; a helper should be able to act on it without further clarification.
+- \`scope_note\` — one sentence on why this is outside the assigned mission. Helps the lead decide approve vs. deny quickly.
+- \`urgency\` — \`blocking\` means the specialist cannot make progress without an answer; \`informational\` means the specialist can continue but flagged the gap.
+
+The specialist emits the request mode-agnostically. Whether the lead resolves it by spawning a fresh one-shot specialist or by introducing a persistent teammate is the lead's call based on the active coordination mode.
+
+## Help Request Response (lead)
+
+When a specialist's completion or progress update contains a \`help_request\`, acknowledge it explicitly and decide:
+
+- **Approve** — spawn the requested helper scoped to the question. If the harness is running teammates, introduce the helper by name to the requester (e.g. "researcher-1 is scoped to X; message them directly"). If specialists are one-shot subagents, dispatch a fresh specialist with the scoped mission and route findings back.
+- **Deny** — respond with a concrete reason. The specialist then either adjusts within its existing scope or returns failure with the denial on record.
+
+**Default bias: approve.** Lead reluctance to spawn is a known failure mode. Approve when the request is bounded and the specialist would otherwise freelance outside scope or bloat its context. Deny only when the request is clearly out-of-scope, speculative, or duplicates existing work.
+
+Do not silently drop a \`help_request\`. An unacknowledged request is a protocol failure — the user sees the gap in the completion message.
 
 ## Review Result
 
@@ -219,7 +266,7 @@ For substantive specialist tasks, the lead must populate:
 - \`call_sites\` — where the affected logic is invoked, for cross-cutting changes
 - \`design_notes\` — decisions, edge cases, and constraints the lead has already identified
 
-Specialists cannot delegate exploration to subagents. A handoff missing \`files\` or \`call_sites\` on a substantive task is a thin handoff; the specialist should return a blocker in the Completion Report rather than grep from scratch.
+Specialists cannot delegate exploration to subagents. A handoff missing \`files\` or \`call_sites\` on a substantive task is a thin handoff; the specialist should emit a \`help_request\` (see Help Request below) rather than grep from scratch.
 
 ## Closing Discipline
 
