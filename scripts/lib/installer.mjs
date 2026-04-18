@@ -41,6 +41,7 @@ This repository uses the Crew harness for structured software work inside Claude
 5. Avoid same-file parallel editing — concurrent edits create merge conflicts and surprises the user has to clean up.
 6. Use explicit handoff and review reporting for substantial work. Without them, the next agent or session starts blind.
 7. Escalate destructive, wide-scope, policy, or architecture decisions instead of improvising them — these are decisions the user should own.
+8. Treat automated tests for changed behavior as the default deliverable on code-bearing work. Builders own writing them; reviewers reject by default when they are missing without a concrete low-risk deferral reason. Silent test gaps erode the user's safety net.
 `;
 
 const WORKFLOW_TEMPLATE = `# Crew Workflow
@@ -64,11 +65,7 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 5. Decide whether the work is tiny enough for direct lead execution or should be decomposed into bounded tasks.
 6. Choose mode: \`single-session\`, \`assisted single-session\`, or \`team run\`.
 7. Choose pace: \`slow\`, \`medium\`, or \`fast\`.
-8. Apply the default gate policy. Each gate protects the user from a different class of risk — skipping a gate silently means the user assumes it passed when it did not:
-   - if code changed -> review required (protects from regressions and quality erosion)
-   - if behavior can be exercised meaningfully -> validation expected (protects from shipping broken behavior)
-   - if work crosses an environment boundary -> deployment evidence and post-deploy validation expected (protects from unverified environment state)
-   - if production is affected -> explicit user approval required before promotion (protects the user's production systems)
+8. Apply the default gate policy (see Gate Defaults below). Each gate protects the user from a different class of risk — skipping a gate silently means the user assumes it passed when it did not.
 9. For substantial code-bearing work, prefer builder-owned tasks instead of direct lead coding.
 10. Spawn multiple builders only when write scopes are disjoint and the split is independently reviewable.
 11. Run reviewer on completed implementation tasks before treating them as done.
@@ -91,10 +88,7 @@ This file is command-loaded run guidance for the lead. It is not always-on start
   - allowed scope
   - forbidden scope
   - a concrete deliverable
-- Builder owns code-bearing tasks, including automated tests for changed behavior.
-- If the repo lacks suitable test setup and the task is substantial, adding the smallest suitable test harness is part of builder scope unless explicitly out of scope.
-- Reviewer gates completed implementation tasks before they are considered done.
-- Validator checks integrated behavior periodically or at the end once the system can be exercised meaningfully.
+- Builder owns code-bearing tasks; reviewer gates them before they are considered done; validator exercises integrated behavior. See the constitution's test-as-default rule for coverage expectations.
 - The lead closes tasks, updates run memory, and decides the next handoff.
 
 ## Artifact Habit
@@ -112,9 +106,10 @@ For substantial work, prefer:
 
 ## Gate Defaults
 
-- If code changed, review is required by default.
-- If behavior can be exercised meaningfully, validation is expected by default.
-- If work crosses an environment boundary, deployment evidence plus post-deploy validation are expected by default.
+- If code changed, review is required by default (protects from regressions and quality erosion).
+- If behavior can be exercised meaningfully, validation is expected by default (protects from shipping broken behavior).
+- If work crosses an environment boundary, deployment evidence plus post-deploy validation are expected by default (protects from unverified environment state).
+- If production is affected, explicit user approval is required before promotion (protects the user's production systems).
 - If a gate is skipped, say so explicitly and give a concrete reason.
 
 ## Runnable Deliverables
@@ -125,6 +120,15 @@ For substantial work, prefer:
 const PROTOCOL_TEMPLATE = `# Crew Protocol
 
 This file defines the shared reporting shapes used by the lead and specialists.
+
+## Custom Instructions Lookup
+
+Before starting work, every role (lead and specialists) should check for personal then repo-local custom instructions for that role, in this order, if present:
+
+1. \`~/.claude/crew/<role>.md\` (personal overlay across repos)
+2. \`.claude/crew/<role>.md\` (repo-local overlay)
+
+Precedence: repo-local overrides personal; assigned mission and core role boundaries override both.
 
 ## Start Acknowledgement
 
@@ -207,6 +211,15 @@ Good handoffs are:
 - specific
 - inspectable
 - honest about uncertainty
+
+## Closing Discipline
+
+For substantial work, a specialist's turn is not complete until both of the following are the final actions of the turn:
+
+1. Persist the role-appropriate artifact via \`node "\${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" <writer> --repo "$PWD" --title "<short title>" ...\`. Writers by role: builder -> \`write-handoff\`; reviewer -> \`write-review-result\`; validator -> \`write-validation-result\`; deployer -> \`write-deployment-result\`; researcher -> \`write-handoff\` when findings ship ownership forward.
+2. Emit a final structured completion message using the shape for the role (completion report, review result, validation result, or deployment result).
+
+Do not end the turn after a mid-implementation tool call — if you are about to return control without the completion message, stop and emit it first. If a hard blocker prevents the artifact write, still emit the structured completion message and name the blocker explicitly.
 `;
 
 const ARTIFACT_README_TEMPLATE = `# Crew Artifacts
