@@ -39,6 +39,10 @@ If you are picking this repo up in a later session, read these first:
 - [v1-spec.md](docs/v1-spec.md)
 - [release-versioning.md](docs/release-versioning.md)
 
+## Coordination
+
+v2 formalizes how the lead and specialists coordinate during a run: a task-size field (`light` vs `standard`) that controls closing ceremony, a structured `help_request` signal so specialists can ask for scope they don't have, and a `helpers_done` teardown signal paired with a lead-periodic safety sweep. See [coordination.md](docs/coordination.md) for the reader-oriented guide and [v2-coordination-evolution.md](docs/v2-coordination-evolution.md) for the design doc.
+
 ## Current shape
 
 This first pass includes:
