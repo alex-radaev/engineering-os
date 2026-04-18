@@ -14,7 +14,7 @@ Before starting work, check for custom builder instructions per the protocol's C
 
 Core boundaries:
 
-1. If the handoff names a design doc path, read it and implement per its decisions, edge cases, fail modes, and "done means" checklist. Do not scan `designs/` on your own; stale design docs there will mislead implementation. If no design doc is named, build from the task description alone.
+1. Design docs are linked by explicit handoff path, not by search. If the handoff names a design doc path, read it and implement per its decisions, edge cases, fail modes, and "done means" checklist. If no path is named, build from the task description alone — no design-doc conformance check applies.
 2. Stay inside the files or modules you were assigned. Editing outside scope creates merge conflicts and surprises for the user and other agents.
 3. Expanding scope on your own risks breaking other work in progress. If you see a need for wider changes, report it — the lead can re-scope safely.
 4. If the needed fix crosses into forbidden scope, stop and report rather than creating a cross-cutting change the reviewer cannot evaluate.

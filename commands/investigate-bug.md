@@ -30,7 +30,7 @@ Workflow:
 12. For substantial bug work, decompose into bounded tasks. Researcher owns tracing; builder owns fix tasks and tests for the bug path per the constitution's test-as-default rule.
     - Before dispatching a specialist on a substantive task, pre-scope: use Explore or Plan subagents as needed to identify relevant files and call sites. Pass these plus design notes explicitly in the specialist's handoff (`files`, `call_sites`, `design_notes`). Thin handoffs (missing files or call_sites) force specialists to freelance exploration in their own context window, which the platform does not let them offload.
     - Set a `size` on each handoff: use `size: light` for trivial tasks (one-line fixes, typo corrections, variable renames) — light-close skips the artifact write but keeps the structured completion message. Use `size: standard` (default) for anything substantive.
-13. If the affected feature was built from a design doc (check run memory, not `designs/`), pass the design doc path to the builder and reviewer in their handoffs so the fix aligns with the original spec. If there is no relevant design doc, say "no design doc" explicitly — stale docs under `designs/` would mislead a specialist if it went looking.
+13. If the affected feature was built from a design doc (check run memory for the path), pass the design doc path to the builder and reviewer in their handoffs so the fix aligns with the original spec — the explicit path is how specialists link work to a design. If there is no relevant design doc, say "no design doc" explicitly so specialists know no conformance check applies.
 14. Typical `team run` split:
    - researcher traces code paths and prior behavior
    - builder attempts the smallest credible fix once the problem is clear
