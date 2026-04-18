@@ -17,6 +17,7 @@ Include:
 
 - objective
 - owner
+- size: `light` | `standard` (default: `standard`)
 - allowed scope
 - forbidden scope
 - deliverable
@@ -27,6 +28,8 @@ Include:
 - confidence level
 - risks or open questions
 - suggested next handoff
+
+Use `size: light` for trivial tasks (typo fixes, one-line config changes, variable renames) — the specialist skips the artifact write but still emits the structured completion message. Use `size: standard` (default) for anything substantive.
 
 The lead is responsible for populating `files`, `call_sites`, and `design_notes` via its own built-in exploration (Explore/Plan subagents). Specialists cannot delegate exploration, so a thin handoff forces them to grep from scratch inside their own context budget. If a specialist receives a thin handoff, it should emit a `help_request` (see the protocol's Help Request section) rather than compensate silently.
 

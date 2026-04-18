@@ -91,6 +91,7 @@ This file is command-loaded run guidance for the lead. It is not always-on start
 - Builder owns code-bearing tasks; reviewer gates them before they are considered done; validator exercises integrated behavior. See the constitution's test-as-default rule for coverage expectations.
 - Lead does upstream exploration via built-in subagents (Explore/Plan) and passes findings (files, call_sites, design_notes) in the handoff. Specialists should not freelance exploration to compensate for thin handoffs.
 - The lead closes tasks, updates run memory, and decides the next handoff.
+- Each handoff carries a \`size\` field: \`light\` or \`standard\` (default). Use \`size: light\` for trivial tasks (typo fixes, variable renames, one-line config changes) — the specialist skips the artifact write but still emits the structured completion message. Use \`size: standard\` (default) for anything substantive — feature work, bug fixes with tests, cross-file refactors.
 
 ## Help Request Handling
 
@@ -123,6 +124,8 @@ For substantial work, prefer:
 - \`write-validation-result\` when validation materially validates behavior
 - \`write-deployment-result\` when deployment materially validates an environment transition
 - \`write-final-synthesis\` when the run ends
+
+Specialists on \`size: light\` handoffs skip the artifact write. The structured completion message shape is still required — review, \`help_request\`, and \`helpers_done\` behave identically to \`size: standard\`.
 
 At end of run, confirm no active helpers remain before final synthesis (see Helper Teardown).
 
@@ -302,14 +305,27 @@ For substantive specialist tasks, the lead must populate:
 
 Specialists cannot delegate exploration to subagents. A handoff missing \`files\` or \`call_sites\` on a substantive task is a thin handoff; the specialist should emit a \`help_request\` (see Help Request below) rather than grep from scratch.
 
+## Handoff Shape
+
+The lead sets a \`size\` field on every specialist handoff:
+
+\`\`\`
+size: light | standard   (default: standard)
+\`\`\`
+
+- \`standard\` (default) — substantive work; specialist writes the role-appropriate artifact AND emits the structured completion message.
+- \`light\` — trivial work (typo fixes, one-line config tweaks, variable renames); specialist emits the structured completion message only and skips the artifact write.
+
+The completion message shape is identical in both sizes. Only the persisted artifact is conditional. Review gating, \`help_request\`, and \`helpers_done\` behave the same way regardless of size.
+
 ## Closing Discipline
 
-For substantial work, a specialist's turn is not complete until both of the following are the final actions of the turn:
+A specialist's turn is not complete until the final actions of the turn are:
 
-1. Persist the role-appropriate artifact via \`node "\${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" <writer> --repo "$PWD" --title "<short title>" ...\`. Writers by role: builder -> \`write-handoff\`; reviewer -> \`write-review-result\`; validator -> \`write-validation-result\`; deployer -> \`write-deployment-result\`; researcher -> \`write-handoff\` when findings ship ownership forward.
-2. Emit a final structured completion message using the shape for the role (completion report, review result, validation result, or deployment result).
+1. If the handoff specifies \`size: standard\` (or omits \`size\` — default is standard), persist the role-appropriate artifact via \`node "\${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" <writer> --repo "$PWD" --title "<short title>" ...\`. Writers by role: builder -> \`write-handoff\`; reviewer -> \`write-review-result\`; validator -> \`write-validation-result\`; deployer -> \`write-deployment-result\`; researcher -> \`write-handoff\` when findings ship ownership forward. If the handoff specifies \`size: light\`, skip this step.
+2. Emit a final structured completion message using the shape for the role (completion report, review result, validation result, or deployment result). This step is required for both sizes.
 
-Do not end the turn after a mid-implementation tool call — if you are about to return control without the completion message, stop and emit it first. If a hard blocker prevents the artifact write, still emit the structured completion message and name the blocker explicitly.
+Do not end the turn after a mid-implementation tool call — if you are about to return control without the completion message, stop and emit it first. If a hard blocker prevents the artifact write on a \`size: standard\` task, still emit the structured completion message and name the blocker explicitly.
 `;
 
 const ARTIFACT_README_TEMPLATE = `# Crew Artifacts
