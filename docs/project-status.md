@@ -10,6 +10,8 @@ For full continuity after compaction, read this alongside:
 - `docs/how-it-feels.md`
 - `docs/v1-spec.md`
 - `docs/release-versioning.md`
+- `docs/v2-coordination-evolution.md`
+- `docs/coordination.md`
 
 ## What We Are Building
 
@@ -216,6 +218,19 @@ What is not yet proven:
 
 - real team-run artifact generation during feature or bug workflows
 - approval queues or richer task-board state
+
+## v2 Coordination Evolution
+
+Branch `feat/v2-coordination-evolution` landed a set of protocol additions on top of the v1 lead-specialist model. What shipped across CR-01 through CR-07:
+
+- CR-01: token audit and consolidation across global CLAUDE.md, constitution, protocol, and role files (duplications removed, self-contained role guidance preserved where it matters).
+- CR-02: lead-scoped handoff contract — `files`, `call_sites`, `design_notes` are now required fields on substantive handoffs; specialists flag missing scope via `help_request` rather than broad grepping.
+- CR-03: `help_request` protocol addition — specialists emit a structured request when they hit genuine scope-blockers; lead default-biases toward approval.
+- CR-04: teardown discipline — `helpers_done` signal plus a lead-periodic safety sweep; concurrent-helper cap of 2.
+- CR-05: light-close path — `size: light | standard` in the handoff; light tasks skip the artifact write but keep the structured completion message.
+- CR-06: design-doc framing reworded from workaround ("don't scan `designs/`") to positive norm ("lead passes explicit paths").
+- CR-07: end-to-end smoke and user-facing docs (`docs/coordination.md`, README section, this note). Standard and light flows dogfooded naturally through CR-01..CR-06; `help_request` + `helpers_done` remain unverified code paths awaiting a real scope-blocker in the wild.
+- Open follow-ups: first live `help_request` round-trip, tuning of the periodic-check cadence, and validation of concurrent-helper cap under load.
 
 ## Current Gaps
 

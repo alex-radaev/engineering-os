@@ -17,13 +17,21 @@ Include:
 
 - objective
 - owner
+- size: `light` | `standard` (default: `standard`)
 - allowed scope
 - forbidden scope
 - deliverable
+- files — paths the specialist should read or modify (required for substantive tasks)
+- call_sites — where affected logic is invoked, if applicable
+- design_notes — decisions, edge cases, and constraints the lead has already identified
 - evidence or changed files
 - confidence level
 - risks or open questions
 - suggested next handoff
+
+Use `size: light` for trivial tasks (typo fixes, one-line config changes, variable renames) — the specialist skips the artifact write but still emits the structured completion message. Use `size: standard` (default) for anything substantive.
+
+The lead is responsible for populating `files`, `call_sites`, and `design_notes` via its own built-in exploration (Explore/Plan subagents). Specialists cannot delegate exploration, so a thin handoff forces them to grep from scratch inside their own context budget. If a specialist receives a thin handoff, it should emit a `help_request` (see the protocol's Help Request section) rather than compensate silently.
 
 ## Quality Bar
 
@@ -40,6 +48,9 @@ These waste the user's time by forcing the next agent to re-discover what should
 
 - vague claims like "done" or "fixed"
 - missing file or module boundaries
+- missing `files` — specialist is forced to grep from scratch, wasting their context budget
+- missing `call_sites` when the change is cross-cutting — specialist cannot see where the affected logic is invoked
+- missing `design_notes` — specialist has to rediscover decisions, edge cases, and constraints the lead already knew
 - no confidence statement
 - no next step
 
