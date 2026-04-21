@@ -126,14 +126,19 @@ test("installUserAssets writes canonical files and preserves custom overlays", a
   const constitution = await fs.readFile(path.join(homePath, ".claude", "crew", "constitution.md"), "utf8");
   const workflow = await fs.readFile(path.join(homePath, ".claude", "crew", "workflow.md"), "utf8");
   const protocol = await fs.readFile(path.join(homePath, ".claude", "crew", "protocol.md"), "utf8");
+  const coderRules = await fs.readFile(path.join(homePath, ".claude", "crew", "coder-rules.md"), "utf8");
   const homeClaudeMd = await fs.readFile(path.join(homePath, ".claude", "CLAUDE.md"), "utf8");
 
   assert.equal(result.mode, "install-user-assets");
   assert.equal(lead, "# My Lead Overlay\n", "custom overlay is preserved");
   assert.match(reviewer, /Reviewer Overlay/);
   assert.match(constitution, /Crew Constitution/);
+  assert.match(constitution, /coder is not the reviewer/);
   assert.match(workflow, /Crew Workflow/);
+  assert.match(workflow, /coder-rules\.md/);
   assert.match(protocol, /Crew Protocol/);
+  assert.match(coderRules, /Crew Coder Rules/);
+  assert.match(coderRules, /No self-certification/);
   assert.match(homeClaudeMd, /<!-- crew:start -->/);
   assert.match(homeClaudeMd, /@~\/\.claude\/crew\/constitution\.md/);
 });
