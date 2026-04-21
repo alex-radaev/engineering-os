@@ -13,7 +13,6 @@ One block per environment the repo can reach.
 - `stable: true` — auto-continue after review in `/crew:build-feature`. Default `false`.
 - `trigger: gh workflow run deploy-dev.yml --ref <branch>` — the CI/CD command that starts the dev pipeline. On the allow-list.
 - `url: https://telemetry-consumer-aa-dev.run.app` — deployed URL or endpoint.
-- `validation_script: scripts/smoke-dev.sh` — repo-relative path to the script validator runs post-deploy. Builder-authored, versioned with the code.
 - `auth: ambient` — or `gcloud_adc`, `service_account_key`, etc.
 - `auth_setup_command: gcloud auth application-default login` — optional; the exact command a user runs once on a new machine to get auth. Used when validator hits an auth error.
 
@@ -22,7 +21,6 @@ One block per environment the repo can reach.
 - `stable: false` — stg changes merit a user nod before triggering.
 - `trigger: gh workflow run deploy-stg.yml --ref main`
 - `url: https://telemetry-consumer-aa-stg.run.app`
-- `validation_script: scripts/smoke-stg.sh`
 - `auth: ambient`
 
 ### prod
@@ -30,7 +28,6 @@ One block per environment the repo can reach.
 - `stable: false` — prod always requires explicit user approval per workflow Gate Defaults.
 - `trigger: gh workflow run promote-prod.yml --ref main`
 - `url: https://telemetry-consumer-aa.run.app`
-- `validation_script: scripts/smoke-prod.sh`
 - `auth: ambient`
 - Prod policy: every trigger requires user approval acknowledged in evidence. No rollback without user approval.
 
@@ -39,7 +36,7 @@ One block per environment the repo can reach.
 - Any `trigger` command listed above under Targets.
 - Watch a pipeline run to completion: `gh run watch <run-id>`
 - Read deploy service status: `gcloud run services describe <service> --region=<region> --format=json`
-- Execute the declared `validation_script` against the deployed target.
+- Execute the change-specific integration-validation script named in the lead→validator handoff. The script is authored by the builder per `~/.claude/crew/validation-principles.md`; it is not stored in this config.
 
 ## Not allowed (requires per-action user approval)
 
@@ -62,5 +59,5 @@ Deployer writes to `.claude/artifacts/crew/deployments/evidence/<slug>/`:
 - Any rollback command used, if applicable
 
 Validator writes to `.claude/artifacts/crew/validations/evidence/<slug>/`:
-- `validation_script` path + full stdout/stderr + exit code
+- The change-specific script path + full stdout/stderr + exit code
 - Response excerpts for any HTTP probes the script made

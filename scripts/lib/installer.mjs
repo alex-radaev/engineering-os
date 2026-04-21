@@ -13,7 +13,13 @@ async function loadCrewFile(name) {
 }
 
 async function getCanonicalGlobalFiles() {
-  const names = ["constitution.md", "workflow.md", "protocol.md", "coder-rules.md"];
+  const names = [
+    "constitution.md",
+    "workflow.md",
+    "protocol.md",
+    "coder-rules.md",
+    "validation-principles.md"
+  ];
   return Promise.all(
     names.map(async (name) => ({ name, template: await loadCrewFile(name) }))
   );

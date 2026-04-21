@@ -23,6 +23,10 @@ Prefer changes that strengthen:
 - conservative repo bootstrap behavior
 - validation against real Claude Code plugin tooling
 
+## Core Principles
+
+- **Don't prematurely load things to context.** Every `@~/.claude/crew/<file>` import fires on every agent invocation regardless of whether the file is needed for this run. Reserve `@` imports for content that is always needed by a role (e.g. `protocol.md` for every specialist, `coder-rules.md` for builder). For content that is role- AND mode-specific (e.g. `validation-principles.md` only for validator's integration-validation mode, or only for builder when the ticket calls for a validation script), instruct the agent to read the file on-demand via `Read` rather than auto-import it. The cost of preloading adds up across sessions.
+
 ## Plugin Shape
 
 The plugin is intentionally content-heavy and runtime-light.

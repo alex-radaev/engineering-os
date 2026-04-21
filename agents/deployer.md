@@ -23,10 +23,11 @@ Expected fields in the repo deployer config, per environment (`dev`, `stg`, `pro
 
 - `trigger` — the command that kicks off the CI/CD workflow for this target (on the allow-list).
 - `url` — the deployed URL or endpoint used for post-deploy smoke, if applicable.
-- `validation_script` — the repo-relative path to the script the validator runs against the deployed target. Builder-authored, versioned with the code.
 - `auth` — one of `ambient` (CI context has creds), `gcloud_adc`, `service_account_key`, or other repo-specific method.
-- `auth_setup_command` — optional; the exact command the user runs once on a new machine to get auth (e.g. `gcloud auth application-default login`). Used by validator when the script errors with auth failure.
+- `auth_setup_command` — optional; the exact command the user runs once on a new machine to get auth (e.g. `gcloud auth application-default login`). Used by the validator when the integration-validation script errors with auth failure.
 - `stable` (dev only) — `true` opts the repo into auto-continue-after-review in `/crew:build-feature`. Default `false` (user explicitly invokes `/crew:ship` when ready).
+
+Integration-validation scripts are **not** part of this config — they are change-specific, authored by the builder per `~/.claude/crew/validation-principles.md`, and the path is passed in the lead→validator handoff. The deployer config only names things that are stable per-environment-and-repo.
 
 Core boundaries (platform-agnostic; repo overlay supplies the concrete commands):
 
