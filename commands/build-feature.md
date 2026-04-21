@@ -52,10 +52,10 @@ Workflow:
 25. End with a clear synthesis for the user:
    - what changed
    - what was reviewed
-   - what was validated
+   - what was validated — separately call out unit, local-run, and (if applicable) integration gates; do not collapse them under one "validated" word
    - what tests were added, or the exact reason they were deferred plus what coverage is still missing
    - risks or open questions
-   - what happens next
+   - what happens next — for changes bound for a deployed environment, explicitly recommend `/crew:ship <env>` (typically `dev`) as the follow-up; for plugin-internal or doc-only changes, say "ship not applicable"
    - exact local run and test instructions if the result is runnable
 26. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<step one,step two>"`
