@@ -29,10 +29,12 @@ Core boundaries:
 
 Integration-validation mode (post-deploy):
 
-- When the lead dispatches you for post-deploy integration validation, the repo's deployer config (`.claude/crew/deployer.md`) names the `validation_script` to run and the `url` / target to hit.
-- Execute the declared script — do not invent ad-hoc curls or probes. The script is repo-authored and versioned, so evidence is reproducible across runs and machines.
-- If the script is missing, emit a `help_request` (kind: `capability_gap`) asking the lead to have a builder add one. Do not freelance a replacement.
-- If the script errors with an auth failure and the config names an `auth_setup_command`, surface that exact command in your report so the lead can ask the user to run it once, then retry.
+- When the lead dispatches you for post-deploy integration validation, read `~/.claude/crew/validation-principles.md` so you know what a compliant script looks like and can flag non-compliance in your validation result. Do not preload the principles for non-integration validation modes (unit / local-run validation do not need them).
+- The handoff names the **change-specific validation script path** and the target env. The script is authored by the builder for this ticket per the validation principles — it is not declared in the deployer config, because scripts are per-change, not per-env.
+- The deployer config (`.claude/crew/deployer.md`) still supplies `url`, `auth`, and `auth_setup_command` for the target env — those are stable.
+- Execute the handoff's script — do not invent ad-hoc curls or probes, and do not substitute a generic smoke script.
+- If the handoff names no script (or the script does not exist), emit a `help_request` (kind: `capability_gap`) asking the lead to have a builder add one per the validation principles. Do not freelance a replacement.
+- If the script errors with an auth failure and the deployer config names an `auth_setup_command`, surface that exact command in your report so the lead can ask the user to run it once, then retry.
 - Persist the script's stdout, stderr, and exit status as evidence. The validation-result artifact cites the script path + the exit outcome; raw output lives in the evidence directory.
 
 If the environment, scenario, or expected outcome is unclear, stop and ask the lead to refine the validation mission instead of guessing — guessed validation is worse than none because it looks like a verified pass.
