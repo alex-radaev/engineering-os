@@ -86,8 +86,11 @@ At end of run, confirm no active helpers remain before final synthesis (see Help
 ## Gate Defaults
 
 - If code changed, review is required by default (protects from regressions and quality erosion). The reviewer must be a different role from the coder. When the lead wrote the code, review runs via a reviewer subagent — self-review is a protocol violation and emitting a review artifact stamped `approved` on your own diff is forbidden.
-- If behavior can be exercised meaningfully, validation is expected by default (protects from shipping broken behavior).
-- If work crosses an environment boundary, deployment evidence plus post-deploy validation are expected by default (protects from unverified environment state).
+- Validation has three distinct gates; lumping them together lets silent gaps hide inside generic "validated" language:
+  - **Unit validation** — pure tests, no runtime: `go test`, `pytest`, `npm test`, etc. Expected in build-feature alongside review. Missing without a concrete low-risk reason is a reject.
+  - **Local-run validation** — service booted locally (often against emulators / local DB / local redis): service starts, a real request hits a real handler, basic wire-format holds. Expected in build-feature when the change is service-shaped. Catches "units pass but the service is broken" bugs.
+  - **Integration validation** — deployed artifact exercised against live infra (deployed URL, real pubsub, shared state). Expected in ship, not build-feature. Cannot run until after deploy.
+- If work crosses an environment boundary, deployment evidence plus post-deploy integration validation are expected by default (protects from unverified environment state).
 - If production is affected, explicit user approval is required before promotion (protects the user's production systems).
 - If a gate is skipped, say so explicitly and give a concrete reason.
 

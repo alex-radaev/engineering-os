@@ -46,6 +46,30 @@ The plugin is intentionally content-heavy and runtime-light.
 - Skills: `skills/*/SKILL.md`
 - Commands: `commands/*.md`
 
+## Autonomy Policy
+
+Target: Claude does more over time, with the ceiling raised as trust accumulates. Today's policy is a measured dance — what Claude may do unsupervised, and what requires human sign-off — weighed against the blast radius of each class of action.
+
+**Today:**
+
+- No direct infrastructure changes — dev, stg, or prod. Claude does not run `kubectl apply`, `terraform apply`, `gcloud run deploy`, `astro deploy`, or similar against live infra to mutate state.
+- Triggering a pre-built, pre-approved CI/CD workflow against an existing deploy target — yes, when the repo's deployer overlay names the allowed trigger and target. Example: "run the repo's `deploy-dev` workflow on the current branch" via whatever tooling the repo uses.
+- Reading live state (logs, metrics, pipeline status, PR checks) — yes.
+- Merging PRs with CI green after independent review — yes.
+- Any action outside the repo's deployer overlay allow-list — stop and ask.
+
+**Tomorrow (as we tune):**
+
+- Broader allow-lists per repo as trust builds.
+- Auto-invoke `/crew:ship dev` after build-feature on green CI.
+- Eventually, auto-promotion to stg on green dev post-deploy validation.
+
+**Where it lives:**
+
+- Crew core stays platform-agnostic: no git host, no CI vendor, no language assumed. The core `deployer` agent and `/crew:ship` command describe *roles and gates*, not concrete commands.
+- Per-repo deployer mechanics live in `.claude/crew/deployer.md` (overlay). That file names the actual trigger commands, environments, allow-list, and evidence shape for the repo.
+- A starter template is at `crew/deployer-overlay-example.md`.
+
 ## Artifact Direction
 
 When adding artifact-producing features, prefer:
