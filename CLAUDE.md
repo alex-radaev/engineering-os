@@ -67,8 +67,8 @@ Target: Claude does more over time, with the ceiling raised as trust accumulates
 **Where it lives:**
 
 - Crew core stays platform-agnostic: no git host, no CI vendor, no language assumed. The core `deployer` agent and `/crew:ship` command describe *roles and gates*, not concrete commands.
-- Per-repo deployer mechanics live in `.claude/crew/deployer.md` (overlay). That file names the actual trigger commands, environments, allow-list, and evidence shape for the repo.
-- A starter template is at `crew/deployer-overlay-example.md`.
+- Per-repo deployer config lives in `.claude/crew/deployer.md` — same custom-instructions pattern as every other agent. It names the actual trigger commands, environments, allow-list, and evidence shape for that repo. If missing on first ship, the deployer asks the user and writes it; no hand-copying required.
+- Reference shape: `docs/deployer-config-example.md`.
 
 ## Artifact Direction
 
