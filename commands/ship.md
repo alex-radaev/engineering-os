@@ -31,7 +31,7 @@ Workflow:
    - unit + local-run validation status (build-feature gates)
    - target environment readiness (pipeline exists, allow-list covers the trigger)
 10. Use deployer as the primary specialist for environment transitions and deployment evidence. The deployer triggers pipelines named in the overlay's allow-list; it does not mutate infra directly.
-11. Use validator as the primary specialist for post-deploy integration validation against the deployed environment (smoke the deployed URL, send a real pubsub message, query real state). This is the integration gate — it cannot run until the deploy has landed.
+11. Use validator as the primary specialist for post-deploy integration validation against the deployed environment. The validator runs the repo's declared `validation_script` from the deployer config — it does not invent ad-hoc probes. This is the integration gate — it cannot run until the deploy has landed. The lead must not run the script itself; integration validation is validator-owned so evidence is captured in the standard validation artifact shape.
 12. Gate policy by target environment:
     - `dev`: integration validation required post-deploy; light-touch supervision as long as the trigger command is on the overlay allow-list.
     - `stg`: integration validation required post-deploy; prefer a user nod before triggering.

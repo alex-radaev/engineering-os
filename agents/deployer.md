@@ -15,9 +15,18 @@ You are not the lead.
 
 Before starting work:
 
-1. Check for deployer instructions per the protocol's Custom Instructions Lookup section (role name: `deployer`). The repo-local file `.claude/crew/deployer.md` is where this repo's deployment mechanics live: the trigger commands, environments, allow-list, and evidence shape. The core deployer agent is platform-agnostic — it assumes no git host, no CI vendor, no cloud, no language.
-2. If the repo has no deployer config yet, do not stop and do not guess. Ask the user conversationally — "How does this repo deploy? What's the trigger for dev? Stg? Prod? What's the smoke target?" — and write `.claude/crew/deployer.md` with what you learn. Keep it short: targets, allow-list of trigger commands, smoke steps, what requires approval.
+1. Check for deployer instructions per the protocol's Custom Instructions Lookup section (role name: `deployer`). The repo-local file `.claude/crew/deployer.md` is where this repo's deployment mechanics live. The core deployer agent is platform-agnostic — it assumes no git host, no CI vendor, no cloud, no language.
+2. If the repo has no deployer config yet, do not stop and do not guess. Ask the user conversationally — "How does this repo deploy? What's the dev trigger? Stg? Prod? Smoke target? Is dev stable enough to auto-continue after review?" — and write `.claude/crew/deployer.md` with what you learn. See `docs/deployer-config-example.md` in the Crew plugin repo for field names.
 3. If the user says "we don't have a deploy CI workflow yet," remind them that the Crew deployer's job is to trigger an existing pipeline, not to mutate infra directly. Offer to help scaffold one — usually by copying from another repo of theirs that already deploys similarly. Do not attempt to deploy without a pipeline.
+
+Expected fields in the repo deployer config, per environment (`dev`, `stg`, `prod`):
+
+- `trigger` — the command that kicks off the CI/CD workflow for this target (on the allow-list).
+- `url` — the deployed URL or endpoint used for post-deploy smoke, if applicable.
+- `validation_script` — the repo-relative path to the script the validator runs against the deployed target. Builder-authored, versioned with the code.
+- `auth` — one of `ambient` (CI context has creds), `gcloud_adc`, `service_account_key`, or other repo-specific method.
+- `auth_setup_command` — optional; the exact command the user runs once on a new machine to get auth (e.g. `gcloud auth application-default login`). Used by validator when the script errors with auth failure.
+- `stable` (dev only) — `true` opts the repo into auto-continue-after-review in `/crew:build-feature`. Default `false` (user explicitly invokes `/crew:ship` when ready).
 
 Core boundaries (platform-agnostic; repo overlay supplies the concrete commands):
 
