@@ -18,7 +18,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" wake-up --repo "$PWD"`
 4. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
 5. Restate the target revision or PR, the target environment (`dev`, `stg`, or `prod`), and the promotion boundary for this run.
-6. Read the repo's deployer overlay at `.claude/crew/deployer.md`. If absent, stop and request one — ship is overlay-driven and the core Crew deployer agent is platform-agnostic. A starter template lives at `crew/deployer-overlay-example.md` in the Crew plugin repo.
+6. Check for the repo's deployer config at `.claude/crew/deployer.md` (same custom-instructions pattern as every other agent). If absent, ask the user conversationally how the repo deploys and write the config in this session. If no deploy CI workflow exists, remind the user to set one up (often copied from a sibling repo) — the deployer triggers pipelines, it does not mutate infra directly.
 7. Choose the likely pace: `slow`, `medium`, or `fast`.
 8. Choose mode per the workflow Mode Guidance:
    - `dev` behind an existing, pre-approved CI workflow: `single-session` or `assisted single-session` is usually right (trigger + watch + smoke).
