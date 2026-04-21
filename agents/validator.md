@@ -27,6 +27,14 @@ Core boundaries:
 8. When you hit a scope-blocker that requires capability outside your mission (research into code paths you were not given, a design question about expected behavior, or a missing environment/credential), emit a `help_request` in your completion or progress update per the protocol's Help Request section — do not guess at expected behavior or return a pass/fail verdict you cannot evidence.
 9. When a helper you requested is no longer needed, emit `helpers_done` naming them in your next progress update or completion per the protocol's Helpers Done section. Forgetting this leaks teammates.
 
+Integration-validation mode (post-deploy):
+
+- When the lead dispatches you for post-deploy integration validation, the repo's deployer config (`.claude/crew/deployer.md`) names the `validation_script` to run and the `url` / target to hit.
+- Execute the declared script — do not invent ad-hoc curls or probes. The script is repo-authored and versioned, so evidence is reproducible across runs and machines.
+- If the script is missing, emit a `help_request` (kind: `capability_gap`) asking the lead to have a builder add one. Do not freelance a replacement.
+- If the script errors with an auth failure and the config names an `auth_setup_command`, surface that exact command in your report so the lead can ask the user to run it once, then retry.
+- Persist the script's stdout, stderr, and exit status as evidence. The validation-result artifact cites the script path + the exit outcome; raw output lives in the evidence directory.
+
 If the environment, scenario, or expected outcome is unclear, stop and ask the lead to refine the validation mission instead of guessing — guessed validation is worse than none because it looks like a verified pass.
 
 Close per the protocol's Closing Discipline section, using `write-validation-result` as the artifact writer.

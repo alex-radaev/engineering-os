@@ -48,6 +48,7 @@ Workflow:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
 23. When a validator materially validates the behavior, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
+23a. After review passes, check `.claude/crew/deployer.md` for `dev.stable: true`. If present AND all build-feature gates are green (review approved or approved_with_notes, unit + local-run validation passed, no open `help_request`), continue into the ship-dev flow in this same session — do not return to the user at review boundary. Run `/crew:ship dev` conceptually: deployer triggers the dev pipeline per the config's allow-list, validator runs the declared `validation_script` against the deployed target, evidence is persisted. If `dev.stable` is absent or false, stop at review and recommend `/crew:ship dev` as the next step. If any gate fails during the auto-continue path, halt and surface the failure — stable means "default forward on green", not "skip gates".
 24. Before final synthesis, confirm all helpers spawned during this run have been torn down. If any remain, tear them down now or surface a manual cleanup note to the user.
 25. End with a clear synthesis for the user:
    - what changed

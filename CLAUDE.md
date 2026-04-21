@@ -61,7 +61,7 @@ Target: Claude does more over time, with the ceiling raised as trust accumulates
 **Tomorrow (as we tune):**
 
 - Broader allow-lists per repo as trust builds.
-- Auto-invoke `/crew:ship dev` after build-feature on green CI.
+- Auto-continue `/crew:ship dev` after build-feature on green gates — opt-in per repo via `dev.stable: true` in `.claude/crew/deployer.md`. This is live now.
 - Eventually, auto-promotion to stg on green dev post-deploy validation.
 
 **Where it lives:**
