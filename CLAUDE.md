@@ -41,7 +41,7 @@ The plugin is intentionally content-heavy and runtime-light.
 
 ## Where Instructions Live
 
-- Global constitution, workflow, and protocol templates: `scripts/lib/installer.mjs` (`CONSTITUTION_TEMPLATE`, `WORKFLOW_TEMPLATE`, `PROTOCOL_TEMPLATE`). These are the source of truth — `/crew:install` writes them under `~/.claude/crew/` and `/crew:bootstrap-repo` or `/crew:init-repo` write them under `.claude/crew/`.
+- Global Crew source of truth: `crew/constitution.md`, `crew/workflow.md`, `crew/protocol.md`, `crew/coder-rules.md`. These are the authoritative files — edit them here as regular markdown PRs. `/crew:install` copies them to `~/.claude/crew/` where agents import them via `@~/.claude/crew/<file>.md`. No JS string templates; diffs show real markdown.
 - Agent definitions: `agents/*.md`
 - Skills: `skills/*/SKILL.md`
 - Commands: `commands/*.md`
