@@ -42,9 +42,7 @@ Workflow:
    - executed evidence collected (including path to persisted raw evidence)
    - inferred confidence, if any
    - gaps, risks, or next recommended action
-17a. If an envelope is active, before writing the final synthesis:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase validation --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-validation <path>]`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase validation --summary "<synthesis summary>"`.
-   Skip both when no envelope is present.
 18. For substantial work, write a final synthesis artifact:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --external-deltas "<off-repo changes required, or 'none'>"`
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled> --phase validation` and optionally `--next-action "<text>"`. The CLI writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in one call. See `crew/workflow.md` § Terminal Synthesis.
+   - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.

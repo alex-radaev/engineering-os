@@ -63,9 +63,7 @@ Workflow:
    - what tests were added, or the exact reason they were deferred plus what regression coverage is still missing
    - residual risk
    - exact local repro and verification steps if the bug can be exercised locally
-25a. If an envelope is active, before writing the final synthesis:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase <research|implementation|review|validation> --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-pr <url>]`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase <research|implementation|review|validation> --summary "<synthesis summary>"`.
-   Skip both when no envelope is present.
 26. For substantial work, write a final synthesis artifact:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<repro step,verification step>"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<repro step,verification step>" --external-deltas "<off-repo changes required, or 'none'>"`
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"` and `--phase <research|implementation|review|validation>` (defaults to `implementation`). The CLI writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in one call. See `crew/workflow.md` § Terminal Synthesis.
+   - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.

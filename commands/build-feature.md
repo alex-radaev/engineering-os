@@ -66,10 +66,8 @@ Workflow:
    - risks or open questions
    - what happens next — for changes bound for a deployed environment, explicitly recommend `/crew:ship <env>` (typically `dev`) as the follow-up; for plugin-internal or doc-only changes, say "ship not applicable"
    - exact local run and test instructions if the result is runnable
-26a. If an envelope is active, before writing the final synthesis:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase implementation --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-pr <url>]`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase implementation --summary "<synthesis summary>"`.
-   Skip both when no envelope is present.
 27. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<step one,step two>" --external-deltas "<off-repo changes required, or 'none'>"`
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"`. The CLI then writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in a single call. See `crew/workflow.md` § Terminal Synthesis.
+   - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.
    - The CLI rejects missing `--external-deltas`. Enumerate sibling-config changes the PR depends on (env var renames in deploy manifests, terraform/helm updates, sibling-repo PRs, feature flags, DB migrations, IAM). Pass `--external-deltas none` explicitly if there are none. A silent default is how renamed env vars silently fall back to old defaults in prod.
