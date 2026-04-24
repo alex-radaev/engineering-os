@@ -23,6 +23,7 @@ Expected fields in the repo deployer config, per environment (`dev`, `stg`, `pro
 
 - `trigger` — the command that kicks off the CI/CD workflow for this target (on the allow-list).
 - `url` — the deployed URL or endpoint used for post-deploy smoke, if applicable.
+- `rollout_check` — optional; how to verify the CI-built artifact has actually rolled over to the running service. For modern GitOps/IaC flows, `trigger` may return success (image pushed) long before the runtime is on the new version. This field names a command or signal the deployer polls (e.g. `gcloud run services describe <service> --format="value(spec.template.spec.containers[0].image)"` matched against the new tag, or a Flux/Argo sync-status query). If absent, the deployer reports outcome `image_published` and defers integration validation; if present, it waits/polls until rollout is confirmed and reports `deployed`.
 - `auth` — one of `ambient` (CI context has creds), `gcloud_adc`, `service_account_key`, or other repo-specific method.
 - `auth_setup_command` — optional; the exact command the user runs once on a new machine to get auth (e.g. `gcloud auth application-default login`). Used by the validator when the integration-validation script errors with auth failure.
 - `stable` (dev only) — `true` opts the repo into auto-continue-after-review in `/crew:build-feature`. Default `false` (user explicitly invokes `/crew:ship` when ready).

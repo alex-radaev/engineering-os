@@ -46,4 +46,5 @@ Workflow:
    - evidence from deployer and validator
    - recommendation: monitor, promote, roll back, or fix
 16. For substantial work, write a final synthesis artifact:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --external-deltas "<off-repo changes required for this deploy, or 'none'>"`
+   - The CLI rejects missing `--external-deltas`. Ship is exactly where silent off-repo drift bites — name the deploy manifest / terraform / IAM / sibling-repo changes this rollout depends on, or pass `none` explicitly.

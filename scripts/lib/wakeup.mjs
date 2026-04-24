@@ -16,7 +16,7 @@ const EVENTS_PATH = [".claude", "logs", "events.jsonl"];
 const HISTORY_PATH = [".claude", "state", "crew", "history.jsonl"];
 const SPRINT_PATH = [".claude", "state", "crew", "sprint.json"];
 
-const RECENT_EVENTS_LIMIT = 3;
+const RECENT_EVENTS_LIMIT = 15;
 const RECENT_HISTORY_LIMIT = 3;
 const JSONL_TAIL_BYTES = 64 * 1024;
 
@@ -246,6 +246,11 @@ export async function buildWakeUpBrief(repoPath, options = {}) {
     payloadPath: event.payloadPath || ""
   }));
 
+  const latestRunBriefAt = latestRunBrief?.createdAt || latestRunBrief?.timestamp || null;
+  const eventsSinceLatestRunBrief = latestRunBriefAt
+    ? recentEvents.filter((event) => event.timestamp && event.timestamp > latestRunBriefAt)
+    : recentEvents;
+
   const latestArtifacts = {
     runBrief: latestRunBrief,
     finalSynthesis: latestFinalSynthesis,
@@ -278,6 +283,7 @@ export async function buildWakeUpBrief(repoPath, options = {}) {
     openApprovals,
     recentClaimHistory,
     recentEvents,
+    eventsSinceLatestRunBrief,
     latestArtifacts,
     git,
     github,

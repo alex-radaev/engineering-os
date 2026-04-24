@@ -47,7 +47,9 @@ Every specialist completion should include:
 
 A specialist that hits a scope-blocker — capability outside its mission, information it cannot gather within its assigned files, a design question that needs a decision — should surface a `help_request` rather than freelance outside scope, bloat its context by grepping from scratch, or return silently incomplete work.
 
-Include the `help_request` in the completion (or a progress update if blocking mid-task). Shape:
+Mode caveat: a progress-update `help_request` only makes sense in `team run` mode with persistent teammates — one-shot subagents (used in `single-session` / `assisted single-session`) cannot pause mid-run and wait for a lead response. In those modes, emit `help_request` in the completion only; the lead resolves the block by dispatching a follow-up specialist in the next turn.
+
+Include the `help_request` in the completion (or a progress update if blocking mid-task in team run). Shape:
 
 ```yaml
 help_request:
@@ -139,7 +141,12 @@ Every deployment result should include:
 
 - target environment
 - target revision or rollout target
-- outcome: `deployed`, `verified`, `blocked`, or `rolled_back`
+- outcome: `image_published`, `deployed`, `verified`, `blocked`, or `rolled_back`
+  - `image_published` — CI produced and pushed the artifact, but the running service has not yet rolled over to the new image (e.g. Flux/Argo hasn't applied, terraform hasn't reconciled, manual promote not triggered). Integration validation cannot run yet.
+  - `deployed` — trigger ran and the runtime has accepted the new artifact, but post-deploy smoke has not been checked.
+  - `verified` — deployed and post-deploy integration validation passed against the deployed target.
+  - `blocked` — the transition could not complete; evidence names why.
+  - `rolled_back` — a prior verified state was restored; evidence names why.
 - evidence checked
 - risks, blockers, or follow-up
 - recommended next step

@@ -132,6 +132,7 @@ function resolveArtifactConfig(kind) {
           renderField("Summary", fields.summary),
           renderListField("Changed Files / Evidence", fields.files || fields.evidence),
           renderListField("Run / Test Steps", fields.runSteps),
+          renderField("External Deltas", fields.externalDeltas),
           renderField("Risks", fields.risks),
           renderField("Next Step", fields.next),
           ""
@@ -244,6 +245,17 @@ export function validateArtifactFields(kind, fields = {}) {
     }
     if (!hasContent(fields.to)) {
       warnings.push("write-handoff: --to <role> is recommended (receiver of handoff).");
+    }
+  }
+
+  if (kind === "final-synthesis") {
+    if (!hasContent(fields.externalDeltas)) {
+      errors.push(
+        "write-final-synthesis requires --external-deltas <text>. " +
+          "Enumerate off-repo changes this PR depends on — Cloud Run env vars, terraform, helm values, sibling-repo PRs, feature flags, DB migrations, IAM. " +
+          "Pass --external-deltas none explicitly if there are no sibling changes. " +
+          "A silent default hides silent-drift bugs (the renamed env var that never flipped in the running service)."
+      );
     }
   }
 
