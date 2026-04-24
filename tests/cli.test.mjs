@@ -286,12 +286,34 @@ test("CLI artifact writers create markdown artifacts", async () => {
     "--summary",
     "Ready for handoff",
     "--run-steps",
-    "npm install,npm run dev,open http://localhost:5173"
+    "npm install,npm run dev,open http://localhost:5173",
+    "--external-deltas",
+    "none"
   ]);
   const synthesisResult = JSON.parse(synthesisOutput.stdout);
   const synthesisBody = await fs.readFile(synthesisResult.path, "utf8");
   assert.match(synthesisBody, /Run \/ Test Steps/);
   assert.match(synthesisBody, /http:\/\/localhost:5173/);
+  assert.match(synthesisBody, /External Deltas: none/);
+});
+
+test("CLI write-final-synthesis rejects missing --external-deltas", async () => {
+  const repoPath = await makeTempDir("crew-cli-synthesis-reject-");
+  await execFile("node", [cliPath, "init", "--repo", repoPath, "--allow-existing"]);
+
+  await assert.rejects(
+    execFile("node", [
+      cliPath,
+      "write-final-synthesis",
+      "--repo",
+      repoPath,
+      "--title",
+      "Final",
+      "--summary",
+      "Done"
+    ]),
+    /requires --external-deltas/
+  );
 });
 
 test("CLI install-user-assets creates managed global overlay stubs", async () => {

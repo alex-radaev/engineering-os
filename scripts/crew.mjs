@@ -255,6 +255,11 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--external-deltas") {
+      flags.externalDeltas = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value === "--home") {
       flags.home = rest[index + 1];
       index += 1;
@@ -310,7 +315,7 @@ function usage(target = null) {
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]"
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]"
   };
 
   if (target && subcommands[target]) {
@@ -466,8 +471,10 @@ async function main() {
       files: flags.files,
       evidence: flags.evidence,
       runSteps: flags.runSteps,
+      externalDeltas: flags.externalDeltas,
       risks: flags.risks,
-      next: flags.next
+      next: flags.next,
+      force: flags.force
     });
   } else {
     throw new Error(`Unknown command: ${command}`);
