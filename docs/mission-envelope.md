@@ -68,3 +68,7 @@ The parser returns an envelope object with the fields above and a `body` string 
 - If `mission_id` or `objective` is missing, the lead emits a `help_request` asking the orchestrator to re-dispatch with a complete envelope. The lead does not guess.
 
 See `crew/workflow.md § Mission Envelope` for the authoritative run-sequence integration.
+
+## Mission Reporting
+
+The writers that persist status and events to the envelope's `reporting.*` paths are documented in `crew/workflow.md § Mission Reporting`. That section names the writer subcommands (`record-mission`, `write-mission-status`, `append-mission-event`), the path-resolution order, and the event kinds.

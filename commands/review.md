@@ -12,6 +12,10 @@ You are the lead for this run.
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
+1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase review --summary "<goal>"`.
+    Skip both calls when no envelope is present.
 2. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
 3. First verify the current workspace path:
    - `pwd`
@@ -29,11 +33,16 @@ Workflow:
 13. Bring in researcher only if code tracing or repo-standard discovery is needed to make the review meaningful.
 14. If review materially validates the work, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
+   - If an envelope is active, fire `append-mission-event --event gate --phase review --summary "<verdict>"` after the review verdict lands.
 15. End with:
    - verdict: `approved`, `approved_with_notes`, or `rejected`
    - evidence checked
    - test adequacy
    - risks or follow-up needed
    - whether the work is now ready for validation, shipping, or more implementation
+15a. If an envelope is active, before writing the final synthesis:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase review --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-review <path>] [--artifact-pr <url>]`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase review --summary "<synthesis summary>"`.
+   Skip both when no envelope is present.
 16. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>"`

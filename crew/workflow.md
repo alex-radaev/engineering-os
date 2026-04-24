@@ -48,6 +48,47 @@ If `mission_id` or `objective` is missing, emit a `help_request` to the orchestr
 
 See `docs/mission-envelope.md` for the longer reference and a complete example.
 
+### Mission Reporting
+
+When a mission envelope is present, the lead emits machine-readable run state to the envelope's reporting paths so the orchestrator can poll without reading chat:
+
+- `reporting.status_file` — current mission state. Rewritten in full (atomic tmp+rename) every time state materially changes.
+- `reporting.event_log` — append-only timeline, one JSON object per line.
+
+Two writers live on the crew CLI:
+
+- `node scripts/crew.mjs write-mission-status --mission-id <id> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--status-file <abs path>]`
+- `node scripts/crew.mjs append-mission-event --mission-id <id> --event <kind> --summary <text> [--phase <p>] [--event-log <abs path>]`
+
+Path resolution order (both writers):
+
+1. Explicit `--status-file` / `--event-log` flag on the call.
+2. `.claude/state/crew/current-mission.json` in the repo — written once at run start by `record-mission` from the parsed envelope.
+3. Error with a clear message. Writers never default-write to an arbitrary location.
+
+Ordering at run start:
+
+1. Parse envelope.
+2. `record-mission --envelope-json '<json>'` (or `--prompt-file <path>`) — writes `.claude/state/crew/current-mission.json`.
+3. `append-mission-event --event started --phase <phase> --summary "<goal>"`.
+4. Run begins.
+
+Event kinds and when to fire them:
+
+- `started` — once, immediately after `record-mission`.
+- `progress` — role transitions (builder start, reviewer start, validator start, deployer start).
+- `gate` — a review/validation/deployment verdict lands.
+- `needs_user` — the run is waiting on a human decision.
+- `blocked` — the run cannot proceed without external help.
+- `partial` — the run is closing with part of the work done, part deferred.
+- `done` — terminal success, fired once at final synthesis.
+- `abandoned` — terminal non-success, fired once on abandon.
+- `helpers_done` — helpers torn down after a specialist signalled helpers_done.
+
+`write-mission-status` fires on materially-changed state: phase flips, needs_user raised, terminal states at final synthesis. Trivial `size: light` handoffs do NOT require a status rewrite.
+
+Without an envelope, none of the above runs — CLI calls are conditional on envelope presence, and vanilla runs behave identically to today.
+
 ## Run Sequence
 
 1. Verify the current workspace path.
