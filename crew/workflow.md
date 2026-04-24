@@ -89,6 +89,40 @@ Event kinds and when to fire them:
 
 Without an envelope, none of the above runs — CLI calls are conditional on envelope presence, and vanilla runs behave identically to today.
 
+### Terminal Synthesis
+
+At the end of a mission run, `write-final-synthesis` collapses the three terminal writes (synthesis artifact, mission status, terminal event, handoff copy) into a single CLI call. The lead no longer hand-rolls `write-mission-status` + `append-mission-event` before the synthesis — passing `--mission-terminal-status` to `write-final-synthesis` does all of it atomically.
+
+Flags added to `write-final-synthesis`:
+
+- `--mission-terminal-status <done|partial|needs_user|blocked|abandoned>` — terminal mission state. Required to trigger the mission side effects. Omit for mid-run or vanilla (no-envelope) syntheses.
+- `--proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` — what the orchestrator should mark the backing task as after reading the handoff. Optional.
+- `--next-action <text>` — free-form one-line recommendation the orchestrator can show the user. Optional.
+- `--handoff-out <abs path>` — override the envelope's `reporting.handoff_file` destination. Optional. Defaults to the envelope-declared path.
+
+When an envelope is active AND `--mission-terminal-status` is passed, the writer:
+
+1. Writes the synthesis markdown to `.claude/artifacts/crew/runs/<timestamp>-final-synthesis-...md` (unchanged).
+2. Writes `reporting.status_file` with `status` = the terminal value, `proposed_task_status` = the passed value (or null), `phase` = `--phase` if passed else `implementation`, `summary` = `--summary`, `next_action` = `--next-action`, and `artifacts.handoff` = the handoff path.
+3. Appends one JSON line to `reporting.event_log` with `event` = the terminal status value (`done|partial|abandoned|needs_user|blocked`) and the same phase + summary.
+4. Copies the synthesis markdown body to the envelope's `reporting.handoff_file` (or `--handoff-out` if passed). The runs/ artifact is preserved — this is a copy, not a move. The handoff file is the canonical human-readable artifact the orchestrator reads.
+
+When to pick each terminal value:
+
+- `done` — mission objective met; acceptance criteria satisfied.
+- `partial` — some deliverables shipped, others deferred with a clear reason; the next action names what remains.
+- `needs_user` — work paused pending a decision the user must make. `--next-action` should describe the question.
+- `blocked` — cannot proceed without external help (another team, missing access, upstream broken). Not the same as `needs_user`.
+- `abandoned` — mission dropped without delivering; the next action should explain why.
+
+Error cases:
+
+- `--mission-terminal-status` passed but no `current-mission.json` → clear error. Run `record-mission` first, or drop the flag.
+- Invalid `--mission-terminal-status` or `--proposed-task-status` enum value → CLI refuses and lists valid choices.
+- `--mission-terminal-status` omitted with an envelope active → synthesis md is still written; status/event/handoff are skipped. This is the correct behavior for a mid-run synthesis draft.
+
+Vanilla (no-envelope) runs call `write-final-synthesis` without the mission flags and see zero behavioral change from before this wiring.
+
 ## Run Sequence
 
 1. Verify the current workspace path.
