@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { validateArtifactFields, writeArtifact } from "./lib/artifacts.mjs";
 import { auditRepo, bootstrapRepo, initRepo, installUserAssets } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
 import { buildWakeUpBrief } from "./lib/wakeup.mjs";
+import { parseMissionEnvelope } from "./lib/mission-envelope.mjs";
+import {
+  appendMissionEvent,
+  recordCurrentMission,
+  resolveMissionPath,
+  writeMissionStatus
+} from "./lib/mission-writer.mjs";
 
 function parseArgs(argv) {
   const [command, ...rest] = argv;
@@ -51,7 +59,26 @@ function parseArgs(argv) {
     runSteps: null,
     home: null,
     size: null,
-    force: false
+    force: false,
+    missionId: null,
+    phase: null,
+    event: null,
+    statusFile: null,
+    eventLog: null,
+    proposedTaskStatus: null,
+    needsUser: null,
+    userDecisionNeeded: null,
+    nextAction: null,
+    updatedAt: null,
+    taskId: null,
+    missionRepo: null,
+    envelopeJson: null,
+    promptFile: null,
+    prompt: null,
+    artifactHandoff: null,
+    artifactReview: null,
+    artifactValidation: null,
+    artifactPr: null
   };
   const positionals = [];
 
@@ -279,6 +306,101 @@ function parseArgs(argv) {
       flags.force = true;
       continue;
     }
+    if (value === "--mission-id") {
+      flags.missionId = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--phase") {
+      flags.phase = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--event") {
+      flags.event = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--status-file") {
+      flags.statusFile = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--event-log") {
+      flags.eventLog = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--proposed-task-status") {
+      flags.proposedTaskStatus = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--needs-user") {
+      flags.needsUser = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--user-decision-needed") {
+      flags.userDecisionNeeded = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--next-action") {
+      flags.nextAction = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--updated-at") {
+      flags.updatedAt = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--task-id") {
+      flags.taskId = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--mission-repo") {
+      flags.missionRepo = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--envelope-json") {
+      flags.envelopeJson = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--prompt-file") {
+      flags.promptFile = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--prompt") {
+      flags.prompt = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--artifact-handoff") {
+      flags.artifactHandoff = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--artifact-review") {
+      flags.artifactReview = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--artifact-validation") {
+      flags.artifactValidation = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--artifact-pr") {
+      flags.artifactPr = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -315,7 +437,10 @@ function usage(target = null) {
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]"
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]",
+    "record-mission": "  node scripts/crew.mjs record-mission --repo <path> (--envelope-json <json> | --prompt-file <path> | --prompt <text>)",
+    "write-mission-status": "  node scripts/crew.mjs write-mission-status --repo <path> --mission-id <id> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--status-file <abs path>] [--task-id <id>] [--mission-repo <name>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-validation <path>] [--artifact-pr <url>] [--updated-at <iso>]",
+    "append-mission-event": "  node scripts/crew.mjs append-mission-event --repo <path> --mission-id <id> --event <kind> --summary <text> [--phase <p>] [--event-log <abs path>]"
   };
 
   if (target && subcommands[target]) {
@@ -476,6 +601,70 @@ async function main() {
       next: flags.next,
       force: flags.force
     });
+  } else if (command === "record-mission") {
+    let envelope = null;
+    if (flags.envelopeJson) {
+      envelope = JSON.parse(flags.envelopeJson);
+    } else if (flags.promptFile) {
+      const contents = await readFile(flags.promptFile, "utf8");
+      envelope = parseMissionEnvelope(contents).envelope;
+    } else if (flags.prompt) {
+      envelope = parseMissionEnvelope(flags.prompt).envelope;
+    }
+    if (!envelope || !envelope.mission_id) {
+      throw new Error("record-mission: no ORCHESTRATOR_MISSION envelope found in input");
+    }
+    const recorded = await recordCurrentMission({ repoPath, envelope });
+    result = {
+      kind: "record-mission",
+      path: path.join(repoPath, ".claude", "state", "crew", "current-mission.json"),
+      mission_id: recorded.mission_id,
+      status_file: recorded.status_file,
+      event_log: recorded.event_log,
+      handoff_file: recorded.handoff_file
+    };
+  } else if (command === "write-mission-status") {
+    if (!flags.missionId) throw new Error("write-mission-status: --mission-id is required");
+    if (!flags.status) throw new Error("write-mission-status: --status is required");
+    if (!flags.summary) throw new Error("write-mission-status: --summary is required");
+    const statusFilePath = await resolveMissionPath({ repoPath, kind: "status_file", explicitPath: flags.statusFile });
+    if (!statusFilePath) throw new Error("write-mission-status: no --status-file flag and no .claude/state/crew/current-mission.json with status_file");
+    const needsUser = flags.needsUser == null ? false : String(flags.needsUser).toLowerCase() === "true";
+    const artifacts = {};
+    if (flags.artifactHandoff != null) artifacts.handoff = flags.artifactHandoff;
+    if (flags.artifactReview != null) artifacts.review = flags.artifactReview;
+    if (flags.artifactValidation != null) artifacts.validation = flags.artifactValidation;
+    if (flags.artifactPr != null) artifacts.pr = flags.artifactPr;
+    const written = await writeMissionStatus({
+      missionId: flags.missionId,
+      statusFilePath,
+      taskId: flags.taskId ?? undefined,
+      repo: flags.missionRepo ?? undefined,
+      status: flags.status,
+      phase: flags.phase ?? undefined,
+      summary: flags.summary,
+      proposedTaskStatus: flags.proposedTaskStatus ?? undefined,
+      needsUser,
+      userDecisionNeeded: flags.userDecisionNeeded ?? undefined,
+      nextAction: flags.nextAction ?? undefined,
+      artifacts: Object.keys(artifacts).length > 0 ? artifacts : undefined,
+      updatedAt: flags.updatedAt ?? undefined
+    });
+    result = { kind: "mission-status", path: statusFilePath, status: written };
+  } else if (command === "append-mission-event") {
+    if (!flags.missionId) throw new Error("append-mission-event: --mission-id is required");
+    if (!flags.event) throw new Error("append-mission-event: --event is required");
+    if (!flags.summary) throw new Error("append-mission-event: --summary is required");
+    const eventLogPath = await resolveMissionPath({ repoPath, kind: "event_log", explicitPath: flags.eventLog });
+    if (!eventLogPath) throw new Error("append-mission-event: no --event-log flag and no .claude/state/crew/current-mission.json with event_log");
+    const line = await appendMissionEvent({
+      missionId: flags.missionId,
+      eventLogPath,
+      event: flags.event,
+      phase: flags.phase ?? undefined,
+      summary: flags.summary
+    });
+    result = { kind: "mission-event", path: eventLogPath, line };
   } else {
     throw new Error(`Unknown command: ${command}`);
   }

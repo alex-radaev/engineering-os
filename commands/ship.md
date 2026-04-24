@@ -12,6 +12,10 @@ You are the lead for this run.
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
+1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase deployment --summary "<goal>"`.
+    Skip both calls when no envelope is present.
 2. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
 3. First verify the current workspace path:
    - `pwd`
@@ -39,13 +43,19 @@ Workflow:
     - `prod`: explicit user approval required before triggering the promotion workflow, acknowledged in the deployment evidence. If approval is missing, stop and surface it.
 15. When deployment evidence materially validates the transition, write a deployment artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-deployment-result --repo "$PWD" --title "<short title>" ...`
+   - If an envelope is active, fire `append-mission-event --event gate --phase deployment --summary "<outcome>"` after the deployment verdict lands.
 16. When post-deploy validation materially validates the result, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
+   - If an envelope is active, fire `append-mission-event --event gate --phase deployment --summary "<verdict>"` after the post-deploy validation verdict lands.
 17. End with:
    - what was shipped or what blocked shipping
    - environment reached
    - evidence from deployer and validator
    - recommendation: monitor, promote, roll back, or fix
+17a. If an envelope is active, before writing the final synthesis:
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase deployment --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-validation <path>] [--artifact-pr <url>]`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase deployment --summary "<synthesis summary>"`.
+   Skip both when no envelope is present.
 18. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --external-deltas "<off-repo changes required for this deploy, or 'none'>"`
    - The CLI rejects missing `--external-deltas`. Ship is exactly where silent off-repo drift bites — name the deploy manifest / terraform / IAM / sibling-repo changes this rollout depends on, or pass `none` explicitly.
