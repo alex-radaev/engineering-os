@@ -13,20 +13,21 @@ Use this when the user wants to plan a feature or service — before code is wri
 
 Workflow:
 
-1. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
-2. Apply the `writing-design-docs` skill for the design structure and quality bar.
-3. First verify the current workspace path:
+1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
+2. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
+3. Apply the `writing-design-docs` skill for the design structure and quality bar.
+4. First verify the current workspace path:
    - `pwd`
-4. Start by reading the repo wake-up brief:
+5. Start by reading the repo wake-up brief:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" wake-up --repo "$PWD"`
-5. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
-6. If a recent design doc already exists under `.claude/artifacts/crew/designs/`, read it — decide whether this session is extending it or starting a fresh one.
-7. Frame the design task with the user:
+6. Explicitly confirm the returned `repoPath` matches the current working directory. If it does not, stop and correct the repo context before proceeding.
+7. If a recent design doc already exists under `.claude/artifacts/crew/designs/`, read it — decide whether this session is extending it or starting a fresh one.
+8. Frame the design task with the user:
    - what the user wants built
    - rough scope tag: `greenfield`, `existing-feature`, or `small-change`
    - what is in and out of scope
    - who will use it and how
-8. Design top-down, in conversation with the user:
+9. Design top-down, in conversation with the user:
     - start from the main thing the feature or service does
     - break it into components, then sub-components
     - describe how they work together — prefer a small visual (ASCII or mermaid block) over paragraphs of prose
@@ -36,11 +37,11 @@ Workflow:
     - define what "working properly" means — observable signals
     - define what "done" means — a checklist the user can confirm against
     - collect any open questions that still need answers
-9. Keep the detail proportional to the change:
+10. Keep the detail proportional to the change:
     - `greenfield` → lighter, broader strokes, fewer decisions locked down
     - `existing-feature` → more detail on how it fits the current system
     - `small-change` → more specific, often a single component or contract
-10. Take the user's perspective: give them what they need to know to trust the design, no more.
+11. Take the user's perspective: give them what they need to know to trust the design, no more.
 
 When the design is agreed, persist it:
 

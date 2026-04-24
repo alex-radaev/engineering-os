@@ -103,6 +103,8 @@ Ten slash commands, grouped by what you're trying to do:
 
 Parallelism, claims, approvals, and artifact writers exist underneath to support these workflows. They live in the CLI, not the command set — you shouldn't need to memorize them.
 
+External orchestrators can bind a Crew run by prepending an `ORCHESTRATOR_MISSION` envelope to the first-turn prompt — the lead treats `objective`, `scope`, `acceptance_criteria`, and reporting paths as the run contract. See [`docs/mission-envelope.md`](docs/mission-envelope.md) for the shape and parsing rules.
+
 ## Install
 
 Crew installs through Claude Code's standard `/plugin` flow.

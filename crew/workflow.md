@@ -10,6 +10,44 @@ This file is command-loaded run guidance for the lead. It is not always-on start
   1. `~/.claude/crew/lead.md`
   2. `.claude/crew/lead.md`
 
+## Mission Envelope
+
+If the first-turn prompt begins with an `ORCHESTRATOR_MISSION` envelope, parse it before doing anything else. When present, the envelope is binding and overrides any scope the lead would otherwise infer from free-form prose. When absent, behavior is unchanged.
+
+Triggered only when the prompt's **first non-empty line** is the literal string `ORCHESTRATOR_MISSION`.
+
+Authoritative shape:
+
+```
+ORCHESTRATOR_MISSION
+mission_id: <id>
+task_id: <id>
+repo: <name>
+objective: <one-line goal>
+scope:
+  <multi-line scope description — may span paragraphs>
+acceptance_criteria:
+  <multi-line list of done-state conditions>
+reporting:
+  status_file: <absolute path>
+  event_log:   <absolute path>
+  handoff_file: <absolute path>
+```
+
+Parsing rules:
+
+1. Triggered ONLY when the prompt's first non-empty line is the literal string `ORCHESTRATOR_MISSION`.
+2. Terminator: the first line that is `End of mission envelope.` OR the first line matching `/^\/crew:/` after the envelope header. Everything after is the free-form prompt body.
+3. Fields are `key: value` on one line, OR `key:` followed by indented continuation lines (2+ spaces of indent). Unknown keys are preserved but ignored by the lead.
+4. Missing required fields (`mission_id`, `objective`) → the lead must emit a `help_request` asking the orchestrator to re-dispatch with a complete envelope, rather than guessing.
+5. Envelope fields are binding: the lead's restated goal is `objective` verbatim; in-scope lines come from `scope`; "done when" comes from `acceptance_criteria`; reporting paths drive future artifact writes (the writers are not wired to these paths yet — a separate ticket owns that work).
+
+Precedence is explicit: **envelope fields override lead-inferred scope.** `objective` becomes the restated run goal verbatim. `scope` defines in-scope and out-of-scope. `acceptance_criteria` defines done-when. `reporting.status_file`, `reporting.event_log`, and `reporting.handoff_file` name the paths where future artifact writers will persist mission status, events, and handoffs for the orchestrator.
+
+If `mission_id` or `objective` is missing, emit a `help_request` to the orchestrator rather than guessing — do not improvise a mission identity or objective.
+
+See `docs/mission-envelope.md` for the longer reference and a complete example.
+
 ## Run Sequence
 
 1. Verify the current workspace path.
