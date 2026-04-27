@@ -102,6 +102,14 @@ Teardown has two triggers, used as belt + suspenders:
 
 Specialist forgetting ≠ leaked teammate (safety net catches it). Lead over-aggressive ≠ premature shutdown (safety net requires true idle).
 
+## Task Tracker Boundary
+
+Crew missions report outcomes; the orchestrator decides task-lifecycle changes. The task tracker database (`~/.tasks/tasks.db`) is owned exclusively by the orchestrator.
+
+- Missions flow results into the tracker only via `reporting.status_file` (`status.json`) + the orchestrator's own reconciliation. There is no other legitimate path.
+- Reviewer must reject any diff that touches `~/.tasks/tasks.db`, or that introduces a `sqlite3` / `better-sqlite3` / `aiosqlite` (or equivalent) client pointed at that path. This applies regardless of whether the write looks "read-only at call time" — the import itself is the signal.
+- A mission that feels it needs the orchestrator to record something should emit it through `status.json`, `events.jsonl`, or the completion handoff, and let the orchestrator reconcile. If the mission believes reconciliation is missing a shape, raise that as a follow-up ticket, not a direct DB write.
+
 ## Review Result
 
 Every review result must be one of:
