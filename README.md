@@ -93,10 +93,10 @@ Ten slash commands, grouped by what you're trying to do:
 | `/crew:install`           | One-time: install personal overlays under `~/.claude/crew/`      |
 | `/crew:init-repo`         | Brand-new repo — lay down the full harness                       |
 | `/crew:bootstrap-repo`    | Existing repo — conservative, additive install                   |
-| `/crew:wake-up-brief`     | Morning orientation — read durable state and recent artifacts    |
+| `/crew:brief-me` (alias: `/crew:wake-up-brief`) | Morning orientation — read durable state and recent artifacts    |
 | `/crew:design`            | Design a feature before building it                              |
 | `/crew:build-feature`     | Build or extend capability (the workhorse)                       |
-| `/crew:investigate-bug`   | Trace, fix, and regression-test a bug                            |
+| `/crew:fix` (alias: `/crew:investigate-bug`) | Trace, fix, and regression-test a bug                            |
 | `/crew:review`            | Run the review phase on completed work                           |
 | `/crew:validate`          | Exercise runnable behavior and capture evidence                  |
 | `/crew:ship`              | Move work through merge, deploy, and evidence gates              |
