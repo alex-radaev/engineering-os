@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import {
   appendMissionEvent,
-  readCurrentMission,
   writeMissionStatus
 } from "./mission-writer.mjs";
 
@@ -342,24 +341,37 @@ export async function writeArtifact(repoPath, kind, fields = {}) {
 }
 
 // writeFinalSynthesisWithMission — writes the synthesis md via writeArtifact,
-// then (when the caller supplies mission-terminal fields AND an envelope is
-// active) updates mission status.json, appends a terminal event, and copies the
-// synthesis body to the envelope's handoff_file path (or handoffOut override).
+// then (when the caller supplies mission-terminal fields) updates mission
+// status.json, appends a terminal event, and copies the synthesis body to the
+// passed handoff path.
 //
 // Contract:
 // - Always writes the synthesis md (existing behavior).
-// - If terminalStatus is set but no envelope is active, throw — terminal-status
-//   is meaningless without a mission.
-// - When an envelope is active AND terminalStatus is set: write status.json,
-//   append a terminal event (kind = terminalStatus), and copy the synthesis md
-//   to the envelope's handoff_file (or handoffOut override).
+// - When terminalStatus is set, the caller MUST pass missionId + statusFile +
+//   eventLog explicitly (captured from the envelope's mission_id and
+//   reporting.* paths at parse-time). No pointer-file fallback — see T-X-05.
+// - When terminalStatus is set: write status.json, append a terminal event
+//   (kind = terminalStatus), and copy the synthesis md to handoffOut if
+//   passed. handoffOut is the only way to request a handoff copy now;
+//   callers should default it to the envelope's reporting.handoff_file.
 // - When no terminalStatus is passed: behave as the old writeArtifact — no
 //   status rewrite, no event, no handoff copy. Mid-run syntheses should not
 //   mark a mission terminal.
 export async function writeFinalSynthesisWithMission(repoPath, fields = {}, missionOpts = {}) {
   const artifact = await writeArtifact(repoPath, "final-synthesis", fields);
 
-  const { terminalStatus, proposedTaskStatus, nextAction, handoffOut } = missionOpts;
+  const {
+    terminalStatus,
+    proposedTaskStatus,
+    nextAction,
+    handoffOut,
+    statusFile,
+    eventLog,
+    missionId,
+    taskId,
+    repo: missionRepo,
+    phase: phaseOpt
+  } = missionOpts;
   const hasTerminal = terminalStatus != null && terminalStatus !== "";
 
   if (!hasTerminal) {
@@ -377,38 +389,34 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
     );
   }
 
-  const current = await readCurrentMission(repoPath);
-  if (!current) {
+  if (!missionId) {
     throw new Error(
-      "--mission-terminal-status passed but no active mission envelope " +
-        "(no .claude/state/crew/current-mission.json). Run record-mission first, " +
-        "or drop the mission-terminal flags for a vanilla synthesis."
+      "write-final-synthesis: --mission-terminal-status requires --mission-id. " +
+        "Pass the envelope's mission_id explicitly (no pointer-file fallback)."
+    );
+  }
+  if (!statusFile) {
+    throw new Error(
+      "write-final-synthesis: --mission-terminal-status requires --status-file. " +
+        "Pass the envelope's reporting.status_file explicitly."
+    );
+  }
+  if (!eventLog) {
+    throw new Error(
+      "write-final-synthesis: --mission-terminal-status requires --event-log. " +
+        "Pass the envelope's reporting.event_log explicitly."
     );
   }
 
-  const statusFilePath = current.status_file;
-  const eventLogPath = current.event_log;
-  const handoffFilePath = handoffOut || current.handoff_file;
-
-  if (!statusFilePath) {
-    throw new Error(
-      "active mission envelope has no reporting.status_file; cannot write mission status."
-    );
-  }
-  if (!eventLogPath) {
-    throw new Error(
-      "active mission envelope has no reporting.event_log; cannot append mission event."
-    );
-  }
-
-  const phase = missionOpts.phase || "implementation";
+  const handoffFilePath = handoffOut || null;
+  const phase = phaseOpt || "implementation";
   const summary = fields.summary || "";
 
   const writtenStatus = await writeMissionStatus({
-    missionId: current.mission_id,
-    statusFilePath,
-    taskId: current.task_id || undefined,
-    repo: current.repo || undefined,
+    missionId,
+    statusFilePath: statusFile,
+    taskId: taskId || undefined,
+    repo: missionRepo || undefined,
     status: terminalStatus,
     phase,
     summary,
@@ -418,8 +426,8 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
   });
 
   const writtenEvent = await appendMissionEvent({
-    missionId: current.mission_id,
-    eventLogPath,
+    missionId,
+    eventLogPath: eventLog,
     event: terminalStatus,
     phase,
     summary
@@ -435,9 +443,9 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
   return {
     ...artifact,
     mission: {
-      mission_id: current.mission_id,
-      status_file: statusFilePath,
-      event_log: eventLogPath,
+      mission_id: missionId,
+      status_file: statusFile,
+      event_log: eventLog,
       handoff_file: handoffCopyPath,
       status: writtenStatus,
       event: writtenEvent

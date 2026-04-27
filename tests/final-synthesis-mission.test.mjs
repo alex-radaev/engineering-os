@@ -21,35 +21,19 @@ async function initRepo(prefix) {
   return repoPath;
 }
 
-async function recordMission(repoPath, { missionId = "M-TEST-1", taskId = "T-TEST-1" } = {}) {
-  const statusFile = path.join(repoPath, ".claude", "state", "crew", "status.json");
-  const eventLog = path.join(repoPath, ".claude", "state", "crew", "events.jsonl");
-  const handoffFile = path.join(repoPath, ".claude", "state", "crew", "handoff.md");
-  const envelope = {
-    mission_id: missionId,
-    task_id: taskId,
-    repo: "engineering-os",
-    objective: "Test synthesis terminal wiring",
-    reporting: {
-      status_file: statusFile,
-      event_log: eventLog,
-      handoff_file: handoffFile
-    }
+function missionPaths(repoPath, { missionId = "M-TEST-1", taskId = "T-TEST-1" } = {}) {
+  return {
+    statusFile: path.join(repoPath, ".claude", "state", "crew", "status.json"),
+    eventLog: path.join(repoPath, ".claude", "state", "crew", "events.jsonl"),
+    handoffFile: path.join(repoPath, ".claude", "state", "crew", "handoff.md"),
+    missionId,
+    taskId
   };
-  await execFile("node", [
-    cliPath,
-    "record-mission",
-    "--repo",
-    repoPath,
-    "--envelope-json",
-    JSON.stringify(envelope)
-  ]);
-  return { statusFile, eventLog, handoffFile, missionId, taskId };
 }
 
-test("write-final-synthesis with envelope + terminal-status writes status, event, handoff copy", async () => {
+test("write-final-synthesis with explicit mission flags writes status, event, handoff copy", async () => {
   const repoPath = await initRepo("crew-fs-mission-");
-  const { statusFile, eventLog, handoffFile, missionId } = await recordMission(repoPath);
+  const { statusFile, eventLog, handoffFile, missionId } = missionPaths(repoPath);
 
   const { stdout } = await execFile("node", [
     cliPath,
@@ -64,6 +48,14 @@ test("write-final-synthesis with envelope + terminal-status writes status, event
     "none",
     "--mission-terminal-status",
     "done",
+    "--mission-id",
+    missionId,
+    "--status-file",
+    statusFile,
+    "--event-log",
+    eventLog,
+    "--handoff-out",
+    handoffFile,
     "--proposed-task-status",
     "needs_review",
     "--next-action",
@@ -147,7 +139,7 @@ test("write-final-synthesis without envelope and without terminal flags behaves 
   assert.equal(result.mission, null);
 });
 
-test("write-final-synthesis with terminal-status but no envelope errors clearly", async () => {
+test("write-final-synthesis with terminal-status but no --mission-id errors clearly", async () => {
   const repoPath = await initRepo("crew-fs-no-env-");
 
   await assert.rejects(
@@ -165,13 +157,13 @@ test("write-final-synthesis with terminal-status but no envelope errors clearly"
       "--mission-terminal-status",
       "done"
     ]),
-    /no active mission envelope/
+    /requires --mission-id/
   );
 });
 
 test("write-final-synthesis rejects invalid --mission-terminal-status enum", async () => {
   const repoPath = await initRepo("crew-fs-bad-enum-");
-  await recordMission(repoPath);
+  const { statusFile, eventLog, missionId } = missionPaths(repoPath);
 
   await assert.rejects(
     execFile("node", [
@@ -186,7 +178,13 @@ test("write-final-synthesis rejects invalid --mission-terminal-status enum", asy
       "--external-deltas",
       "none",
       "--mission-terminal-status",
-      "shipped"
+      "shipped",
+      "--mission-id",
+      missionId,
+      "--status-file",
+      statusFile,
+      "--event-log",
+      eventLog
     ]),
     /invalid --mission-terminal-status/
   );
@@ -194,7 +192,7 @@ test("write-final-synthesis rejects invalid --mission-terminal-status enum", asy
 
 test("write-final-synthesis rejects invalid --proposed-task-status enum", async () => {
   const repoPath = await initRepo("crew-fs-bad-task-status-");
-  await recordMission(repoPath);
+  const { statusFile, eventLog, missionId } = missionPaths(repoPath);
 
   await assert.rejects(
     execFile("node", [
@@ -210,6 +208,12 @@ test("write-final-synthesis rejects invalid --proposed-task-status enum", async 
       "none",
       "--mission-terminal-status",
       "done",
+      "--mission-id",
+      missionId,
+      "--status-file",
+      statusFile,
+      "--event-log",
+      eventLog,
       "--proposed-task-status",
       "nope"
     ]),
@@ -217,9 +221,9 @@ test("write-final-synthesis rejects invalid --proposed-task-status enum", async 
   );
 });
 
-test("write-final-synthesis with envelope but no terminal-status is a no-op on mission state", async () => {
+test("write-final-synthesis with envelope-style flags but no terminal-status is a no-op on mission state", async () => {
   const repoPath = await initRepo("crew-fs-envelope-noterm-");
-  const { statusFile, eventLog } = await recordMission(repoPath);
+  const { statusFile, eventLog } = missionPaths(repoPath);
 
   await execFile("node", [
     cliPath,
@@ -246,10 +250,9 @@ test("write-final-synthesis with envelope but no terminal-status is a no-op on m
   assert.equal(existsEvents, false, "events.jsonl should not gain entries without terminal-status");
 });
 
-test("write-final-synthesis with --handoff-out overrides envelope handoff path", async () => {
-  const repoPath = await initRepo("crew-fs-handoff-out-");
-  const { handoffFile: defaultHandoff } = await recordMission(repoPath);
-  const customHandoff = path.join(repoPath, "custom", "custom-handoff.md");
+test("write-final-synthesis without --handoff-out skips the handoff copy", async () => {
+  const repoPath = await initRepo("crew-fs-no-handoff-");
+  const { statusFile, eventLog, handoffFile, missionId } = missionPaths(repoPath);
 
   const { stdout } = await execFile("node", [
     cliPath,
@@ -257,29 +260,26 @@ test("write-final-synthesis with --handoff-out overrides envelope handoff path",
     "--repo",
     repoPath,
     "--title",
-    "Custom handoff test",
+    "No handoff test",
     "--summary",
-    "Override path",
+    "Skipping handoff copy",
     "--external-deltas",
     "none",
     "--mission-terminal-status",
     "done",
-    "--handoff-out",
-    customHandoff
+    "--mission-id",
+    missionId,
+    "--status-file",
+    statusFile,
+    "--event-log",
+    eventLog
   ]);
   const result = JSON.parse(stdout);
-  assert.equal(result.mission.handoff_file, customHandoff);
+  assert.equal(result.mission.handoff_file, null);
 
-  const existsCustom = await fs
-    .access(customHandoff)
+  const existsHandoff = await fs
+    .access(handoffFile)
     .then(() => true)
     .catch(() => false);
-  assert.equal(existsCustom, true);
-
-  // Default envelope path should not have received the copy since we overrode
-  const existsDefault = await fs
-    .access(defaultHandoff)
-    .then(() => true)
-    .catch(() => false);
-  assert.equal(existsDefault, false);
+  assert.equal(existsHandoff, false);
 });

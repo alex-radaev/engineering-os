@@ -14,10 +14,9 @@ Use this when the user wants to plan a feature or service — before code is wri
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
-1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase design --summary "<goal>"`.
-    Skip both calls when no envelope is present.
+1a. If the envelope is present, capture `mission_id`, `reporting.status_file`, `reporting.event_log`, and `reporting.handoff_file` from the parsed envelope. Pass them explicitly on every mission writer call below — there is no pointer-file fallback (see `workflow.md § Mission Reporting`). Then fire the start event:
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event started --phase design --summary "<goal>"`.
+    Skip when no envelope is present.
 2. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
 3. Apply the `writing-design-docs` skill for the design structure and quality bar.
 4. First verify the current workspace path:
@@ -50,8 +49,8 @@ Workflow:
 When the design is agreed, persist it:
 
 0. If an envelope is active, before writing the final design artifacts:
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <id> --status <done|partial|needs_user|abandoned> --phase design --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-handoff <path>]`
-   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event <done|partial|abandoned> --phase design --summary "<synthesis summary>"`.
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <envelope.mission_id> --status-file <envelope.reporting.status_file> --status <done|partial|needs_user|abandoned> --phase design --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-handoff <path>]`
+   - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event <done|partial|abandoned> --phase design --summary "<synthesis summary>"`.
    Skip both when no envelope is present.
 1. Write the full design body to `.claude/artifacts/crew/designs/<short-slug>.md` using the template from the `writing-design-docs` skill.
 2. Record a run brief so the design surfaces in the next wake-up:

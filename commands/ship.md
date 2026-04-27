@@ -12,10 +12,9 @@ You are the lead for this run.
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
-1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase deployment --summary "<goal>"`.
-    Skip both calls when no envelope is present.
+1a. If the envelope is present, capture `mission_id`, `reporting.status_file`, `reporting.event_log`, and `reporting.handoff_file` from the parsed envelope. Pass them explicitly on every mission writer call below — there is no pointer-file fallback (see `workflow.md § Mission Reporting`). Then fire the start event:
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event started --phase deployment --summary "<goal>"`.
+    Skip when no envelope is present.
 2. Read custom lead guidance per the protocol's Custom Instructions Lookup section (role name: `lead`).
 3. First verify the current workspace path:
    - `pwd`
@@ -43,10 +42,10 @@ Workflow:
     - `prod`: explicit user approval required before triggering the promotion workflow, acknowledged in the deployment evidence. If approval is missing, stop and surface it.
 15. When deployment evidence materially validates the transition, write a deployment artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-deployment-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase deployment --summary "<outcome>"` after the deployment verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase deployment --summary "<outcome>"` after the deployment verdict lands.
 16. When post-deploy validation materially validates the result, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase deployment --summary "<verdict>"` after the post-deploy validation verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase deployment --summary "<verdict>"` after the post-deploy validation verdict lands.
 17. End with:
    - what was shipped or what blocked shipping
    - environment reached
@@ -55,5 +54,5 @@ Workflow:
 18. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --external-deltas "<off-repo changes required for this deploy, or 'none'>"`
    - The CLI rejects missing `--external-deltas`. Ship is exactly where silent off-repo drift bites — name the deploy manifest / terraform / IAM / sibling-repo changes this rollout depends on, or pass `none` explicitly.
-   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled> --phase deployment` and optionally `--next-action "<text>"`. The CLI writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in one call. See `crew/workflow.md` § Terminal Synthesis.
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --mission-id <envelope.mission_id> --status-file <envelope.reporting.status_file> --event-log <envelope.reporting.event_log> --handoff-out <envelope.reporting.handoff_file> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled> --phase deployment` and optionally `--next-action "<text>"`. The CLI writes mission status, appends a terminal event, and copies the synthesis to the passed handoff path in one call. See `crew/workflow.md` § Terminal Synthesis.
    - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.

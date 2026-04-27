@@ -16,8 +16,6 @@ import { buildWakeUpBrief } from "./lib/wakeup.mjs";
 import { parseMissionEnvelope } from "./lib/mission-envelope.mjs";
 import {
   appendMissionEvent,
-  recordCurrentMission,
-  resolveMissionPath,
   writeMissionStatus
 } from "./lib/mission-writer.mjs";
 
@@ -455,10 +453,10 @@ function usage(target = null) {
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>] [--mission-terminal-status done|partial|needs_user|blocked|abandoned] [--proposed-task-status candidate|ready|active|blocked|needs_review|done|parked|cancelled] [--next-action <text>] [--handoff-out <abs path>] [--phase <p>]",
-    "record-mission": "  node scripts/crew.mjs record-mission --repo <path> (--envelope-json <json> | --prompt-file <path> | --prompt <text>)",
-    "write-mission-status": "  node scripts/crew.mjs write-mission-status --repo <path> --mission-id <id> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--status-file <abs path>] [--task-id <id>] [--mission-repo <name>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-validation <path>] [--artifact-pr <url>] [--updated-at <iso>]",
-    "append-mission-event": "  node scripts/crew.mjs append-mission-event --repo <path> --mission-id <id> --event <kind> --summary <text> [--phase <p>] [--event-log <abs path>]"
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>] [--mission-terminal-status done|partial|needs_user|blocked|abandoned --mission-id <id> --status-file <abs path> --event-log <abs path>] [--proposed-task-status candidate|ready|active|blocked|needs_review|done|parked|cancelled] [--next-action <text>] [--handoff-out <abs path>] [--task-id <id>] [--mission-repo <name>] [--phase <p>]",
+    "record-mission": "  node scripts/crew.mjs record-mission --repo <path> (--envelope-json <json> | --prompt-file <path> | --prompt <text>)  [DEPRECATED: no longer writes a pointer file; prints inferred reporting paths to stdout. Pass them explicitly to mission writers.]",
+    "write-mission-status": "  node scripts/crew.mjs write-mission-status --repo <path> --mission-id <id> --status-file <abs path> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--task-id <id>] [--mission-repo <name>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-validation <path>] [--artifact-pr <url>] [--updated-at <iso>]",
+    "append-mission-event": "  node scripts/crew.mjs append-mission-event --repo <path> --mission-id <id> --event-log <abs path> --event <kind> --summary <text> [--phase <p>]"
   };
 
   if (target && subcommands[target]) {
@@ -642,7 +640,12 @@ async function main() {
       proposedTaskStatus: flags.proposedTaskStatus,
       nextAction: flags.nextAction,
       handoffOut: flags.handoffOut,
-      phase: flags.phase
+      phase: flags.phase,
+      missionId: flags.missionId,
+      statusFile: flags.statusFile,
+      eventLog: flags.eventLog,
+      taskId: flags.taskId,
+      repo: flags.missionRepo
     });
   } else if (command === "record-mission") {
     let envelope = null;
@@ -657,21 +660,32 @@ async function main() {
     if (!envelope || !envelope.mission_id) {
       throw new Error("record-mission: no ORCHESTRATOR_MISSION envelope found in input");
     }
-    const recorded = await recordCurrentMission({ repoPath, envelope });
+    const reporting = (envelope.reporting && typeof envelope.reporting === "object") ? envelope.reporting : {};
+    console.error(
+      "warning: record-mission is deprecated and no longer writes " +
+        ".claude/state/crew/current-mission.json. Mission writers " +
+        "(write-mission-status, append-mission-event, write-final-synthesis " +
+        "--mission-terminal-status) require explicit --mission-id / " +
+        "--status-file / --event-log captured from the envelope at parse-time. " +
+        "This command remains as a parser convenience that prints the inferred " +
+        "reporting paths to stdout for callers to capture."
+    );
     result = {
       kind: "record-mission",
-      path: path.join(repoPath, ".claude", "state", "crew", "current-mission.json"),
-      mission_id: recorded.mission_id,
-      status_file: recorded.status_file,
-      event_log: recorded.event_log,
-      handoff_file: recorded.handoff_file
+      deprecated: true,
+      mission_id: envelope.mission_id,
+      task_id: envelope.task_id ?? "",
+      repo: envelope.repo ?? "",
+      status_file: reporting.status_file ?? null,
+      event_log: reporting.event_log ?? null,
+      handoff_file: reporting.handoff_file ?? null
     };
   } else if (command === "write-mission-status") {
-    if (!flags.missionId) throw new Error("write-mission-status: --mission-id is required");
+    if (!flags.missionId) throw new Error("write-mission-status: --mission-id is required. Pass the envelope's mission_id explicitly (no pointer-file fallback).");
+    if (!flags.statusFile) throw new Error("write-mission-status: --status-file is required. Pass the envelope's reporting.status_file explicitly (no pointer-file fallback).");
     if (!flags.status) throw new Error("write-mission-status: --status is required");
     if (!flags.summary) throw new Error("write-mission-status: --summary is required");
-    const statusFilePath = await resolveMissionPath({ repoPath, kind: "status_file", explicitPath: flags.statusFile });
-    if (!statusFilePath) throw new Error("write-mission-status: no --status-file flag and no .claude/state/crew/current-mission.json with status_file");
+    const statusFilePath = flags.statusFile;
     const needsUser = flags.needsUser == null ? false : String(flags.needsUser).toLowerCase() === "true";
     const artifacts = {};
     if (flags.artifactHandoff != null) artifacts.handoff = flags.artifactHandoff;
@@ -695,11 +709,11 @@ async function main() {
     });
     result = { kind: "mission-status", path: statusFilePath, status: written };
   } else if (command === "append-mission-event") {
-    if (!flags.missionId) throw new Error("append-mission-event: --mission-id is required");
+    if (!flags.missionId) throw new Error("append-mission-event: --mission-id is required. Pass the envelope's mission_id explicitly (no pointer-file fallback).");
+    if (!flags.eventLog) throw new Error("append-mission-event: --event-log is required. Pass the envelope's reporting.event_log explicitly (no pointer-file fallback).");
     if (!flags.event) throw new Error("append-mission-event: --event is required");
     if (!flags.summary) throw new Error("append-mission-event: --summary is required");
-    const eventLogPath = await resolveMissionPath({ repoPath, kind: "event_log", explicitPath: flags.eventLog });
-    if (!eventLogPath) throw new Error("append-mission-event: no --event-log flag and no .claude/state/crew/current-mission.json with event_log");
+    const eventLogPath = flags.eventLog;
     const line = await appendMissionEvent({
       missionId: flags.missionId,
       eventLogPath,
