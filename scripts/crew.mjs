@@ -2,7 +2,13 @@
 
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import { validateArtifactFields, writeArtifact } from "./lib/artifacts.mjs";
+import {
+  MISSION_PROPOSED_TASK_STATUS_VALUES,
+  MISSION_TERMINAL_STATUS_VALUES,
+  validateArtifactFields,
+  writeArtifact,
+  writeFinalSynthesisWithMission
+} from "./lib/artifacts.mjs";
 import { auditRepo, bootstrapRepo, initRepo, installUserAssets } from "./lib/installer.mjs";
 import { listApprovals, requestApproval, resolveApproval } from "./lib/approvals.mjs";
 import { claimFiles, inspectClaims, listClaims, releaseFiles } from "./lib/claims.mjs";
@@ -78,7 +84,9 @@ function parseArgs(argv) {
     artifactHandoff: null,
     artifactReview: null,
     artifactValidation: null,
-    artifactPr: null
+    artifactPr: null,
+    missionTerminalStatus: null,
+    handoffOut: null
   };
   const positionals = [];
 
@@ -401,6 +409,16 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--mission-terminal-status") {
+      flags.missionTerminalStatus = rest[index + 1];
+      index += 1;
+      continue;
+    }
+    if (value === "--handoff-out") {
+      flags.handoffOut = rest[index + 1];
+      index += 1;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -437,7 +455,7 @@ function usage(target = null) {
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>]",
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>] [--mission-terminal-status done|partial|needs_user|blocked|abandoned] [--proposed-task-status candidate|ready|active|blocked|needs_review|done|parked|cancelled] [--next-action <text>] [--handoff-out <abs path>] [--phase <p>]",
     "record-mission": "  node scripts/crew.mjs record-mission --repo <path> (--envelope-json <json> | --prompt-file <path> | --prompt <text>)",
     "write-mission-status": "  node scripts/crew.mjs write-mission-status --repo <path> --mission-id <id> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--status-file <abs path>] [--task-id <id>] [--mission-repo <name>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-validation <path>] [--artifact-pr <url>] [--updated-at <iso>]",
     "append-mission-event": "  node scripts/crew.mjs append-mission-event --repo <path> --mission-id <id> --event <kind> --summary <text> [--phase <p>] [--event-log <abs path>]"
@@ -588,7 +606,25 @@ async function main() {
       next: flags.next
     });
   } else if (command === "write-final-synthesis") {
-    result = await writeArtifact(repoPath, "final-synthesis", {
+    if (
+      flags.missionTerminalStatus != null &&
+      !MISSION_TERMINAL_STATUS_VALUES.has(flags.missionTerminalStatus)
+    ) {
+      throw new Error(
+        `write-final-synthesis: invalid --mission-terminal-status "${flags.missionTerminalStatus}". ` +
+          `Valid values: ${[...MISSION_TERMINAL_STATUS_VALUES].join(", ")}.`
+      );
+    }
+    if (
+      flags.proposedTaskStatus != null &&
+      !MISSION_PROPOSED_TASK_STATUS_VALUES.has(flags.proposedTaskStatus)
+    ) {
+      throw new Error(
+        `write-final-synthesis: invalid --proposed-task-status "${flags.proposedTaskStatus}". ` +
+          `Valid values: ${[...MISSION_PROPOSED_TASK_STATUS_VALUES].join(", ")}.`
+      );
+    }
+    const synthesisFields = {
       title: flags.title || positionals.join(" ") || "Final Synthesis",
       owner: flags.owner || "lead-session",
       status: flags.status === "open" ? "completed" : flags.status,
@@ -600,6 +636,13 @@ async function main() {
       risks: flags.risks,
       next: flags.next,
       force: flags.force
+    };
+    result = await writeFinalSynthesisWithMission(repoPath, synthesisFields, {
+      terminalStatus: flags.missionTerminalStatus,
+      proposedTaskStatus: flags.proposedTaskStatus,
+      nextAction: flags.nextAction,
+      handoffOut: flags.handoffOut,
+      phase: flags.phase
     });
   } else if (command === "record-mission") {
     let envelope = null;

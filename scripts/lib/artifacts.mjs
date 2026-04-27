@@ -1,7 +1,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import {
+  appendMissionEvent,
+  readCurrentMission,
+  writeMissionStatus
+} from "./mission-writer.mjs";
 
 const ARTIFACT_ROOT = [".claude", "artifacts", "crew"];
+
+const TERMINAL_STATUS_VALUES = new Set([
+  "done",
+  "partial",
+  "needs_user",
+  "blocked",
+  "abandoned"
+]);
+
+const PROPOSED_TASK_STATUS_VALUES = new Set([
+  "candidate",
+  "ready",
+  "active",
+  "blocked",
+  "needs_review",
+  "done",
+  "parked",
+  "cancelled"
+]);
+
+export const MISSION_TERMINAL_STATUS_VALUES = TERMINAL_STATUS_VALUES;
+export const MISSION_PROPOSED_TASK_STATUS_VALUES = PROPOSED_TASK_STATUS_VALUES;
 
 function nowIso() {
   return new Date().toISOString();
@@ -311,5 +338,109 @@ export async function writeArtifact(repoPath, kind, fields = {}) {
     kind,
     path: artifactPath,
     title: fields.title || "Untitled"
+  };
+}
+
+// writeFinalSynthesisWithMission — writes the synthesis md via writeArtifact,
+// then (when the caller supplies mission-terminal fields AND an envelope is
+// active) updates mission status.json, appends a terminal event, and copies the
+// synthesis body to the envelope's handoff_file path (or handoffOut override).
+//
+// Contract:
+// - Always writes the synthesis md (existing behavior).
+// - If terminalStatus is set but no envelope is active, throw — terminal-status
+//   is meaningless without a mission.
+// - When an envelope is active AND terminalStatus is set: write status.json,
+//   append a terminal event (kind = terminalStatus), and copy the synthesis md
+//   to the envelope's handoff_file (or handoffOut override).
+// - When no terminalStatus is passed: behave as the old writeArtifact — no
+//   status rewrite, no event, no handoff copy. Mid-run syntheses should not
+//   mark a mission terminal.
+export async function writeFinalSynthesisWithMission(repoPath, fields = {}, missionOpts = {}) {
+  const artifact = await writeArtifact(repoPath, "final-synthesis", fields);
+
+  const { terminalStatus, proposedTaskStatus, nextAction, handoffOut } = missionOpts;
+  const hasTerminal = terminalStatus != null && terminalStatus !== "";
+
+  if (!hasTerminal) {
+    return { ...artifact, mission: null };
+  }
+
+  if (!TERMINAL_STATUS_VALUES.has(terminalStatus)) {
+    throw new Error(
+      `Invalid --mission-terminal-status "${terminalStatus}". Valid values: ${[...TERMINAL_STATUS_VALUES].join(", ")}.`
+    );
+  }
+  if (proposedTaskStatus != null && !PROPOSED_TASK_STATUS_VALUES.has(proposedTaskStatus)) {
+    throw new Error(
+      `Invalid --proposed-task-status "${proposedTaskStatus}". Valid values: ${[...PROPOSED_TASK_STATUS_VALUES].join(", ")}.`
+    );
+  }
+
+  const current = await readCurrentMission(repoPath);
+  if (!current) {
+    throw new Error(
+      "--mission-terminal-status passed but no active mission envelope " +
+        "(no .claude/state/crew/current-mission.json). Run record-mission first, " +
+        "or drop the mission-terminal flags for a vanilla synthesis."
+    );
+  }
+
+  const statusFilePath = current.status_file;
+  const eventLogPath = current.event_log;
+  const handoffFilePath = handoffOut || current.handoff_file;
+
+  if (!statusFilePath) {
+    throw new Error(
+      "active mission envelope has no reporting.status_file; cannot write mission status."
+    );
+  }
+  if (!eventLogPath) {
+    throw new Error(
+      "active mission envelope has no reporting.event_log; cannot append mission event."
+    );
+  }
+
+  const phase = missionOpts.phase || "implementation";
+  const summary = fields.summary || "";
+
+  const writtenStatus = await writeMissionStatus({
+    missionId: current.mission_id,
+    statusFilePath,
+    taskId: current.task_id || undefined,
+    repo: current.repo || undefined,
+    status: terminalStatus,
+    phase,
+    summary,
+    proposedTaskStatus: proposedTaskStatus ?? undefined,
+    nextAction: nextAction ?? undefined,
+    artifacts: { handoff: handoffFilePath || null }
+  });
+
+  const writtenEvent = await appendMissionEvent({
+    missionId: current.mission_id,
+    eventLogPath,
+    event: terminalStatus,
+    phase,
+    summary
+  });
+
+  let handoffCopyPath = null;
+  if (handoffFilePath) {
+    await fs.mkdir(path.dirname(handoffFilePath), { recursive: true });
+    await fs.copyFile(artifact.path, handoffFilePath);
+    handoffCopyPath = handoffFilePath;
+  }
+
+  return {
+    ...artifact,
+    mission: {
+      mission_id: current.mission_id,
+      status_file: statusFilePath,
+      event_log: eventLogPath,
+      handoff_file: handoffCopyPath,
+      status: writtenStatus,
+      event: writtenEvent
+    }
   };
 }
