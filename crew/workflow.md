@@ -57,25 +57,22 @@ When a mission envelope is present, the lead emits machine-readable run state to
 
 Two writers live on the crew CLI:
 
-- `node scripts/crew.mjs write-mission-status --mission-id <id> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--status-file <abs path>]`
-- `node scripts/crew.mjs append-mission-event --mission-id <id> --event <kind> --summary <text> [--phase <p>] [--event-log <abs path>]`
+- `node scripts/crew.mjs write-mission-status --mission-id <id> --status-file <abs path> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>]`
+- `node scripts/crew.mjs append-mission-event --mission-id <id> --event-log <abs path> --event <kind> --summary <text> [--phase <p>]`
 
-Path resolution order (both writers):
+Path resolution: **explicit-or-error.** Both writers REQUIRE `--mission-id` plus the relevant path flag (`--status-file` for status, `--event-log` for events). There is no pointer-file fallback — the lead must capture `mission_id`, `reporting.status_file`, and `reporting.event_log` from the envelope at parse-time and pass them on every writer call. This avoids the singleton-pointer race that otherwise lets two concurrent missions overwrite each other's reporting target. Missing required flags fail loud with a message naming the envelope field the caller should pass.
 
-1. Explicit `--status-file` / `--event-log` flag on the call.
-2. `.claude/state/crew/current-mission.json` in the repo — written once at run start by `record-mission` from the parsed envelope.
-3. Error with a clear message. Writers never default-write to an arbitrary location.
+`record-mission` is deprecated. The command still parses the envelope (from `--envelope-json`, `--prompt-file`, or `--prompt`) and prints the inferred `mission_id` plus `reporting.*` paths to stdout for callers to capture, but it no longer writes `.claude/state/crew/current-mission.json` and writer behavior does not depend on it. Use it only as a parser convenience; mission writers ignore the pointer file entirely.
 
 Ordering at run start:
 
-1. Parse envelope.
-2. `record-mission --envelope-json '<json>'` (or `--prompt-file <path>`) — writes `.claude/state/crew/current-mission.json`.
-3. `append-mission-event --event started --phase <phase> --summary "<goal>"`.
-4. Run begins.
+1. Parse envelope; capture `mission_id`, `reporting.status_file`, `reporting.event_log`, `reporting.handoff_file`.
+2. `append-mission-event --mission-id <id> --event-log <reporting.event_log> --event started --phase <phase> --summary "<goal>"`.
+3. Run begins. Every subsequent writer call passes the same explicit `--mission-id` + `--status-file` / `--event-log` captured in step 1.
 
 Event kinds and when to fire them:
 
-- `started` — once, immediately after `record-mission`.
+- `started` — once at run start.
 - `progress` — role transitions (builder start, reviewer start, validator start, deployer start).
 - `gate` — a review/validation/deployment verdict lands.
 - `needs_user` — the run is waiting on a human decision.
@@ -96,16 +93,20 @@ At the end of a mission run, `write-final-synthesis` collapses the three termina
 Flags added to `write-final-synthesis`:
 
 - `--mission-terminal-status <done|partial|needs_user|blocked|abandoned>` — terminal mission state. Required to trigger the mission side effects. Omit for mid-run or vanilla (no-envelope) syntheses.
+- `--mission-id <id>` — REQUIRED whenever `--mission-terminal-status` is passed. The envelope's `mission_id`.
+- `--status-file <abs path>` — REQUIRED whenever `--mission-terminal-status` is passed. The envelope's `reporting.status_file`.
+- `--event-log <abs path>` — REQUIRED whenever `--mission-terminal-status` is passed. The envelope's `reporting.event_log`.
+- `--handoff-out <abs path>` — destination for the synthesis-body handoff copy. Pass the envelope's `reporting.handoff_file` to keep the orchestrator's handoff in its canonical location, or any other path to override. Optional; if omitted the handoff copy step is skipped.
 - `--proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` — what the orchestrator should mark the backing task as after reading the handoff. Optional.
 - `--next-action <text>` — free-form one-line recommendation the orchestrator can show the user. Optional.
-- `--handoff-out <abs path>` — override the envelope's `reporting.handoff_file` destination. Optional. Defaults to the envelope-declared path.
+- `--task-id <id>`, `--mission-repo <name>` — optional pass-throughs into status.json.
 
-When an envelope is active AND `--mission-terminal-status` is passed, the writer:
+When `--mission-terminal-status` is passed (with the required mission flags), the writer:
 
 1. Writes the synthesis markdown to `.claude/artifacts/crew/runs/<timestamp>-final-synthesis-...md` (unchanged).
-2. Writes `reporting.status_file` with `status` = the terminal value, `proposed_task_status` = the passed value (or null), `phase` = `--phase` if passed else `implementation`, `summary` = `--summary`, `next_action` = `--next-action`, and `artifacts.handoff` = the handoff path.
-3. Appends one JSON line to `reporting.event_log` with `event` = the terminal status value (`done|partial|abandoned|needs_user|blocked`) and the same phase + summary.
-4. Copies the synthesis markdown body to the envelope's `reporting.handoff_file` (or `--handoff-out` if passed). The runs/ artifact is preserved — this is a copy, not a move. The handoff file is the canonical human-readable artifact the orchestrator reads.
+2. Writes `--status-file` with `status` = the terminal value, `proposed_task_status` = the passed value (or null), `phase` = `--phase` if passed else `implementation`, `summary` = `--summary`, `next_action` = `--next-action`, and `artifacts.handoff` = the handoff path (or null).
+3. Appends one JSON line to `--event-log` with `event` = the terminal status value (`done|partial|abandoned|needs_user|blocked`) and the same phase + summary.
+4. If `--handoff-out` is passed, copies the synthesis markdown body to that path. The runs/ artifact is preserved — this is a copy, not a move. Pass the envelope's `reporting.handoff_file` to land it where the orchestrator expects.
 
 When to pick each terminal value:
 
@@ -117,7 +118,7 @@ When to pick each terminal value:
 
 Error cases:
 
-- `--mission-terminal-status` passed but no `current-mission.json` → clear error. Run `record-mission` first, or drop the flag.
+- `--mission-terminal-status` passed without `--mission-id` / `--status-file` / `--event-log` → clear error naming the missing flag and the envelope field that supplies it.
 - Invalid `--mission-terminal-status` or `--proposed-task-status` enum value → CLI refuses and lists valid choices.
 - `--mission-terminal-status` omitted with an envelope active → synthesis md is still written; status/event/handoff are skipped. This is the correct behavior for a mid-run synthesis draft.
 

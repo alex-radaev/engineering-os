@@ -12,10 +12,9 @@ You are the lead for this run.
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
-1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase research --summary "<goal>"`.
-    Skip both calls when no envelope is present.
+1a. If the envelope is present, capture `mission_id`, `reporting.status_file`, `reporting.event_log`, and `reporting.handoff_file` from the parsed envelope. Pass them explicitly on every mission writer call below — there is no pointer-file fallback (see `workflow.md § Mission Reporting`). Then fire the start event:
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event started --phase research --summary "<goal>"`.
+    Skip when no envelope is present.
 2. Read custom lead guidance in this order, if present:
    - `~/.claude/crew/lead.md`
    - `.claude/crew/lead.md`
@@ -48,13 +47,13 @@ Workflow:
 20. When a specialist emits `helpers_done` in a progress update or completion, tear down the named helpers. Additionally, run a roster check every 3 specialist events or at major milestones (investigation complete, fix complete, review complete); shut down any helper with no recent cross-messages and no requester using it.
 21. When a helper or teammate returns meaningful evidence or ownership changes, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event progress --phase <research|implementation> --summary "<what changed>"` before/after the transition.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event progress --phase <research|implementation> --summary "<what changed>"` before/after the transition.
 22. When review materially validates the bug fix, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase review --summary "<verdict>"` after the review verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase review --summary "<verdict>"` after the review verdict lands.
 23. When validator evidence materially validates the fix, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase validation --summary "<verdict>"` after the validation verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase validation --summary "<verdict>"` after the validation verdict lands.
 24. Before final synthesis, confirm all helpers spawned during this run have been torn down. If any remain, tear them down now or surface a manual cleanup note to the user.
 25. End with:
    - likely root cause
@@ -65,5 +64,5 @@ Workflow:
    - exact local repro and verification steps if the bug can be exercised locally
 26. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<repro step,verification step>" --external-deltas "<off-repo changes required, or 'none'>"`
-   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"` and `--phase <research|implementation|review|validation>` (defaults to `implementation`). The CLI writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in one call. See `crew/workflow.md` § Terminal Synthesis.
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --mission-id <envelope.mission_id> --status-file <envelope.reporting.status_file> --event-log <envelope.reporting.event_log> --handoff-out <envelope.reporting.handoff_file> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"` and `--phase <research|implementation|review|validation>` (defaults to `implementation`). The CLI writes mission status, appends a terminal event, and copies the synthesis to the passed handoff path in one call. See `crew/workflow.md` § Terminal Synthesis.
    - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.

@@ -12,10 +12,9 @@ You are the lead for this run.
 Workflow:
 
 1. If the prompt begins with `ORCHESTRATOR_MISSION`, parse it per `workflow.md § Mission Envelope` before restating goal/scope. Record `mission_id` and reporting paths in the run brief.
-1a. If the envelope is present, call the mission writers (see `workflow.md § Mission Reporting`):
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" record-mission --repo "$PWD" --prompt-file <path-to-envelope-dump>` (or `--envelope-json`).
-    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <id> --event started --phase implementation --summary "<goal>"`.
-    Skip both calls when no envelope is present.
+1a. If the envelope is present, capture `mission_id`, `reporting.status_file`, `reporting.event_log`, and `reporting.handoff_file` from the parsed envelope. Pass them explicitly on every mission writer call below — there is no pointer-file fallback (see `workflow.md § Mission Reporting`). Then fire the start event:
+    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event started --phase implementation --summary "<goal>"`.
+    Skip when no envelope is present.
 2. Read custom lead guidance in this order, if present:
    - `~/.claude/crew/lead.md`
    - `.claude/crew/lead.md`
@@ -49,13 +48,13 @@ Workflow:
 21. When a specialist emits `helpers_done` in a progress update or completion, tear down the named helpers. Additionally, run a roster check every 3 specialist events or at major milestones (design complete, implementation complete, review complete); shut down any helper with no recent cross-messages and no requester using it.
 22. When a helper or teammate hands work back, write a handoff artifact if the run is substantial:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-handoff --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event progress --phase implementation --summary "<what changed>"` before/after the transition.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event progress --phase implementation --summary "<what changed>"` before/after the transition.
 23. When a reviewer materially validates the work, write a review artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-review-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase review --summary "<verdict>"` after the review verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase review --summary "<verdict>"` after the review verdict lands.
 24. When a validator materially validates the behavior, write a validation artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-validation-result --repo "$PWD" --title "<short title>" ...`
-   - If an envelope is active, fire `append-mission-event --event gate --phase validation --summary "<verdict>"` after the validation verdict lands.
+   - If an envelope is active, fire `append-mission-event --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event gate --phase validation --summary "<verdict>"` after the validation verdict lands.
 24a. After review passes, check `.claude/crew/deployer.md` for `dev.stable: true`. If present AND all build-feature gates are green (review approved or approved_with_notes, unit + local-run validation passed, no open `help_request`), continue into the ship-dev flow in this same session — do not return to the user at review boundary. Run `/crew:ship dev` conceptually: deployer triggers the dev pipeline per the config's allow-list, validator runs the change-specific integration-validation script authored by the builder for this ticket (path taken from the builder's completion handoff, not from the deployer config). Evidence is persisted. If the builder's handoff names no validation script and the change is service-shaped, halt — that is a missing deliverable per `~/.claude/crew/validation-principles.md`, not an optional skip. If `dev.stable` is absent or false, stop at review and recommend `/crew:ship dev` as the next step. If any gate fails during the auto-continue path, halt and surface the failure — stable means "default forward on green", not "skip gates".
 25. Before final synthesis, confirm all helpers spawned during this run have been torn down. If any remain, tear them down now or surface a manual cleanup note to the user.
 26. End with a clear synthesis for the user:
@@ -68,6 +67,6 @@ Workflow:
    - exact local run and test instructions if the result is runnable
 27. For substantial work, write a final synthesis artifact:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-final-synthesis --repo "$PWD" --title "<short title>" --summary "<summary>" --run-steps "<step one,step two>" --external-deltas "<off-repo changes required, or 'none'>"`
-   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"`. The CLI then writes mission status, appends a terminal event, and copies the synthesis to `reporting.handoff_file` in a single call. See `crew/workflow.md` § Terminal Synthesis.
+   - When an envelope is active, also pass `--mission-terminal-status <done|partial|needs_user|blocked|abandoned> --mission-id <envelope.mission_id> --status-file <envelope.reporting.status_file> --event-log <envelope.reporting.event_log> --handoff-out <envelope.reporting.handoff_file> --proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` and optionally `--next-action "<text>"`. The CLI then writes mission status, appends a terminal event, and copies the synthesis to the passed handoff path in a single call. See `crew/workflow.md` § Terminal Synthesis.
    - Vanilla runs (no envelope) skip the mission flags — behavior is unchanged.
    - The CLI rejects missing `--external-deltas`. Enumerate sibling-config changes the PR depends on (env var renames in deploy manifests, terraform/helm updates, sibling-repo PRs, feature flags, DB migrations, IAM). Pass `--external-deltas none` explicitly if there are none. A silent default is how renamed env vars silently fall back to old defaults in prod.
