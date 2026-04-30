@@ -15,8 +15,12 @@
 #   - Code changes  = files outside .claude/ either uncommitted OR present in
 #                     `git diff <base>...HEAD` (base = main or master)
 #   - Fresh review  = newest file mtime in .claude/artifacts/crew/reviews/ is
-#                     ≥ newest code-change timestamp (newest commit time on
-#                     branch, or newest mtime of uncommitted code files)
+#                     ≥ newest mtime of any code file (committed or uncommitted)
+#                     differing from the base branch.
+#                     We deliberately do NOT use commit timestamps: a `git
+#                     commit` of an already-reviewed working tree must not
+#                     re-trigger the gate. Only actual file content changes
+#                     (which update file mtime) count as "new code".
 
 set -u
 
@@ -52,16 +56,11 @@ mtime_of() {
 
 newest_code_ts=0
 
-# Newest commit on branch (since base) touching non-.claude files.
-last_commit_ts="$(git log -1 --format=%ct "$base"..HEAD -- . ':(exclude).claude' ':(exclude).claude/**' 2>/dev/null || true)"
-if [ -n "$last_commit_ts" ]; then
-  if [ "$last_commit_ts" -gt "$newest_code_ts" ] 2>/dev/null; then
-    newest_code_ts="$last_commit_ts"
-  fi
-fi
-
-# Newest uncommitted code-file mtime.
-if [ -n "$uncommitted" ]; then
+# Newest mtime across both committed and uncommitted code files. We use file
+# mtime — not commit timestamp — so that committing an already-reviewed working
+# tree does not bump the "newest code" signal past the review artifact.
+all_code_files="$(printf '%s\n%s\n' "$committed" "$uncommitted" | grep -v '^$' | sort -u || true)"
+if [ -n "$all_code_files" ]; then
   while IFS= read -r f; do
     [ -z "$f" ] && continue
     [ -f "$f" ] || continue
@@ -70,7 +69,7 @@ if [ -n "$uncommitted" ]; then
       newest_code_ts="$ts"
     fi
   done <<EOF
-$uncommitted
+$all_code_files
 EOF
 fi
 
