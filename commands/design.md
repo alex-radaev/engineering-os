@@ -48,6 +48,9 @@ Workflow:
 
 When the design is agreed, persist it:
 
+Note: `/crew:design` terminates via `write-mission-status --phase design` (not `write-final-synthesis`), so the rule #9 review-gate enforcement at synthesis does not apply to a pure design run. If a design run is later promoted into implementation through `/crew:build-feature` or `/crew:fix`, the gate applies there.
+
+
 0. If an envelope is active, before writing the final design artifacts:
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" write-mission-status --repo "$PWD" --mission-id <envelope.mission_id> --status-file <envelope.reporting.status_file> --status <done|partial|needs_user|abandoned> --phase design --summary "<synthesis summary>" --proposed-task-status <task-status> [--next-action <text>] [--artifact-handoff <path>]`
    - `node "${CLAUDE_PLUGIN_ROOT}/scripts/crew.mjs" append-mission-event --repo "$PWD" --mission-id <envelope.mission_id> --event-log <envelope.reporting.event_log> --event <done|partial|abandoned> --phase design --summary "<synthesis summary>"`.
