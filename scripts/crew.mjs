@@ -84,7 +84,8 @@ function parseArgs(argv) {
     artifactValidation: null,
     artifactPr: null,
     missionTerminalStatus: null,
-    handoffOut: null
+    handoffOut: null,
+    noCodeChanges: false
   };
   const positionals = [];
 
@@ -417,6 +418,10 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (value === "--no-code-changes") {
+      flags.noCodeChanges = true;
+      continue;
+    }
     if (value.startsWith("--")) {
       throw new Error(`Unknown argument: ${value}`);
     }
@@ -453,7 +458,7 @@ function usage(target = null) {
     "write-review-result": "  node scripts/crew.mjs write-review-result --repo <path> --title <text> --decision <decision> --evidence <a,b> [--reviewer <role>] [--verdict <decision>] [--test-summary <text>] [--force]",
     "write-validation-result": "  node scripts/crew.mjs write-validation-result --repo <path> --title <text> [--validator <role>] [--environment <env>] [--scenario <text>] [--decision <passed|failed|blocked>] [--executed-evidence <a,b>] [--inferred-confidence <text>]",
     "write-deployment-result": "  node scripts/crew.mjs write-deployment-result --repo <path> --title <text> [--deployer <role>] [--environment <env>] [--target <revision>] [--outcome <deployed|verified|blocked|rolled_back>]",
-    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>] [--mission-terminal-status done|partial|needs_user|blocked|abandoned --mission-id <id> --status-file <abs path> --event-log <abs path>] [--proposed-task-status candidate|ready|active|blocked|needs_review|done|parked|cancelled] [--next-action <text>] [--handoff-out <abs path>] [--task-id <id>] [--mission-repo <name>] [--phase <p>]",
+    "write-final-synthesis": "  node scripts/crew.mjs write-final-synthesis --repo <path> --title <text> --external-deltas <text> [--summary <text>] [--files <a,b>] [--run-steps <a,b>] [--mission-terminal-status done|partial|needs_user|blocked|abandoned --mission-id <id> --status-file <abs path> --event-log <abs path>] [--proposed-task-status candidate|ready|active|blocked|needs_review|done|parked|cancelled] [--next-action <text>] [--handoff-out <abs path>] [--task-id <id>] [--mission-repo <name>] [--phase <p>] [--no-code-changes]",
     "record-mission": "  node scripts/crew.mjs record-mission --repo <path> (--envelope-json <json> | --prompt-file <path> | --prompt <text>)  [DEPRECATED: no longer writes a pointer file; prints inferred reporting paths to stdout. Pass them explicitly to mission writers.]",
     "write-mission-status": "  node scripts/crew.mjs write-mission-status --repo <path> --mission-id <id> --status-file <abs path> --status <s> --summary <text> [--phase <p>] [--proposed-task-status <s>] [--needs-user true|false] [--user-decision-needed <text>] [--next-action <text>] [--task-id <id>] [--mission-repo <name>] [--artifact-handoff <path>] [--artifact-review <path>] [--artifact-validation <path>] [--artifact-pr <url>] [--updated-at <iso>]",
     "append-mission-event": "  node scripts/crew.mjs append-mission-event --repo <path> --mission-id <id> --event-log <abs path> --event <kind> --summary <text> [--phase <p>]"
@@ -645,7 +650,8 @@ async function main() {
       statusFile: flags.statusFile,
       eventLog: flags.eventLog,
       taskId: flags.taskId,
-      repo: flags.missionRepo
+      repo: flags.missionRepo,
+      noCodeChanges: flags.noCodeChanges
     });
   } else if (command === "record-mission") {
     let envelope = null;
