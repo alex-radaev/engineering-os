@@ -61,12 +61,13 @@
         ]
       }
     ],
-    "Stop": [
+    "PostToolUse": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/check_reviewer_gate.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/check_synthesis_review.sh"
           }
         ]
       }
