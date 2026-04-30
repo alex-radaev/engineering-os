@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-# Stop hook: enforces Crew constitution rule #9 (coder ≠ reviewer).
+# Stop hook: nudges toward Crew constitution rule #9 (coder ≠ reviewer).
 #
-# Fires on Stop. If the current repo has Crew artifacts and the branch has
-# uncommitted or unmerged code changes outside .claude/ that aren't covered
-# by a fresh review artifact, blocks the stop with a reminder to spawn a
-# reviewer subagent before declaring done.
+# Philosophy: this is a nudge, not a punishment. When a session ends with
+# unreviewed code changes, we surface a one-time reminder so the lead notices
+# and (in our experience) chooses to spawn a reviewer — that's enough. We
+# deliberately do NOT exit 2 (which Claude Code's Stop-hook contract treats as
+# "block this stop and re-prompt the model with stderr as a user message"),
+# because a hard block burns tokens in a loop on every text-only turn while a
+# reviewer subagent is still running, and turns review into a chore the lead
+# resents rather than an action they want to take. Visibility > coercion.
 #
 # Exits:
-#   0 — pass (no Crew context, no code changes, or review artifact is fresh)
-#   2 — block (stderr is fed back to the model as feedback)
+#   0 — always. Prints the reminder to stderr when a review is missing; stays
+#       silent otherwise. The user and the model both see the message; neither
+#       is forced into another turn by it.
 #
 # Detection rules:
 #   - Crew context  = .claude/artifacts/crew/ exists in the repo
@@ -93,26 +98,23 @@ if [ "$newest_review_ts" -ge "$newest_code_ts" ] 2>/dev/null; then
   exit 0
 fi
 
-# Block.
+# Emit reminder (non-blocking).
 total=0
 [ -n "$committed" ] && total=$(( total + $(printf '%s\n' "$committed" | wc -l | tr -d ' ') ))
 [ -n "$uncommitted" ] && total=$(( total + $(printf '%s\n' "$uncommitted" | wc -l | tr -d ' ') ))
 sample="$(printf '%s\n%s\n' "$committed" "$uncommitted" | grep -v '^$' | head -3 | tr '\n' ' ')"
 
 cat >&2 <<EOF
-[crew] BLOCK — coder ≠ reviewer (constitution rule #9)
+[crew] reminder — coder ≠ reviewer (constitution rule #9)
 
 Branch '$current' has $total changed code file(s) outside .claude/ since '$base':
   $sample
 
 No review artifact in .claude/artifacts/crew/reviews/ is newer than the most
-recent code change. Spawn a 'crew:reviewer' subagent to review the diff and
-write its verdict before stopping. Single-session is a scope call, not a
-license to skip the review gate — auto mode and small bounded fixes both
-qualify.
+recent code change. Consider spawning a 'crew:reviewer' subagent before
+shipping — auto mode and small bounded fixes qualify too.
 
-If review is genuinely not needed (e.g. doc-only fix that landed under a
-non-.claude path by accident, or you intend to ship without review), say so
-explicitly and re-stop.
+This is a nudge, not a block. Continue if the review is genuinely not needed
+(e.g. doc-only fix), or run the reviewer and re-check.
 EOF
-exit 2
+exit 0
