@@ -68,7 +68,15 @@ function parseEventLines(raw) {
 // the event log lacks a `gate phase:review` event newer than the most recent
 // implementation event. Bypasses for terminal statuses where the lead is not
 // asserting completeness.
-export async function assertReviewGate({ eventLog, terminalStatus, deps = {} } = {}) {
+//
+// noCodeChanges: explicit opt-out for research-only missions (investigations,
+// audits, design docs that close without a diff). When true, the review-gate
+// check is skipped — but if the event log contains any `phase=implementation`
+// event, the call REJECTS with .code = "NO_CODE_CHANGES_BUT_IMPL_EVENT" to
+// catch the misuse pattern of a lead who wrote code and tried to opt out.
+// Bypass terminal statuses (abandoned, needs_user, blocked) take precedence
+// over noCodeChanges and ignore the flag.
+export async function assertReviewGate({ eventLog, terminalStatus, noCodeChanges = false, deps = {} } = {}) {
   if (REVIEW_GATE_BYPASS_TERMINAL_STATUSES.has(terminalStatus)) {
     return;
   }
@@ -89,11 +97,27 @@ export async function assertReviewGate({ eventLog, terminalStatus, deps = {} } =
     }
   }
 
+  if (noCodeChanges) {
+    if (lastImpl) {
+      const err = new Error(
+        `crew: --no-code-changes set but ${eventLog} contains a phase=implementation event ` +
+          `at ${lastImpl.ts}. Either drop --no-code-changes and run a reviewer subagent, ` +
+          "or close the mission as abandoned/needs_user/blocked."
+      );
+      err.exitCode = 2;
+      err.code = "NO_CODE_CHANGES_BUT_IMPL_EVENT";
+      throw err;
+    }
+    return;
+  }
+
   const violated = !lastReview || (lastImpl && lastImpl.ts > lastReview.ts);
   if (violated) {
     const err = new Error(
       `crew: rule #9 violated — no review gate event in ${eventLog} since last implementation event. ` +
-        "Spawn a reviewer subagent (see /crew:<cmd> step 23) and re-run."
+        "Spawn a reviewer subagent (see /crew:<cmd> step 23) and re-run. " +
+        "If this mission produced no code changes (research, audit, design doc), " +
+        "re-run with --no-code-changes."
     );
     err.exitCode = 2;
     err.code = "RULE_9_VIOLATION";
@@ -442,7 +466,8 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
     missionId,
     taskId,
     repo: missionRepo,
-    phase: phaseOpt
+    phase: phaseOpt,
+    noCodeChanges
   } = missionOpts;
   const hasTerminal = terminalStatus != null && terminalStatus !== "";
 
@@ -483,6 +508,7 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
   await assertReviewGate({
     eventLog,
     terminalStatus,
+    noCodeChanges: noCodeChanges === true,
     deps: missionOpts.gateDeps || {}
   });
 

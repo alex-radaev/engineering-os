@@ -100,6 +100,7 @@ Flags added to `write-final-synthesis`:
 - `--proposed-task-status <candidate|ready|active|blocked|needs_review|done|parked|cancelled>` — what the orchestrator should mark the backing task as after reading the handoff. Optional.
 - `--next-action <text>` — free-form one-line recommendation the orchestrator can show the user. Optional.
 - `--task-id <id>`, `--mission-repo <name>` — optional pass-throughs into status.json.
+- `--no-code-changes` — opt-out for research-only missions (investigations, audits, design docs that close without a diff). Skips the rule #9 review-gate check for `done` / `partial`. **Safety:** if the event log contains any `phase=implementation` event, the CLI rejects the call (`exitCode=2`, `code=NO_CODE_CHANGES_BUT_IMPL_EVENT`) — once you've coded, you can't opt out. Bypass terminal statuses (`abandoned`, `needs_user`, `blocked`) take precedence and ignore the flag. This flag is for honest research missions; it is **not** an escape hatch for missions that touched code and skipped review.
 
 When `--mission-terminal-status` is passed (with the required mission flags), the writer:
 
@@ -121,6 +122,7 @@ Error cases:
 - `--mission-terminal-status` passed without `--mission-id` / `--status-file` / `--event-log` → clear error naming the missing flag and the envelope field that supplies it.
 - Invalid `--mission-terminal-status` or `--proposed-task-status` enum value → CLI refuses and lists valid choices.
 - `--mission-terminal-status` omitted with an envelope active → synthesis md is still written; status/event/handoff are skipped. This is the correct behavior for a mid-run synthesis draft.
+- `--no-code-changes` passed but the event log contains a `phase=implementation` event → CLI rejects with `code=NO_CODE_CHANGES_BUT_IMPL_EVENT`. Either drop the flag and run a reviewer, or close the mission as `abandoned` / `needs_user` / `blocked`.
 
 Vanilla (no-envelope) runs call `write-final-synthesis` without the mission flags and see zero behavioral change from before this wiring.
 
