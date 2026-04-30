@@ -29,6 +29,78 @@ const PROPOSED_TASK_STATUS_VALUES = new Set([
 export const MISSION_TERMINAL_STATUS_VALUES = TERMINAL_STATUS_VALUES;
 export const MISSION_PROPOSED_TASK_STATUS_VALUES = PROPOSED_TASK_STATUS_VALUES;
 
+// Terminal statuses that signal the lead is NOT claiming the work is shippable.
+// These bypass the rule #9 review gate because no separate reviewer is implied.
+export const REVIEW_GATE_BYPASS_TERMINAL_STATUSES = new Set([
+  "abandoned",
+  "needs_user",
+  "blocked"
+]);
+
+async function defaultReadEventLog(eventLogPath) {
+  try {
+    return await fs.readFile(eventLogPath, "utf8");
+  } catch (err) {
+    if (err && err.code === "ENOENT") {
+      return "";
+    }
+    throw err;
+  }
+}
+
+function parseEventLines(raw) {
+  if (!raw) return [];
+  const out = [];
+  for (const line of raw.split("\n")) {
+    if (!line) continue;
+    try {
+      out.push(JSON.parse(line));
+    } catch {
+      // Skip malformed lines; the gate must not fail open on garbage.
+    }
+  }
+  return out;
+}
+
+// assertReviewGate enforces Crew constitution rule #9 ("the coder is not the
+// reviewer") at the synthesis boundary. Throws an Error with .exitCode = 2 and
+// .code = "RULE_9_VIOLATION" when terminalStatus claims the work is good but
+// the event log lacks a `gate phase:review` event newer than the most recent
+// implementation event. Bypasses for terminal statuses where the lead is not
+// asserting completeness.
+export async function assertReviewGate({ eventLog, terminalStatus, deps = {} } = {}) {
+  if (REVIEW_GATE_BYPASS_TERMINAL_STATUSES.has(terminalStatus)) {
+    return;
+  }
+  const read = deps.readEventLog || defaultReadEventLog;
+  const raw = await read(eventLog);
+  const events = parseEventLines(raw);
+
+  let lastReview = null;
+  let lastImpl = null;
+  for (const e of events) {
+    if (!e || typeof e !== "object") continue;
+    const ts = typeof e.ts === "string" ? e.ts : "";
+    if (e.event === "gate" && e.phase === "review") {
+      if (!lastReview || ts > lastReview.ts) lastReview = { ...e, ts };
+    }
+    if (e.phase === "implementation") {
+      if (!lastImpl || ts > lastImpl.ts) lastImpl = { ...e, ts };
+    }
+  }
+
+  const violated = !lastReview || (lastImpl && lastImpl.ts > lastReview.ts);
+  if (violated) {
+    const err = new Error(
+      `crew: rule #9 violated — no review gate event in ${eventLog} since last implementation event. ` +
+        "Spawn a reviewer subagent (see /crew:<cmd> step 23) and re-run."
+    );
+    err.exitCode = 2;
+    err.code = "RULE_9_VIOLATION";
+    throw err;
+  }
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -407,6 +479,12 @@ export async function writeFinalSynthesisWithMission(repoPath, fields = {}, miss
         "Pass the envelope's reporting.event_log explicitly."
     );
   }
+
+  await assertReviewGate({
+    eventLog,
+    terminalStatus,
+    deps: missionOpts.gateDeps || {}
+  });
 
   const handoffFilePath = handoffOut || null;
   const phase = phaseOpt || "implementation";

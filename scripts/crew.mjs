@@ -731,5 +731,5 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message);
-  process.exitCode = 1;
+  process.exitCode = (error && typeof error.exitCode === "number") ? error.exitCode : 1;
 });

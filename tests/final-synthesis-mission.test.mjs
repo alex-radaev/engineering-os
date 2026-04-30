@@ -31,9 +31,27 @@ function missionPaths(repoPath, { missionId = "M-TEST-1", taskId = "T-TEST-1" } 
   };
 }
 
+async function appendReviewGateEvent({ missionId, eventLog }) {
+  await execFile("node", [
+    cliPath,
+    "append-mission-event",
+    "--mission-id",
+    missionId,
+    "--event-log",
+    eventLog,
+    "--event",
+    "gate",
+    "--phase",
+    "review",
+    "--summary",
+    "approved (test fixture)"
+  ]);
+}
+
 test("write-final-synthesis with explicit mission flags writes status, event, handoff copy", async () => {
   const repoPath = await initRepo("crew-fs-mission-");
   const { statusFile, eventLog, handoffFile, missionId } = missionPaths(repoPath);
+  await appendReviewGateEvent({ missionId, eventLog });
 
   const { stdout } = await execFile("node", [
     cliPath,
@@ -253,6 +271,7 @@ test("write-final-synthesis with envelope-style flags but no terminal-status is 
 test("write-final-synthesis without --handoff-out skips the handoff copy", async () => {
   const repoPath = await initRepo("crew-fs-no-handoff-");
   const { statusFile, eventLog, handoffFile, missionId } = missionPaths(repoPath);
+  await appendReviewGateEvent({ missionId, eventLog });
 
   const { stdout } = await execFile("node", [
     cliPath,
