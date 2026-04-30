@@ -11,9 +11,11 @@
 # resents rather than an action they want to take. Visibility > coercion.
 #
 # Exits:
-#   0 — always. Prints the reminder to stderr when a review is missing; stays
-#       silent otherwise. The user and the model both see the message; neither
-#       is forced into another turn by it.
+#   0 — always. Prints the reminder to stderr at most once per substantive
+#       code change (deduped via .claude/state/crew/last-reviewer-nudge);
+#       stays silent on every Stop after that until the lead either edits more
+#       code or lands a review. Goal: see the nudge when it's actionable, not
+#       on every turn.
 #
 # Detection rules:
 #   - Crew context  = .claude/artifacts/crew/ exists in the repo
@@ -98,7 +100,20 @@ if [ "$newest_review_ts" -ge "$newest_code_ts" ] 2>/dev/null; then
   exit 0
 fi
 
-# Emit reminder (non-blocking).
+# Dedupe: only nudge once per advance in newest_code_ts. The lead has already
+# seen this exact reminder for this exact code state; repeating it on every
+# subsequent Stop turns the nudge into noise.
+nudge_marker=".claude/state/crew/last-reviewer-nudge"
+if [ -f "$nudge_marker" ]; then
+  last_nudge_ts="$(cat "$nudge_marker" 2>/dev/null || echo 0)"
+  if [ "$last_nudge_ts" = "$newest_code_ts" ] 2>/dev/null; then
+    exit 0
+  fi
+fi
+mkdir -p "$(dirname "$nudge_marker")" 2>/dev/null
+printf '%s\n' "$newest_code_ts" > "$nudge_marker" 2>/dev/null || true
+
+# Emit reminder (non-blocking, deduped per code change).
 total=0
 [ -n "$committed" ] && total=$(( total + $(printf '%s\n' "$committed" | wc -l | tr -d ' ') ))
 [ -n "$uncommitted" ] && total=$(( total + $(printf '%s\n' "$uncommitted" | wc -l | tr -d ' ') ))
