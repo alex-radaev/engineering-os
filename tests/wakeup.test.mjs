@@ -103,3 +103,59 @@ test("buildWakeUpBrief gracefully skips when ~/.claude/crew is absent", async ()
   assert.equal(brief.templateSync.refreshed, false);
   assert.equal(brief.templateSync.skipped, "first_run");
 });
+
+test("buildWakeUpBrief returns null lessons fields when no lessons file exists", async () => {
+  const repoPath = await setupRepo("crew-wakeup-nolesson-");
+  const homePath = await makeTempDir("crew-wakeup-home-nolesson-");
+  await installUserAssets({ homePath });
+
+  const brief = await buildWakeUpBrief(repoPath, { homePath });
+  assert.equal(brief.lessons, null);
+  assert.equal(brief.lessonsArchive, null);
+  assert.deepEqual(brief.staleLessons, []);
+});
+
+test("buildWakeUpBrief surfaces lessons content + archive + stale entries", async () => {
+  const repoPath = await setupRepo("crew-wakeup-lessons-");
+  const homePath = await makeTempDir("crew-wakeup-home-lessons-");
+  await installUserAssets({ homePath });
+
+  const lessonsDir = path.join(repoPath, ".claude", "artifacts", "crew");
+  await fs.mkdir(lessonsDir, { recursive: true });
+
+  // Today is dynamic; create one fresh entry and one entry from 100 days ago.
+  const now = new Date();
+  const stale = new Date(now.getTime() - 100 * 24 * 60 * 60 * 1000);
+  const fresh = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+  const isoDate = (d) => d.toISOString().slice(0, 10);
+
+  await fs.writeFile(
+    path.join(lessonsDir, "lessons.md"),
+    [
+      "# Repo Lessons",
+      "",
+      "## Fresh entry",
+      `last_verified: ${isoDate(fresh)}`,
+      "",
+      "Body",
+      "",
+      "## Stale entry",
+      `last_verified: ${isoDate(stale)}`,
+      "",
+      "Body"
+    ].join("\n")
+  );
+
+  await fs.writeFile(
+    path.join(lessonsDir, "lessons-archive.md"),
+    ["## Old A", "demoted: 2026-03-10", "", "Body"].join("\n")
+  );
+
+  const brief = await buildWakeUpBrief(repoPath, { homePath });
+  assert.ok(brief.lessons, "lessons should be present");
+  assert.match(brief.lessons.content, /Fresh entry/);
+  assert.equal(brief.lessonsArchive.entries, 1);
+  assert.equal(brief.lessonsArchive.lastDemoted, "2026-03-10");
+  assert.ok(brief.staleLessons.length >= 1);
+  assert.ok(brief.staleLessons.some((entry) => entry.title === "Stale entry"));
+});

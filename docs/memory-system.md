@@ -53,6 +53,16 @@ Loaded memory must stay small.
 
 That is the whole rule.
 
+## V1 Synthesis Tier — Repo Lessons
+
+A small synthesis layer sits between per-event artifacts (granular, evidence-grained) and short-lived run state. It lives in `.claude/artifacts/crew/lessons.md` (with `lessons-archive.md` for demoted entries), capped at ~200 lines / 25KB, agent-curated by the lead.
+
+The lessons file accumulates durable insights about a repo's arc — walked-back approaches, ongoing initiatives, repo-specific pitfalls — and is auto-loaded into the wake-up brief. Demoted lessons stay searchable in the archive; stale lessons (>30 days since `last_verified:`) surface as candidates for refresh or demotion.
+
+This delivers Steps 2–3 of the practical roadmap below: easier-to-summarize artifacts and better retrieval over recent and related signal, without yet adding embeddings, reinforcement, or decay. Two plugin hooks (synthesis-completion + long-run probe) provide active nudges so the lead notices lesson-worthy moments mid-session, not just at wake-up.
+
+Curation rules live in `~/.claude/crew/workflow.md § Lessons Curation`.
+
 ## Hot, Warm, Cold
 
 Even in v1, it helps to think in three layers.

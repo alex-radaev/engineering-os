@@ -6,6 +6,7 @@ import { listClaims } from "./claims.mjs";
 import { collectGitSignal } from "./git-signal.mjs";
 import { collectGithubSignal } from "./github-signal.mjs";
 import { syncUserTemplates } from "./installer.mjs";
+import { buildLessonsBrief } from "./lessons.mjs";
 
 const RUNS_DIR = [".claude", "artifacts", "crew", "runs"];
 const HANDOFFS_DIR = [".claude", "artifacts", "crew", "handoffs"];
@@ -229,13 +230,14 @@ export async function buildWakeUpBrief(repoPath, options = {}) {
     latestArtifactByPrefix(repoPath, DEPLOYMENTS_DIR, "deployment-result")
   ]);
 
-  const [recentEventsRaw, recentClaimHistory, archiveCounts, git, templateSync] =
+  const [recentEventsRaw, recentClaimHistory, archiveCounts, git, templateSync, lessonsBrief] =
     await Promise.all([
       readRecentJsonl(path.join(repoPath, ...EVENTS_PATH), RECENT_EVENTS_LIMIT),
       readRecentJsonl(path.join(repoPath, ...HISTORY_PATH), RECENT_HISTORY_LIMIT),
       countArchive(repoPath),
       collectGitSignal(repoPath),
-      runTemplateSync({ homePath: options.homePath })
+      runTemplateSync({ homePath: options.homePath }),
+      buildLessonsBrief(repoPath)
     ]);
 
   const github = await collectGithubSignal(repoPath, { branch: git?.branch });
@@ -289,6 +291,9 @@ export async function buildWakeUpBrief(repoPath, options = {}) {
     github,
     memory,
     templateSync,
+    lessons: lessonsBrief.lessons,
+    lessonsArchive: lessonsBrief.lessonsArchive,
+    staleLessons: lessonsBrief.staleLessons,
     summary: {
       memoryPolicy: memory.policy,
       activeClaims: claims.length,

@@ -56,13 +56,25 @@ Examples:
 - handoffs
 - review results
 - final synthesis
+- repo lessons (per-repo synthesis tier — see below)
 
 Suggested locations:
 
 - `.claude/artifacts/crew/runs/`
 - `.claude/artifacts/crew/handoffs/`
 - `.claude/artifacts/crew/reviews/`
+- `.claude/artifacts/crew/lessons.md` and `lessons-archive.md`
 - `.claude/state/crew/`
+
+#### Repo Lessons (Synthesis Tier)
+
+`.claude/artifacts/crew/lessons.md` sits between per-event artifacts and the user-level auto-memory layer. It is a single bounded markdown file (capped at ~200 lines / 25KB) that the lead curates across sessions: durable lessons specific to this repo's arc — what was tried and walked back, what to avoid, what's mid-flight. Demoted entries land in `lessons-archive.md`, searchable by `grep`. The wake-up brief auto-loads `lessons.md` and surfaces archive summary + stale-entry candidates so the lead opens every run already oriented.
+
+This is explicit memory: file-backed, inspectable, agent-curated but human-readable. Curation discipline lives in `~/.claude/crew/workflow.md § Lessons Curation`.
+
+#### Auto-Memory (Cross-Repo User Signal)
+
+The lead also has Claude Code auto-memory at `~/.claude/projects/<encoded-project-path>/memory/`. This is per-machine and per-user, persistent independent of Crew. It is bounded to **user-signal that applies across all repos** (preferences, feedback, working-style) — not project state. Per-repo lessons go in `lessons.md`; user-level signal goes in auto-memory. Read discipline lives in `~/.claude/crew/workflow.md § Lead Memory Discipline`.
 
 ### 3. Role Memory
 

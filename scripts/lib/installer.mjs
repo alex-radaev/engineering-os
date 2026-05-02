@@ -37,6 +37,8 @@ const GITIGNORE_BLOCK = [
   "# crew:start",
   ".claude/logs/",
   ".claude/artifacts/crew/",
+  ".claude/artifacts/crew/lessons.md",
+  ".claude/artifacts/crew/lessons-archive.md",
   ".claude/state/crew/claims.json",
   ".claude/state/crew/*.jsonl",
   ".claude/settings.local.json",

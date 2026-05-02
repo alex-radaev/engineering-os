@@ -213,3 +213,57 @@ At end of run, confirm no active helpers remain before final synthesis (see Help
 ## Runnable Deliverables
 
 - If the result is runnable or directly testable, the final synthesis must include exact local run and test steps.
+
+## Lead Memory Discipline
+
+The lead runs as the main Claude Code thread, which has Claude Code auto-memory at `~/.claude/projects/<encoded-project-path>/memory/`. Auto-memory persists across sessions on this machine and is independent of Crew. It is one of three memory tiers; per-repo synthesis lives in `.claude/artifacts/crew/lessons.md` and per-event evidence lives in `.claude/artifacts/crew/{runs,handoffs,reviews,...}/`.
+
+**In scope to write to auto-memory:**
+
+- user preferences and working-style signal
+- feedback the user has given on Crew runs (corrections AND validated calls)
+- durable cross-session signal about how this user wants Crew to operate
+
+**Out of scope:**
+
+- repo state — architecture, file paths, conventions, sprint specifics, ticket reasoning. These belong in `CLAUDE.md`, `lessons.md` (per-repo synthesis), or per-event artifacts.
+- anything specific to one repo. Per-repo memory belongs in `.claude/artifacts/crew/lessons.md`, not in auto-memory.
+
+**Read discipline:**
+
+- before acting on a recalled memory that names a specific file/function/flag, verify against current repo state. Auto-memory rots silently.
+- if a memory materially shapes a Crew decision in a run (mode, scope, gate skip), name it in the run brief or final synthesis. Memory-influenced calls should be inspectable.
+
+## Lessons Curation
+
+`.claude/artifacts/crew/lessons.md` is the per-repo synthesis tier. It accumulates durable lessons specific to this repo's arc — pitfalls, walked-back approaches, architectural intent, ongoing initiatives — so the lead can walk into the repo cold across sessions and not need to be re-briefed from scratch. The wake-up brief auto-loads its content.
+
+**Where lessons hide:**
+
+- end of substantive runs (synthesis time)
+- after a `help_request` resolves (the answer is often a durable lesson)
+- when the user gives explicit corrective feedback during a run
+- when a builder walks back a chosen approach mid-run
+- when a deploy or validation fails and is recovered
+
+When you pass one of these moments, take a beat:
+
+1. **"Useful for future me or the user?"** — if no, move on. Default is skip; most runs add nothing.
+2. **"If I add this, will I need to demote anything? What exactly?"** — if `lessons.md` is approaching ~200 lines / 25KB, name the specific entry to demote *before* writing the new one. Demote, do not truncate.
+
+**Format for a lesson:**
+
+```markdown
+## <one-line title>
+last_verified: YYYY-MM-DD
+
+<short body — what we learned, why, what it implies for future work>
+```
+
+**Demotion path:** move the named entry to `.claude/artifacts/crew/lessons-archive.md`, prepending a `demoted: YYYY-MM-DD` line above the body so context survives the demotion. The archive is searchable via `grep`; the wake-up brief surfaces a one-line summary (entry count + last demotion date).
+
+**Before writing a new lesson, grep `lessons-archive.md`** — past you may have already noted this insight with more context. The wake-up brief tells you whether the archive exists and roughly how full.
+
+**Freshness:** entries older than 30 days surface in the wake-up brief as `staleLessons` candidates. At wake-up, decide whether to refresh `last_verified:` (still true, just rechecked) or demote to archive.
+
+**Active nudges:** two plugin hooks fire automatically — one on `write-final-synthesis` (synthesis-time nudge) and one at session-end on long multi-specialist runs that haven't touched `lessons.md`. Both print to stderr. Read them, act if applicable, otherwise move on. Neither blocks the turn.
