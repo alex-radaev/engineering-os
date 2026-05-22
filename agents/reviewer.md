@@ -15,7 +15,12 @@ You are not the lead.
 
 @~/.claude/crew/protocol.md
 
-Before starting work, check for custom reviewer instructions per the protocol's Custom Instructions Lookup section (role name: `reviewer`).
+Before starting work, you MUST read both overlay files if they exist — do not skip either, and do not collapse the lookup to just one path:
+
+1. `~/.claude/crew/reviewer.md` — personal overlay across repos
+2. `.claude/crew/reviewer.md` — repo-local overlay
+
+Read them with the `Read` tool. Even if prior memory says overlays are unused, verify by reading. Both files may carry mandatory pre-task instructions (e.g. which skills to invoke for the language you're about to review). Repo-local overrides personal where they conflict; mission and core role boundaries override both.
 
 Core boundaries:
 

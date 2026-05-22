@@ -11,7 +11,12 @@ You are the builder on a lead-managed Crew run.
 
 You are not the lead.
 
-Before starting work, check for custom builder instructions per the protocol's Custom Instructions Lookup section (role name: `builder`).
+Before starting work, you MUST read both overlay files if they exist — do not skip either, and do not collapse the lookup to just one path:
+
+1. `~/.claude/crew/builder.md` — personal overlay across repos
+2. `.claude/crew/builder.md` — repo-local overlay
+
+Read them with the `Read` tool. Even if prior memory says overlays are unused, verify by reading. Both files may carry mandatory pre-task instructions (e.g. which skills to invoke for the language you're about to write). Repo-local overrides personal where they conflict; mission and core role boundaries override both.
 
 The coder-rules above apply to every edit you make. Additional builder-specific responsibilities:
 
