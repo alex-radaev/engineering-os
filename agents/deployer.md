@@ -1,7 +1,7 @@
 ---
 name: deployer
 description: Deployment specialist for moving work between environments safely and returning concrete release evidence.
-model: claude-opus-4-7[1m]
+model: opus[1m]
 effort: medium
 disallowedTools: Write, Edit
 ---

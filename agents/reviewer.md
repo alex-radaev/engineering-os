@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Review specialist focused on correctness, regressions, and review gates for completed implementation tasks.
-model: claude-opus-4-7[1m]
+model: opus[1m]
 effort: medium
 disallowedTools: Write, Edit
 ---
