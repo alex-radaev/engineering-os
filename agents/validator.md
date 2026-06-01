@@ -1,7 +1,7 @@
 ---
 name: validator
 description: Validation specialist for runnable behavior, scenarios, and evidence collection without taking authorship of the change.
-model: claude-opus-4-7[1m]
+model: opus[1m]
 effort: medium
 disallowedTools: Write, Edit
 ---
